@@ -15,6 +15,7 @@ var playing;
 var start = true;
 var isSeeking = false;
 var isPausing = false;
+var playbackFinished = false;
 
 var analyticsObject = {
 
@@ -85,6 +86,14 @@ function analyze(player) {
         analyticsObject.videoId = player.getConfig().source.videoId;
     }
 
+    player.addEventHandler(bitdash.EVENT.ON_SOURCE_LOADED, function(event) {
+
+        /*
+         generate impression id
+         */
+        analyticsObject.impressionId = generateImpressionID();
+    });
+
     player.addEventHandler(bitdash.EVENT.ON_READY, function(event) {
 
         /*
@@ -108,6 +117,15 @@ function analyze(player) {
             init playing time
         */
         initPlayTime = event.timestamp;
+
+        /*
+            generate new impression id if new playback
+        */
+        if (playbackFinished) {
+
+            playbackFinished = false;
+            analyticsObject.impressionId = generateImpressionID();
+        }
 
         /*
             call sample which was paused after resuming
@@ -146,54 +164,57 @@ function analyze(player) {
 
     player.addEventHandler(bitdash.EVENT.ON_TIME_CHANGED, function(event) {
 
-        /*
-            if not pausing set or update played attribute
-        */
-        if (!isPausing && !isSeeking) {
-            playing = event.timestamp - initPlayTime;
-            analyticsObject.played = Math.round(playing);
-            console.log(playing);
-        }
+        if (!playbackFinished) {
 
-        /*
-            set video playback data
-            for first frame and if video playback data has not changed yet
-        */
-        analyticsObject.videoPlaybackWidth = player.getPlaybackVideoData().width;
-        analyticsObject.videoPlaybackHeight = player.getPlaybackVideoData().height;
-        analyticsObject.videoBitrate = player.getPlaybackVideoData().bitrate;
+            /*
+             if not pausing set or update played attribute
+             */
+            if (!isPausing && !isSeeking) {
+                playing = event.timestamp - initPlayTime;
+                analyticsObject.played = Math.round(playing);
+                console.log(playing);
+            }
 
-        /*
+            /*
+             set video playback data
+             for first frame and if video playback data has not changed yet
+             */
+            analyticsObject.videoPlaybackWidth = player.getPlaybackVideoData().width;
+            analyticsObject.videoPlaybackHeight = player.getPlaybackVideoData().height;
+            analyticsObject.videoBitrate = player.getPlaybackVideoData().bitrate;
+
+            /*
              set audio playback data
              for first frame and if audio playback data has not changed yet
-        */
-        analyticsObject.audioBitrate = player.getPlaybackAudioData().bitrate;
+             */
+            analyticsObject.audioBitrate = player.getPlaybackAudioData().bitrate;
 
-        /*
-            only relevant if first frame occurs
-        */
-        if (firstSample == true) {
+            /*
+             only relevant if first frame occurs
+             */
+            if (firstSample == true) {
 
-            firstSample = false;
-            analyticsObject.videoStartupTime = event.timestamp - initPlayTime;
-            analyticsObject.duration = event.timestamp - initTime;
-            overall = analyticsObject.duration;
+                firstSample = false;
+                analyticsObject.videoStartupTime = event.timestamp - initPlayTime;
+                analyticsObject.duration = event.timestamp - initTime;
+                overall = analyticsObject.duration;
 
-            console.log("Sending: " + JSON.stringify(analyticsObject));
-            console.log("duration: " + analyticsObject.duration);
-            //sendRequest(analyticsObject);
+                console.log("Sending: " + JSON.stringify(analyticsObject));
+                console.log("duration: " + analyticsObject.duration);
+                //sendRequest(analyticsObject);
 
-            clearValues(event.timestamp);
-        }
-        else if (!firstSample && start == true) {
-            start = false;
-            analyticsObject.videoTimeStart = calculateTime(player.getCurrentTime());
+                clearValues(event.timestamp);
+            }
+            else if (!firstSample && start == true) {
+                start = false;
+                analyticsObject.videoTimeStart = calculateTime(player.getCurrentTime());
+            }
         }
     });
 
     player.addEventHandler(bitdash.EVENT.ON_SEEK, function(event) {
 
-        if (!isSeeking) {
+        if (!isSeeking && !playbackFinished) {
 
             /*
                 set init seek time
@@ -363,12 +384,16 @@ function analyze(player) {
 
     player.addEventHandler(bitdash.EVENT.ON_PLAYBACK_FINISHED, function(event) {
 
+        firstSample = true;
+        playbackFinished = true;
         analyticsObject.duration = calculateDuration(initTime, event.timestamp);
         analyticsObject.videoTimeEnd = calculateTime(player.getDuration());
 
         console.log("Sending: " + JSON.stringify(analyticsObject));
         console.log("duration: " + lastSampleDuration);
         //sendRequest(analyticsObject);
+
+        analyticsObject.videoTimeStart = 0;
     });
 }
 
@@ -424,6 +449,7 @@ function clearValues(timestamp) {
     analyticsObject.ad = 0;
     analyticsObject.paused = 0;
     analyticsObject.played = 0;
+    analyticsObject.seeked = 0;
     analyticsObject.buffered = 0;
     analyticsObject.errorCode = -1;
     analyticsObject.errorMessage = "";
@@ -442,4 +468,15 @@ function getCookie(cname) {
         }
     }
     return "";
+}
+
+function generateImpressionID() {
+
+    var id = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+
+        var r = Math.random()*16|0;
+        var v = c == 'x' ? r : (r&0x3|0x8);
+        return v.toString(16);
+    });
+    return id;
 }

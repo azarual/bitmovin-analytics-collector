@@ -15,16 +15,6 @@
       source:    {
         //dash: "http://bitdash-a.akamaihd.net/content/MI201109210084_1/mpds/art-of-motion-single-rep.mpd"
         dash: "http://bitdash-a.akamaihd.net/content/sintel/sintel.mpd"
-      },
-      advertising: {
-        client    : 'vast',
-        admessage : 'This ad will end in xx seconds',
-        schedule : {
-          'pre-roll-ad': {
-            offset : '5',
-            tag    : 'https://pubads.g.doubleclick.net/gampad/ads?sz=640x480&iu=/32573358/2nd_test_ad_unit&impl=s&gdfp_req=1&env=vp&output=xml_vast2&unviewed_position_start=1&url=[referrer_url]&description_url=[description_url]&correlator=[random]'
-          }
-        }
       }
     };
     var player = bitdash('player');
