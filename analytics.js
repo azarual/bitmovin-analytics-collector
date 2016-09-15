@@ -16,6 +16,7 @@ function analyze(player) {
     var playing;
     var once = true;
     var start = true;
+    var isPausing = false;
     var firstSample = true;
     var userAgent = navigator.userAgent;
     var screenWidth = screen.width;
@@ -67,7 +68,7 @@ function analyze(player) {
 
         analyticsObject.playerTech = player.getPlayerType();
         analyticsObject.streamFormat = player.getStreamType().toUpperCase();
-        analyticsObject.videoDuration = player.getDuration();
+        analyticsObject.videoDuration = player.getDuration() * 1000;
     });
 
     player.addEventHandler(bitdash.EVENT.ON_PLAY, function(event) {
@@ -81,6 +82,11 @@ function analyze(player) {
 
             analyticsObject.paused = pause;
 
+            // CALCULATE SAMPLE DURATION
+            lastSampleDuration = event.timestamp - initTime - overall;
+            overall += lastSampleDuration;
+            analyticsObject.duration = lastSampleDuration;
+
             //sendRequest(analyticsObject);
             console.log("Sending: " + JSON.stringify(analyticsObject));
             console.log("duration: " + lastSampleDuration);
@@ -91,27 +97,39 @@ function analyze(player) {
             analyticsObject.buffered = 0;
             analyticsObject.paused = 0;
             analyticsObject.ad = 0;
+            initPauseTime = 0;
+            isPausing = false;
         }
     });
 
     player.addEventHandler(bitdash.EVENT.ON_PAUSE, function(event) {
 
+        // ALSO FOR AD STARTING
         initPauseTime = event.timestamp;
 
-        analyticsObject.videoTimeEnd = player.getCurrentTime();
+        analyticsObject.videoTimeEnd = calculateTime(player.getCurrentTime());
 
         // CALCULATE SAMPLE DURATION
         lastSampleDuration = event.timestamp - initTime - overall;
         overall += lastSampleDuration;
         analyticsObject.duration = lastSampleDuration;
+
+        console.log("Sending: " + JSON.stringify(analyticsObject));
+        console.log("duration: " + lastSampleDuration);
+
+        // CLEAR PLAYED VALUE
+        analyticsObject.played = 0;
+        isPausing = true;
     });
 
     player.addEventHandler(bitdash.EVENT.ON_TIME_CHANGED, function(event) {
 
         // PLAYING
-        playing = event.timestamp - initPlayTime;
-        analyticsObject.played = Math.round(playing);
-        console.log(playing);
+        if (!isPausing) {
+            playing = event.timestamp - initPlayTime;
+            analyticsObject.played = Math.round(playing);
+            console.log(playing);
+        }
 
         // PLAYBACK VIDEO DATA
         analyticsObject.videoPlaybackWidth = player.getPlaybackVideoData().width;
@@ -143,14 +161,14 @@ function analyze(player) {
         }
         else if (!firstSample && start == true) {
             start = false;
-            analyticsObject.videoTimeStart = player.getCurrentTime();
+            analyticsObject.videoTimeStart = calculateTime(player.getCurrentTime());
         }
     });
 
     player.addEventHandler(bitdash.EVENT.ON_AUDIO_CHANGE, function(event) {
 
         analyticsObject.audioBitrate = event.bitrate;
-        analyticsObject.videoTimeEnd = player.getCurrentTime();
+        analyticsObject.videoTimeEnd = calculateTime(player.getCurrentTime());
 
         // CALCULATE SAMPLE DURATION
         lastSampleDuration = event.timestamp - initTime - overall;
@@ -179,8 +197,7 @@ function analyze(player) {
             lastSampleDuration = event.timestamp - initTime - overall;
             overall += lastSampleDuration;
             analyticsObject.duration = lastSampleDuration;
-
-            analyticsObject.videoTimeEnd = player.getCurrentTime();
+            analyticsObject.videoTimeEnd = calculateTime(player.getCurrentTime());
 
             console.log("Sending: " + JSON.stringify(analyticsObject));
             console.log("duration: " + lastSampleDuration);
@@ -210,14 +227,12 @@ function analyze(player) {
 
     player.addEventHandler(bitdash.EVENT.ON_FULLSCREEN_ENTER, function(event) {
 
-        analyticsObject.size = "FULLSCREEN";
-
         // CALCULATE SAMPLE DURATION
         lastSampleDuration = event.timestamp - initTime - overall;
         overall += lastSampleDuration;
         analyticsObject.duration = lastSampleDuration;
 
-        analyticsObject.videoTimeEnd = player.getCurrentTime();
+        analyticsObject.videoTimeEnd = calculateTime(player.getCurrentTime());
 
         console.log("Sending: " + JSON.stringify(analyticsObject));
         console.log("duration: " + lastSampleDuration);
@@ -228,18 +243,17 @@ function analyze(player) {
         initPlayTime = event.timestamp;
         analyticsObject.buffered = 0;
         analyticsObject.ad = 0;
+        analyticsObject.size = "FULLSCREEN";
     });
 
     player.addEventHandler(bitdash.EVENT.ON_FULLSCREEN_EXIT, function(event) {
 
-        analyticsObject.size = "WINDOW";
-
         // CALCULATE SAMPLE DURATION
         lastSampleDuration = event.timestamp - initTime - overall;
         overall += lastSampleDuration;
         analyticsObject.duration = lastSampleDuration;
 
-        analyticsObject.videoTimeEnd = player.getCurrentTime();
+        analyticsObject.videoTimeEnd = calculateTime(player.getCurrentTime());
 
         console.log("Sending: " + JSON.stringify(analyticsObject));
         console.log("duration: " + lastSampleDuration);
@@ -250,29 +264,20 @@ function analyze(player) {
         initPlayTime = event.timestamp;
         analyticsObject.buffered = 0;
         analyticsObject.ad = 0;
+        analyticsObject.size = "WINDOW";
     });
 
     player.addEventHandler(bitdash.EVENT.ON_AD_STARTED, function() {
 
         initAdTime = new Date().getTime();
 
-        // CALCULATE SAMPLE DURATION
-        lastSampleDuration = initAdTime - initTime - overall;
-        overall += lastSampleDuration;
-        analyticsObject.duration = lastSampleDuration;
-
-        analyticsObject.videoTimeEnd = player.getCurrentTime();
-
-        console.log("Sending: " + JSON.stringify(analyticsObject));
-        console.log("duration: " + lastSampleDuration);
-        //sendRequest(analyticsObject);
-
         // CLEAR VALUES
         start = true;
-        initPlayTime = initAdTime;
+        initPlayTime = new Date().getTime();
         analyticsObject.buffered = 0;
         analyticsObject.ad = 0;
         initPauseTime = 0;
+        isPausing = false;
     });
 
     player.addEventHandler(bitdash.EVENT.ON_AD_FINISHED, function() {
@@ -284,7 +289,7 @@ function analyze(player) {
         overall += lastSampleDuration;
         analyticsObject.duration = lastSampleDuration;
 
-        analyticsObject.videoTimeEnd = player.getCurrentTime();
+        analyticsObject.videoTimeEnd = calculateTime(player.getCurrentTime());
 
         console.log("Sending: " + JSON.stringify(analyticsObject));
         console.log("duration: " + lastSampleDuration);
@@ -295,6 +300,12 @@ function analyze(player) {
         initPlayTime = new Date().getTime();
         analyticsObject.buffered = 0;
         analyticsObject.ad = 0;
+        initPauseTime = 0;
+    });
+
+    player.addEventHandler(bitdash.EVENT.ON_AD_CLICKED, function(event) {
+        //TODO
+        console.log("Click");
     });
 
     player.addEventHandler(bitdash.EVENT.ON_ERROR, function(event) {
@@ -332,6 +343,11 @@ function sendRequest(object) {
     xhttp.open("POST", url, true);
     xhttp.setRequestHeader("Content-Type", "application/json");
     xhttp.send(JSON.stringify(object));
+}
+
+function calculateTime(time) {
+    time = time * 1000;
+    return Math.round(time);
 }
 
 function getCookie(cname) {
