@@ -87,7 +87,7 @@ function analyze(player) {
     }
 
     /*
-        set custom user id of player instance if available
+        set custom userID of player instance if available
     */
     if (player.getConfig().source.userId != undefined) {
 
@@ -95,7 +95,7 @@ function analyze(player) {
     }
 
     /*
-     read user id from cookies
+     read userID from cookies
      if no id exists a new user id will be generated
      */
     var userID = getCookie("bitdash_uuid");
