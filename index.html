@@ -13,8 +13,23 @@
     var conf = {
       key: "b22f6885-dd8b-4f28-a157-62b8fc8712b5",
       source:    {
-        //dash: "http://bitdash-a.akamaihd.net/content/MI201109210084_1/mpds/art-of-motion-single-rep.mpd"
-        dash: "http://bitdash-a.akamaihd.net/content/sintel/sintel.mpd"
+        //dash: "http://bitdash-a.akamaihd.net/content/sintel/sintel.mpd",
+        //hls:  "https://bitdash-a.akamaihd.net/content/sintel/hls/playlist.m3u8",
+        progressive:  [{
+          url:  "https://bitdash-a.akamaihd.net/content/MI201109210084_1/MI201109210084_mpeg-4_hd_high_1080p25_10mbits.mp4",
+          type: "video/mp4"
+        }],
+        userId:  "MY VIDEO"
+      },
+      advertising: {
+        client    : 'vast',
+        admessage : 'This ad will end in xx seconds',
+        schedule : {
+          'pre-roll-ad': {
+            offset : '10',
+            tag    : 'https://pubads.g.doubleclick.net/gampad/ads?sz=640x480&iu=/32573358/2nd_test_ad_unit&impl=s&gdfp_req=1&env=vp&output=xml_vast2&unviewed_position_start=1&url=[referrer_url]&description_url=[description_url]&correlator=[random]'
+          }
+        }
       }
     };
     var player = bitdash('player');
