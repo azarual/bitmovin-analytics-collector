@@ -2,7 +2,7 @@
  * Created by Bitmovin on 13.09.2016.
  */
 
-var overall;
+var overall = 0;
 var lastSampleDuration;
 
 var initAdTime;
@@ -54,7 +54,7 @@ var analyticsObject = {
     videoTimeEnd:       0,                                              // READY
     duration:           0,                                              // READY
     errorMessage:       "",                                             // READY
-    errorCode:          -1                                              // READY
+    errorCode:          0                                               // READY
 };
 
 function analyze(player) {
@@ -123,7 +123,13 @@ function analyze(player) {
         */
         if (playbackFinished) {
 
+            lastSampleDuration = 0;
             playbackFinished = false;
+            initTime = event.timestamp;
+            skipAudioPlaybackChange = true;
+            skipVideoPlaybackChange = true;
+            analyticsObject.videoTimeEnd = 0;
+            analyticsObject.videoTimeStart = 0;
             analyticsObject.impressionId = generateImpressionID();
         }
 
@@ -354,6 +360,7 @@ function analyze(player) {
 
     player.addEventHandler(bitdash.EVENT.ON_AD_FINISHED, function() {
 
+        console.log("Ad finished");
         analyticsObject.ad = new Date().getTime() - initAdTime;
 
         analyticsObject.played = 0;
@@ -392,8 +399,6 @@ function analyze(player) {
         console.log("Sending: " + JSON.stringify(analyticsObject));
         console.log("duration: " + lastSampleDuration);
         //sendRequest(analyticsObject);
-
-        analyticsObject.videoTimeStart = 0;
     });
 }
 
@@ -451,7 +456,7 @@ function clearValues(timestamp) {
     analyticsObject.played = 0;
     analyticsObject.seeked = 0;
     analyticsObject.buffered = 0;
-    analyticsObject.errorCode = -1;
+    analyticsObject.errorCode = 0;
     analyticsObject.errorMessage = "";
 }
 
