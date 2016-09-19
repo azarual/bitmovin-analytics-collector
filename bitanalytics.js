@@ -21,9 +21,10 @@ var analyticsObject = {
 
     key:                "02eaa791-d55c-45ff-9b93-1ca36e0cc0dd",         // READY
     domain:             window.location.hostname,                       // READY
+    path:               window.location.pathname,                       // READY
     userId:             "",                                             // READY
     language:           navigator.language || navigator.userLanguage,   // READY
-    impressionId:       "2aaa",                                         // READY
+    impressionId:       "",                                             // READY
     playerTech:         "",                                             // READY
     userAgent:          navigator.userAgent,                            // READY
     screenWidth:        screen.width,                                   // READY
@@ -57,6 +58,7 @@ var analyticsObject = {
 
 function analyze(player, id) {
 
+    console.log(analyticsObject.path);
     var initTime = new Date().getTime();
 
     // bool variable to recognize first sample
