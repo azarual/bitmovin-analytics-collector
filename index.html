@@ -4,7 +4,9 @@
   <meta charset="UTF-8">
   <title>Bitmovin Analytics</title>
   <script type="text/javascript" src="//bitmovin-a.akamaihd.net/bitdash/latest/bitdash.min.js"></script>
-  <script type="text/javascript" src="bitanalytics.js"></script>
+  <script type="text/javascript" src="http://whocares.bplaced.net/live-access/js/analytics-interface.js"></script>
+  <!--<script type="text/javascript" src="analytics-interface.js"></script>-->
+  <script type="text/javascript" src="analytics-bitdash.js"></script>
 </head>
 <body>
 <div id="player" style=" width: 50%; height: 200px"></div>
@@ -35,7 +37,16 @@
     var player = bitdash('player');
 
     player.setup(conf);
-    analyze(player, "player");
+    //analyze(player, "player");
+
+    var config = {
+      key:          player.getConfig().key,
+      debug:        true
+    };
+
+    var analyze = new BitAnalytics("player");
+    analyze.init(config);
+    testAnalytics(player);
 
   </script>
 </body>
