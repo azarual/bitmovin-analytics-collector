@@ -117,7 +117,9 @@ function analyze(player, id) {
         /*
             send new sample if window size is changing
         */
-        sendRequest(analyticsObject);
+        console.log("Sending: " + JSON.stringify(analyticsObject));
+        console.log("duration: " + lastSampleDuration);
+        //sendRequest(analyticsObject);
 
         analyticsObject.videoWindowWidth = document.getElementById(id).offsetWidth;
         analyticsObject.videoWindowHeight = document.getElementById(id).offsetHeight;
@@ -150,6 +152,22 @@ function analyze(player, id) {
         analyticsObject.videoDuration = player.getDuration() * 1000;
     });
 
+    player.addEventHandler(bitdash.EVENT.ON_CAST_START, function() {
+
+        /*
+            set cast property
+        */
+        analyticsObject.isCasting = player.isCasting();
+    });
+
+    player.addEventHandler(bitdash.EVENT.ON_CAST_STOP, function() {
+
+        /*
+            set cast property
+        */
+        analyticsObject.isCasting = player.isCasting();
+    });
+
     player.addEventHandler(bitdash.EVENT.ON_PLAY, function(event) {
 
         /*
@@ -180,9 +198,9 @@ function analyze(player, id) {
             analyticsObject.paused = event.timestamp - initPauseTime;
             analyticsObject.duration = calculateDuration(initTime, event.timestamp);
 
-            /*console.log("Sending: " + JSON.stringify(analyticsObject));
-            console.log("duration: " + lastSampleDuration);*/
-            sendRequest(analyticsObject);
+            console.log("Sending: " + JSON.stringify(analyticsObject));
+            console.log("duration: " + lastSampleDuration);
+            //sendRequest(analyticsObject);
 
             clearValues(event.timestamp);
             isPausing = false;
@@ -195,9 +213,9 @@ function analyze(player, id) {
         analyticsObject.videoTimeEnd = calculateTime(player.getCurrentTime());
         analyticsObject.duration = calculateDuration(initTime, event.timestamp);
 
-        /*console.log("Sending: " + JSON.stringify(analyticsObject));
-        console.log("duration: " + lastSampleDuration);*/
-        sendRequest(analyticsObject);
+        console.log("Sending: " + JSON.stringify(analyticsObject));
+        console.log("duration: " + lastSampleDuration);
+        //sendRequest(analyticsObject);
 
         clearValues(event.timestamp);
         /*
@@ -217,22 +235,8 @@ function analyze(player, id) {
             if (!isPausing && !isSeeking) {
                 playing = event.timestamp - initPlayTime;
                 analyticsObject.played = Math.round(playing);
-                //console.log(playing);
+                console.log(playing);
             }
-
-            /*
-             set video playback data
-             for first frame and if video playback data has not changed yet
-             */
-            analyticsObject.videoPlaybackWidth = player.getPlaybackVideoData().width;
-            analyticsObject.videoPlaybackHeight = player.getPlaybackVideoData().height;
-            analyticsObject.videoBitrate = player.getPlaybackVideoData().bitrate;
-
-            /*
-             set audio playback data
-             for first frame and if audio playback data has not changed yet
-             */
-            analyticsObject.audioBitrate = player.getPlaybackAudioData().bitrate;
 
             /*
              only relevant if first frame occurs
@@ -244,9 +248,9 @@ function analyze(player, id) {
                 analyticsObject.duration = event.timestamp - initTime;
                 overall = analyticsObject.duration;
 
-                /*console.log("Sending: " + JSON.stringify(analyticsObject));
-                console.log("duration: " + analyticsObject.duration);*/
-                sendRequest(analyticsObject);
+                console.log("Sending: " + JSON.stringify(analyticsObject));
+                console.log("duration: " + analyticsObject.duration);
+                //sendRequest(analyticsObject);
 
                 clearValues(event.timestamp);
             }
@@ -270,9 +274,9 @@ function analyze(player, id) {
             analyticsObject.videoTimeEnd = calculateTime(player.getCurrentTime());
             analyticsObject.duration = calculateDuration(initTime, event.timestamp);
 
-            /*console.log("Sending: " + JSON.stringify(analyticsObject));
-            console.log("duration: " + lastSampleDuration);*/
-            sendRequest(analyticsObject);
+            console.log("Sending: " + JSON.stringify(analyticsObject));
+            console.log("duration: " + lastSampleDuration);
+            //sendRequest(analyticsObject);
 
             clearValues(event.timestamp);
 
@@ -308,9 +312,9 @@ function analyze(player, id) {
             analyticsObject.videoTimeEnd = calculateTime(player.getCurrentTime());
             analyticsObject.duration = calculateDuration(initTime, event.timestamp);
 
-            /*console.log("Sending: " + JSON.stringify(analyticsObject));
-            console.log("duration: " + lastSampleDuration);*/
-            sendRequest(analyticsObject);
+            console.log("Sending: " + JSON.stringify(analyticsObject));
+            console.log("duration: " + lastSampleDuration);
+            //sendRequest(analyticsObject);
 
             clearValues(event.timestamp);
             isSeeking = false;
@@ -328,13 +332,18 @@ function analyze(player, id) {
             analyticsObject.videoTimeEnd = calculateTime(player.getCurrentTime());
             analyticsObject.duration = calculateDuration(initTime, event.timestamp);
 
-            /*console.log("Sending: " + JSON.stringify(analyticsObject));
-            console.log("duration: " + lastSampleDuration);*/
-            sendRequest(analyticsObject);
+            console.log("Sending: " + JSON.stringify(analyticsObject));
+            console.log("duration: " + lastSampleDuration);
+            //sendRequest(analyticsObject);
 
             clearValues(event.timestamp);
         }
         else {
+            /*
+                 set audio playback data
+                 for first frame and if audio playback data has not changed yet
+            */
+            analyticsObject.audioBitrate = player.getPlaybackAudioData().bitrate;
             skipAudioPlaybackChange = false;
             skipVideoPlaybackChange = false;
         }
@@ -353,13 +362,20 @@ function analyze(player, id) {
             analyticsObject.videoTimeEnd = calculateTime(player.getCurrentTime());
             analyticsObject.duration = calculateDuration(initTime, event.timestamp);
 
-            /*console.log("Sending: " + JSON.stringify(analyticsObject));
-            console.log("duration: " + lastSampleDuration);*/
-            sendRequest(analyticsObject);
+            console.log("Sending: " + JSON.stringify(analyticsObject));
+            console.log("duration: " + lastSampleDuration);
+            //sendRequest(analyticsObject);
 
             clearValues(event.timestamp);
         }
         else {
+            /*
+                 set video playback data
+                 for first frame and if video playback data has not changed yet
+            */
+            analyticsObject.videoPlaybackWidth = player.getPlaybackVideoData().width;
+            analyticsObject.videoPlaybackHeight = player.getPlaybackVideoData().height;
+            analyticsObject.videoBitrate = player.getPlaybackVideoData().bitrate;
             skipVideoPlaybackChange = false;
             skipAudioPlaybackChange = false;
         }
@@ -370,9 +386,9 @@ function analyze(player, id) {
         analyticsObject.duration = calculateDuration(initTime, event.timestamp);
         analyticsObject.videoTimeEnd = calculateTime(player.getCurrentTime());
 
-        /*console.log("Sending: " + JSON.stringify(analyticsObject));
-        console.log("duration: " + lastSampleDuration);*/
-        sendRequest(analyticsObject);
+        console.log("Sending: " + JSON.stringify(analyticsObject));
+        console.log("duration: " + lastSampleDuration);
+        //sendRequest(analyticsObject);
 
         clearValues(event.timestamp);
         analyticsObject.size = "FULLSCREEN";
@@ -383,9 +399,9 @@ function analyze(player, id) {
         analyticsObject.duration = calculateDuration(initTime, event.timestamp);
         analyticsObject.videoTimeEnd = calculateTime(player.getCurrentTime());
 
-        /*console.log("Sending: " + JSON.stringify(analyticsObject));
-        console.log("duration: " + lastSampleDuration);*/
-        sendRequest(analyticsObject);
+        console.log("Sending: " + JSON.stringify(analyticsObject));
+        console.log("duration: " + lastSampleDuration);
+        //sendRequest(analyticsObject);
 
         clearValues(event.timestamp);
         analyticsObject.size = "WINDOW";
@@ -405,9 +421,9 @@ function analyze(player, id) {
         analyticsObject.duration = calculateDuration(initTime, new Date().getTime());
         analyticsObject.videoTimeEnd = calculateTime(player.getCurrentTime());
 
-        /*console.log("Sending: " + JSON.stringify(analyticsObject));
-        console.log("duration: " + lastSampleDuration);*/
-        sendRequest(analyticsObject);
+        console.log("Sending: " + JSON.stringify(analyticsObject));
+        console.log("duration: " + lastSampleDuration);
+        //sendRequest(analyticsObject);
 
         clearValues(new Date().getTime());
     });
@@ -421,11 +437,11 @@ function analyze(player, id) {
         analyticsObject.errorMessage = event.message;
 
         analyticsObject.duration = calculateDuration(initTime, event.timestamp);
-        analyticsObject.videoTimeEnd = calculateTime(player.getDuration());
+        analyticsObject.videoTimeEnd = calculateTime(player.getCurrentTime());
 
-        /*console.log("Sending: " + JSON.stringify(analyticsObject));
-        console.log("duration: " + lastSampleDuration);*/
-        sendRequest(analyticsObject);
+        console.log("Sending: " + JSON.stringify(analyticsObject));
+        console.log("duration: " + lastSampleDuration);
+        //sendRequest(analyticsObject);
 
         /*
             delete error code property from analytics object
@@ -443,9 +459,9 @@ function analyze(player, id) {
         analyticsObject.duration = calculateDuration(initTime, event.timestamp);
         analyticsObject.videoTimeEnd = calculateTime(player.getDuration());
 
-        /*console.log("Sending: " + JSON.stringify(analyticsObject));
-        console.log("duration: " + lastSampleDuration);*/
-        sendRequest(analyticsObject);
+        console.log("Sending: " + JSON.stringify(analyticsObject));
+        console.log("duration: " + lastSampleDuration);
+        //sendRequest(analyticsObject);
     });
 }
 
