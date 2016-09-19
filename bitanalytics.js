@@ -57,8 +57,7 @@ var analyticsObject = {
 };
 
 function analyze(player, id) {
-
-    console.log(analyticsObject.path);
+    
     var initTime = new Date().getTime();
 
     // bool variable to recognize first sample
