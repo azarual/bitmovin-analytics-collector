@@ -38,8 +38,8 @@ var analyticsObject = {
     videoStartupTime:   0,                                              // READY
     customUserId:       "",                                             // READY
     size:               "WINDOW",                                       // READY
-    videoWindowWidth:   0,                                              // NOT READY YET
-    videoWindowHeight:  0,                                              // NOT READY YET
+    videoWindowWidth:   0,                                              // READY
+    videoWindowHeight:  0,                                              // READY
     droppedFrames:      0,                                              // READY
     played:             0,                                              // READY
     buffered:           0,                                              // READY
@@ -52,12 +52,10 @@ var analyticsObject = {
     audioBitrate:       0,                                              // READY
     videoTimeStart:     0,                                              // READY
     videoTimeEnd:       0,                                              // READY
-    duration:           0,                                              // READY
-    errorMessage:       "",                                             // READY
-    errorCode:          0                                               // READY
+    duration:           0                                               // READY
 };
 
-function analyze(player) {
+function analyze(player, id) {
 
     var initTime = new Date().getTime();
 
@@ -77,6 +75,9 @@ function analyze(player) {
     analyticsObject.version = player.getVersion();
     analyticsObject.isCasting = player.isCasting();
     analyticsObject.droppedFrames = player.getDroppedFrames();
+
+    analyticsObject.videoWindowWidth = document.getElementById(id).offsetWidth;
+    analyticsObject.videoWindowHeight = document.getElementById(id).offsetHeight;
 
     /*
         set videoID of player instance if available
@@ -108,6 +109,20 @@ function analyze(player) {
     else {
         analyticsObject.userId = userID;
     }
+
+
+    window.addEventListener('resize', function(){
+
+        /*
+            send new sample if window size is changing
+        */
+        sendRequest(analyticsObject);
+
+        analyticsObject.videoWindowWidth = document.getElementById(id).offsetWidth;
+        analyticsObject.videoWindowHeight = document.getElementById(id).offsetHeight;
+
+        clearValues(new Date().getTime());
+    });
 
     player.addEventHandler(bitdash.EVENT.ON_SOURCE_LOADED, function() {
 
@@ -398,6 +413,9 @@ function analyze(player) {
 
     player.addEventHandler(bitdash.EVENT.ON_ERROR, function(event) {
 
+        /*
+            add error code property from analytics object
+        */
         analyticsObject.errorCode = event.code;
         analyticsObject.errorMessage = event.message;
 
@@ -407,6 +425,12 @@ function analyze(player) {
         /*console.log("Sending: " + JSON.stringify(analyticsObject));
         console.log("duration: " + lastSampleDuration);*/
         sendRequest(analyticsObject);
+
+        /*
+            delete error code property from analytics object
+        */
+        delete analyticsObject.errorCode;
+        delete analyticsObject.errorMessage;
 
         clearValues(new Date().getTime());
     });
@@ -478,8 +502,6 @@ function clearValues(timestamp) {
     analyticsObject.played = 0;
     analyticsObject.seeked = 0;
     analyticsObject.buffered = 0;
-    analyticsObject.errorCode = 0;
-    analyticsObject.errorMessage = "";
 }
 
 function getCookie(cname) {
