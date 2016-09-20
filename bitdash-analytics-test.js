@@ -10,7 +10,7 @@ function testAnalytics(player) {
         //analyze.generateImpressionID;
     });
 
-    player.addEventHandler(bitdash.EVENT.ON_READY, function(event) {
+    player.addEventHandler(bitdash.EVENT.ON_READY, function() {
 
         analyze.record(analyze.events.READY, {
             isLive:     player.isLive(),
@@ -33,7 +33,7 @@ function testAnalytics(player) {
         analyze.record(analyze.events.END_CAST);
     });
 
-    player.addEventHandler(bitdash.EVENT.ON_PLAY, function(event) {
+    player.addEventHandler(bitdash.EVENT.ON_PLAY, function() {
 
         analyze.record(analyze.events.PLAY, {
 
@@ -42,7 +42,7 @@ function testAnalytics(player) {
     });
 
     // ALSO FOR AD STARTING
-    player.addEventHandler(bitdash.EVENT.ON_PAUSE, function(event) {
+    player.addEventHandler(bitdash.EVENT.ON_PAUSE, function() {
 
         analyze.record(analyze.events.PAUSE, {
 
@@ -51,7 +51,7 @@ function testAnalytics(player) {
         });
     });
 
-    player.addEventHandler(bitdash.EVENT.ON_TIME_CHANGED, function(event) {
+    player.addEventHandler(bitdash.EVENT.ON_TIME_CHANGED, function() {
 
         analyze.record(analyze.events.TIMECHANGED, {
 
@@ -60,7 +60,7 @@ function testAnalytics(player) {
         });
     });
 
-    player.addEventHandler(bitdash.EVENT.ON_SEEK, function(event) {
+    player.addEventHandler(bitdash.EVENT.ON_SEEK, function() {
 
         analyze.record(analyze.events.SEEK, {
 
@@ -69,13 +69,13 @@ function testAnalytics(player) {
         });
     });
 
-    player.addEventHandler(bitdash.EVENT.ON_START_BUFFERING, function(event) {
+    player.addEventHandler(bitdash.EVENT.ON_START_BUFFERING, function() {
 
         analyze.record(analyze.events.START_BUFFERING);
     });
 
     // ALSO FOR SEEK END
-    player.addEventHandler(bitdash.EVENT.ON_STOP_BUFFERING, function(event) {
+    player.addEventHandler(bitdash.EVENT.ON_STOP_BUFFERING, function() {
 
         analyze.record(analyze.events.END_BUFFERING, {
 
@@ -106,7 +106,7 @@ function testAnalytics(player) {
         });
     });
 
-    player.addEventHandler(bitdash.EVENT.ON_FULLSCREEN_ENTER, function(event) {
+    player.addEventHandler(bitdash.EVENT.ON_FULLSCREEN_ENTER, function() {
 
         analyze.record(analyze.events.START_FULLSCREEN, {
 
@@ -115,7 +115,7 @@ function testAnalytics(player) {
         });
     });
 
-    player.addEventHandler(bitdash.EVENT.ON_FULLSCREEN_EXIT, function(event) {
+    player.addEventHandler(bitdash.EVENT.ON_FULLSCREEN_EXIT, function() {
 
         analyze.record(analyze.events.END_FULLSCREEN, {
 
@@ -149,7 +149,7 @@ function testAnalytics(player) {
         });
     });
 
-    player.addEventHandler(bitdash.EVENT.ON_PLAYBACK_FINISHED, function(event) {
+    player.addEventHandler(bitdash.EVENT.ON_PLAYBACK_FINISHED, function() {
 
         analyze.record(analyze.events.PLAYBACK_FINISHED, {
             duration:    player.getDuration(),
