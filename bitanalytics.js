@@ -308,6 +308,14 @@ function BitAnalytics(videoId) {
                 case this.events.READY:
 
                     analyticsObject.playerStartupTime = timestamp - initTime;
+
+                    analyticsObject.isLive = eventObject.isLive;
+                    analyticsObject.version = eventObject.version;
+                    analyticsObject.playerTech = eventObject.type;
+                    analyticsObject.videoDuration = eventObject.duration;
+                    analyticsObject.streamFormat = eventObject.streamType;
+                    analyticsObject.videoId = eventObject.videoId;
+                    analyticsObject.customUserId = eventObject.userId;
                     break;
 
 

@@ -4,14 +4,23 @@
   <meta charset="UTF-8">
   <title>Bitmovin Analytics</title>
   <script type="text/javascript" src="//bitmovin-a.akamaihd.net/bitdash/latest/bitdash.min.js"></script>
-  <script type="text/javascript" src="http://whocares.bplaced.net/live-access/js/analytics-interface.js"></script>
-  <!--<script type="text/javascript" src="analytics-interface.js"></script>-->
-  <script type="text/javascript" src="analytics-bitdash.js"></script>
+  <script type="text/javascript" src="http://whocares.bplaced.net/live-access/js/bitanalytics.js"></script>
+  <script type="text/javascript" src="bitdash-analytics-test.js"></script>
 </head>
 <body>
 <div id="player" style=" width: 50%; height: 200px"></div>
   <script type="text/javascript">
 
+    // init bitdash analytics reporting
+    var config = {
+      key:  "02eaa791-d55c-45ff-9b93-1ca36e0cc0dd",
+      debug:  true
+    };
+
+    var analyze = new BitAnalytics("player");
+    analyze.init(config);
+
+    // init bitdash player instance
     var conf = {
       key: "b22f6885-dd8b-4f28-a157-62b8fc8712b5",
       source:    {
@@ -37,15 +46,6 @@
     var player = bitdash('player');
 
     player.setup(conf);
-    //analyze(player, "player");
-
-    var config = {
-      key:          player.getConfig().key,
-      debug:        true
-    };
-
-    var analyze = new BitAnalytics("player");
-    analyze.init(config);
     testAnalytics(player);
 
   </script>
