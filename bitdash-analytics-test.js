@@ -4,6 +4,10 @@
 
 function testAnalytics(player) {
 
+    window.addEventListener("resize", function() {
+        analyze.record(analyze.events.SCREEN_RESIZE);
+    });
+
     player.addEventHandler(bitdash.EVENT.ON_SOURCE_LOADED, function() {
 
         analyze.record(analyze.events.SOURCE_LOADED);
