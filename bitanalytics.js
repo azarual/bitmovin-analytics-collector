@@ -68,15 +68,15 @@ function BitAnalytics(videoId) {
         userId:                 "",                                             // READY
         language:               navigator.language || navigator.userLanguage,   // READY
         impressionId:           "",                                             // READY
-        playerTech:             "",                                             // READY
+        playerTech:             "unknown",                                      // READY
         userAgent:              navigator.userAgent,                            // READY
         screenWidth:            screen.width,                                   // READY
         screenHeight:           screen.height,                                  // READY
-        streamFormat:           "",                                             // READY
-        version:                "",                                             // READY
+        streamFormat:           "unknown",                                      // READY
+        version:                "unknown",                                      // READY
         isLive:                 false,                                          // READY
         isCasting:              false,                                          // READY
-        videoDuration:          "",                                             // READY
+        videoDuration:          0,                                              // READY
         videoId:                "",                                             // READY
         playerStartupTime:      0,                                              // READY
         videoStartupTime:       0,                                              // READY
