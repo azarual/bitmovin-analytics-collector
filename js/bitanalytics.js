@@ -12,6 +12,12 @@ function BitAnalytics(videoId) {
     var containerId = videoId;
 
     /*
+        if user just wants to test locally and debug output
+        if enabled there will be no communication to the analytics backend
+    */
+    var localTest = false;
+
+    /*
      firstSample - bollean to check if first sample is being played
 
      skipAudio and skipVideo
@@ -59,7 +65,7 @@ function BitAnalytics(videoId) {
     /*
      analytics backend url
      */
-    var url = "https://bitdash-reporting-test-dow.appspot.com/analytics";
+    var url = "https://bitmovin-bitanalytics.appspot.com/analytics";
 
     var analyticsObject = {
         key:                    "",                                             // READY
@@ -166,31 +172,34 @@ function BitAnalytics(videoId) {
 
     function sendRequest() {
 
-        var xhttp;
+        if (!localTest) {
 
-        if (window.XMLHttpRequest) {
-            xhttp = new XMLHttpRequest();
-        } else {
-            // code for IE6, IE5
-            xhttp = new ActiveXObject("Microsoft.XMLHTTP");
-        }
+            var xhttp;
 
-        // CHECK RESPONSE
-        xhttp.onreadystatechange = function() {
-
-            if (xhttp.readyState == 4) {
-                if (xhttp.status == 204) {
-                    console.log('Connection successful');
-                } else {
-                    console.log('Connection failed');
-                }
+            if (window.XMLHttpRequest) {
+                xhttp = new XMLHttpRequest();
+            } else {
+                // code for IE6, IE5
+                xhttp = new ActiveXObject("Microsoft.XMLHTTP");
             }
-        };
 
-        // SEND ANALYZE OBJECT
-        xhttp.open("POST", url, true);
-        xhttp.setRequestHeader("Content-Type", "application/json");
-        xhttp.send(JSON.stringify(analyticsObject));
+            // CHECK RESPONSE
+            xhttp.onreadystatechange = function() {
+
+                if (xhttp.readyState == 4) {
+                    if (xhttp.status == 204) {
+                        console.log('Connection successful');
+                    } else {
+                        console.log('Connection failed');
+                    }
+                }
+            };
+
+            // SEND ANALYZE OBJECT
+            xhttp.open("POST", url, true);
+            xhttp.setRequestHeader("Content-Type", "application/json");
+            xhttp.send(JSON.stringify(analyticsObject));
+        }
     }
 
     function calculateTime(time) {
@@ -281,6 +290,10 @@ function BitAnalytics(videoId) {
             if (validBoolean(object.debug)) {
 
                 debug = object.debug;
+            }
+            if (validBoolean(object.localTest)) {
+
+                localTest = object.localTest;
             }
 
             analyticsObject.key = object.key;
@@ -582,7 +595,6 @@ function BitAnalytics(videoId) {
                             analyticsObject.audioBitrate = eventObject.bitrate;
                         }
                         skipAudioPlaybackChange = false;
-                        skipVideoPlaybackChange = false;
                     }
                     break;
 
@@ -639,7 +651,6 @@ function BitAnalytics(videoId) {
                             analyticsObject.videoBitrate = eventObject.bitrate;
                         }
                         skipVideoPlaybackChange = false;
-                        skipAudioPlaybackChange = false;
                     }
                     break;
 
@@ -754,10 +765,8 @@ function BitAnalytics(videoId) {
 
                     firstSample = true;
                     playbackFinished = true;
-                    if (validNumber(eventObject.currentTime)) {
+                    analyticsObject.videoTimeEnd = analyticsObject.videoDuration;
 
-                        analyticsObject.videoTimeEnd = calculateTime(eventObject.currentTime);
-                    }
                     if (validNumber(eventObject.droppedFrames)) {
 
                         analyticsObject.droppedFrames = getDroppedFrames(eventObject.droppedFrames);

@@ -5,7 +5,10 @@
 function testAnalytics(player) {
 
     window.addEventListener("resize", function() {
-        analyze.record(analyze.events.SCREEN_RESIZE);
+
+        analyze.record(analyze.events.SCREEN_RESIZE, {
+            currentTime:    player.getCurrentTime()
+        });
     });
 
     player.addEventHandler(bitdash.EVENT.ON_SOURCE_LOADED, function() {
@@ -88,23 +91,26 @@ function testAnalytics(player) {
         });
     });
 
-    player.addEventHandler(bitdash.EVENT.ON_AUDIO_CHANGE, function(event) {
+    player.addEventHandler(bitdash.EVENT.ON_AUDIO_PLAYBACK_QUALITY_CHANGE, function() {
+
+        var quality = player.getPlaybackAudioData();
 
         analyze.record(analyze.events.AUDIO_CHANGE, {
 
-            bitrate:        event.bitrate,
+            bitrate:        quality.bitrate,
             currentTime:    player.getCurrentTime(),
             droppedFrames:  player.getDroppedFrames()
         });
     });
 
-    player.addEventHandler(bitdash.EVENT.ON_VIDEO_PLAYBACK_QUALITY_CHANGE, function(event) {
+    player.addEventHandler(bitdash.EVENT.ON_VIDEO_PLAYBACK_QUALITY_CHANGE, function() {
 
+        var quality = player.getPlaybackVideoData();
         analyze.record(analyze.events.VIDEO_CHANGE, {
 
-            width:          event.width,
-            height:         event.height,
-            bitrate:        event.bitrate,
+            width:          quality.width,
+            height:         quality.height,
+            bitrate:        quality.bitrate,
             currentTime:    player.getCurrentTime(),
             droppedFrames:  player.getDroppedFrames()
         });
@@ -156,7 +162,7 @@ function testAnalytics(player) {
     player.addEventHandler(bitdash.EVENT.ON_PLAYBACK_FINISHED, function() {
 
         analyze.record(analyze.events.PLAYBACK_FINISHED, {
-            duration:    player.getDuration(),
+
             droppedFrames:  player.getDroppedFrames()
         });
     });

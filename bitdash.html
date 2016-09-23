@@ -2,10 +2,10 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Bitmovin Analytics</title>
+  <title>Bitdash Analytics</title>
   <script type="text/javascript" src="//bitmovin-a.akamaihd.net/bitdash/latest/bitdash.min.js"></script>
-  <script type="text/javascript" src="http://whocares.bplaced.net/live-access/js/bitanalytics.js"></script>
-  <script type="text/javascript" src="bitdash-analytics-test.js"></script>
+  <script type="text/javascript" src="js/bitanalytics.js"></script>
+  <script type="text/javascript" src="js/bitdash-analyticInterface.js"></script>
 </head>
 <body>
 <div id="player" style=" width: 50%; height: 200px"></div>
@@ -13,8 +13,9 @@
 
     // init bitdash analytics reporting
     var config = {
-      key:  "02eaa791-d55c-45ff-9b93-1ca36e0cc0dd",
-      debug:  true
+      key:  "3809b62d-a8f4-4ce7-b051-bf8284717811",
+      debug:  true,
+      localTest:  true  // if true no requests will be sent to analytics backend
     };
 
     var analyze = new BitAnalytics("player");

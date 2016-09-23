@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Radiant Analytics</title>
+  <script type="text/javascript" src="https://cdn.radiantmediatechs.com/rmp/3.4.5/js/rmp.min.js"></script>
+  <script type="text/javascript" src="js/bitanalytics.js"></script>
+  <script type="text/javascript" src="js/radiant-analyticInterface.js"></script>
+</head>
+<body>
+<div id="player">
+
+</div>
+<script type="text/javascript">
+
+  var settings = {
+    licenseKey: 'Y2llaWFtcWFlbSEqXyU0YmV5PW92MDJ1PTA3MnllaT9yb201ZGFzaXMzMGRiMEElXyo=',
+    bitrates: {
+      dash: "http://bitdash-a.akamaihd.net/content/sintel/sintel.mpd"
+    },
+    ads: true,
+    labels: {
+      ads: {
+        controlBarCustomMessage: 'This ad will end in xx seconds'
+      }
+    },
+    adTagUrl: "https://pubads.g.doubleclick.net/gampad/ads?sz=640x480&iu=/32573358/2nd_test_ad_unit&impl=s&gdfp_req=1&env=vp&output=xml_vast2&unviewed_position_start=1&url=[referrer_url]&description_url=[description_url]&correlator=[random]",
+    poster: '//bitdash-a.akamaihd.net/content/MI201109210084_1/poster.jpg',
+    autoplay: true
+  };
+
+  var element = 'player';
+  var rmp = new RadiantMP(element);
+  var rmpContainer = document.getElementById(element);
+
+  rmp.init(settings);
+
+  var config = {
+    key:          "3809b62d-a8f4-4ce7-b051-bf8284717811",
+    debug:        true,
+    localTest:    true    // if true no requests will be sent to analytics backend
+  };
+
+  var analyze = new BitAnalytics("player");
+  analyze.init(config);
+  testRadiantAnalytics(rmpContainer, rmp);
+
+</script>
+</body>
+</html>
