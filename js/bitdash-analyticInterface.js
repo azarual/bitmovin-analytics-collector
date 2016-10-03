@@ -5,12 +5,12 @@
 function registerEvents(player) {
 
     player.addEventHandler(bitdash.EVENT.ON_SOURCE_LOADED, function() {
-        analyze.record(analyze.events.SOURCE_LOADED);
-        //analyze.generateImpressionID;
+        analytics.record(analytics.events.SOURCE_LOADED);
+        //analytics.generateImpressionID;
     });
 
     player.addEventHandler(bitdash.EVENT.ON_READY, function() {
-        analyze.record(analyze.events.READY, {
+        analytics.record(analytics.events.READY, {
             isLive:     player.isLive(),
             version:    player.getVersion(),
             type:       player.getPlayerType(),
@@ -22,48 +22,48 @@ function registerEvents(player) {
     });
 
     player.addEventHandler(bitdash.EVENT.ON_CAST_START, function() {
-        analyze.record(analyze.events.START_CAST);
+        analytics.record(analytics.events.START_CAST);
     });
 
     player.addEventHandler(bitdash.EVENT.ON_CAST_STOP, function() {
-        analyze.record(analyze.events.END_CAST);
+        analytics.record(analytics.events.END_CAST);
     });
 
     player.addEventHandler(bitdash.EVENT.ON_PLAY, function() {
-        analyze.record(analyze.events.PLAY, {
+        analytics.record(analytics.events.PLAY, {
             droppedFrames:  player.getDroppedFrames()
         });
     });
 
     // ALSO FOR AD STARTING
     player.addEventHandler(bitdash.EVENT.ON_PAUSE, function() {
-        analyze.record(analyze.events.PAUSE, {
+        analytics.record(analytics.events.PAUSE, {
             currentTime:    player.getCurrentTime(),
             droppedFrames:  player.getDroppedFrames()
         });
     });
 
     player.addEventHandler(bitdash.EVENT.ON_TIME_CHANGED, function() {
-        analyze.record(analyze.events.TIMECHANGED, {
+        analytics.record(analytics.events.TIMECHANGED, {
             currentTime:    player.getCurrentTime(),
             droppedFrames:  player.getDroppedFrames()
         });
     });
 
     player.addEventHandler(bitdash.EVENT.ON_SEEK, function() {
-        analyze.record(analyze.events.SEEK, {
+        analytics.record(analytics.events.SEEK, {
             currentTime:    player.getCurrentTime(),
             droppedFrames:  player.getDroppedFrames()
         });
     });
 
     player.addEventHandler(bitdash.EVENT.ON_START_BUFFERING, function() {
-        analyze.record(analyze.events.START_BUFFERING);
+        analytics.record(analytics.events.START_BUFFERING);
     });
 
     // ALSO FOR SEEK END
     player.addEventHandler(bitdash.EVENT.ON_STOP_BUFFERING, function() {
-        analyze.record(analyze.events.END_BUFFERING, {
+        analytics.record(analytics.events.END_BUFFERING, {
             currentTime:    player.getCurrentTime(),
             droppedFrames:  player.getDroppedFrames()
         });
@@ -72,7 +72,7 @@ function registerEvents(player) {
     player.addEventHandler(bitdash.EVENT.ON_AUDIO_PLAYBACK_QUALITY_CHANGE, function() {
         var quality = player.getPlaybackAudioData();
 
-        analyze.record(analyze.events.AUDIO_CHANGE, {
+        analytics.record(analytics.events.AUDIO_CHANGE, {
             bitrate:        quality.bitrate,
             currentTime:    player.getCurrentTime(),
             droppedFrames:  player.getDroppedFrames()
@@ -82,7 +82,7 @@ function registerEvents(player) {
     player.addEventHandler(bitdash.EVENT.ON_VIDEO_PLAYBACK_QUALITY_CHANGE, function() {
         var quality = player.getPlaybackVideoData();
         
-        analyze.record(analyze.events.VIDEO_CHANGE, {
+        analytics.record(analytics.events.VIDEO_CHANGE, {
             width:          quality.width,
             height:         quality.height,
             bitrate:        quality.bitrate,
@@ -92,32 +92,32 @@ function registerEvents(player) {
     });
 
     player.addEventHandler(bitdash.EVENT.ON_FULLSCREEN_ENTER, function() {
-        analyze.record(analyze.events.START_FULLSCREEN, {
+        analytics.record(analytics.events.START_FULLSCREEN, {
             currentTime:    player.getCurrentTime(),
             droppedFrames:  player.getDroppedFrames()
         });
     });
 
     player.addEventHandler(bitdash.EVENT.ON_FULLSCREEN_EXIT, function() {
-        analyze.record(analyze.events.END_FULLSCREEN, {
+        analytics.record(analytics.events.END_FULLSCREEN, {
             currentTime:    player.getCurrentTime(),
             droppedFrames:  player.getDroppedFrames()
         });
     });
 
     player.addEventHandler(bitdash.EVENT.ON_AD_STARTED, function() {
-        analyze.record(analyze.events.START_AD);
+        analytics.record(analytics.events.START_AD);
     });
 
     player.addEventHandler(bitdash.EVENT.ON_AD_FINISHED, function() {
-        analyze.record(analyze.events.END_AD, {
+        analytics.record(analytics.events.END_AD, {
             currentTime:    player.getCurrentTime(),
             droppedFrames:  player.getDroppedFrames()
         });
     });
 
     player.addEventHandler(bitdash.EVENT.ON_ERROR, function(event) {
-        analyze.record(analyze.events.ERROR, {
+        analytics.record(analytics.events.ERROR, {
             code:           event.code,
             message:        event.message,
             currentTime:    player.getCurrentTime(),
@@ -126,7 +126,14 @@ function registerEvents(player) {
     });
 
     player.addEventHandler(bitdash.EVENT.ON_PLAYBACK_FINISHED, function() {
-        analyze.record(analyze.events.PLAYBACK_FINISHED, {
+        analytics.record(analytics.events.PLAYBACK_FINISHED, {
+            droppedFrames:  player.getDroppedFrames()
+        });
+    });
+
+    window.addEventListener("unload", function() {
+        analytics.record(analytics.events.UNLOAD, {
+            currentTime:    player.getCurrentTime(),
             droppedFrames:  player.getDroppedFrames()
         });
     });

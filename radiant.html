@@ -36,14 +36,14 @@
   rmp.init(settings);
 
   var config = {
-    key:          "3809b62d-a8f4-4ce7-b051-bf8284717811",
-    debug:        true,
-    localTest:    true    // if true no requests will be sent to analytics backend
+    key: "830a8f27-6609-4603-a40b-436a7bb2f8a0", //Your bitmovin analytics key
+    playerKey: "8cac45ae-dff8-44b5-9a59-1080c02d2067", //Your player key (bitmovin, jw, ..) (optional)
+    player: "radiant-player"
   };
 
-  var analyze = new BitAnalytics("player");
-  analyze.init(config);
-  testRadiantAnalytics(rmpContainer, rmp);
+  var analytics = new BitAnalytics("player");
+  analytics.init(config);
+  registerEvents(rmpContainer, rmp);
 
 </script>
 </body>

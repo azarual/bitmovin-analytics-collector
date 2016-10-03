@@ -10,25 +10,13 @@ var skipInitSeek = true;
 
 var lastQuality = null;
 
-function testRadiantAnalytics(container, player) {
-
-    console.log("RESIZE");
-    window.addEventListener("resize", function() {
-
-        analyze.record(analyze.events.SCREEN_RESIZE, {
-            currentTime:    toSeconds(player.getCurrentTime())
-        });
-    });
-
+function registerEvents(container, player) {
     container.addEventListener("loadstart", function() {
-
-        analyze.record(analyze.events.SOURCE_LOADED);
+        analytics.record(analytics.events.SOURCE_LOADED);
     });
 
     container.addEventListener("ready", function() {
-
-        analyze.record(analyze.events.READY, {
-
+        analytics.record(analytics.events.READY, {
             type:       player.getPlayerMode(),
             version:    player.getPlayerVersion(),
             streamType: player.getStreamType()
@@ -39,15 +27,13 @@ function testRadiantAnalytics(container, player) {
     });
 
     container.addEventListener('durationchange', function() {
-
-        analyze.record(analyze.events.READY, {
+        analytics.record(analytics.events.READY, {
             duration:   toSeconds(player.getDuration())
         });
     });
 
     container.addEventListener("play", function() {
-
-        analyze.record(analyze.events.PLAY);
+        analytics.record(analytics.events.PLAY);
     });
 
     container.addEventListener("timeupdate", function() {
@@ -57,9 +43,7 @@ function testRadiantAnalytics(container, player) {
          */
         var quality = player.getBitrates()[player.getCurrentBitrateIndex()];
         if (JSON.stringify(quality) != JSON.stringify(lastQuality)) {
-
-            analyze.record(analyze.events.VIDEO_CHANGE, {
-
+            analytics.record(analytics.events.VIDEO_CHANGE, {
                 width:          quality.width,
                 height:         quality.height,
                 bitrate:        quality.bitrate,
@@ -68,46 +52,40 @@ function testRadiantAnalytics(container, player) {
             lastQuality = quality;
         }
 
-        analyze.record(analyze.events.TIMECHANGED, {
+        analytics.record(analytics.events.TIMECHANGED, {
             currentTime:    toSeconds(player.getCurrentTime())
         });
     });
 
     container.addEventListener("pause", function() {
-
+        
         /**
          * prevent player to raise pause event during playback finish
          */
         if (player.getCurrentTime() < player.getDuration()) {
-
-            analyze.record(analyze.events.PAUSE, {
+            analytics.record(analytics.events.PAUSE, {
                 currentTime:    toSeconds(player.getCurrentTime())
             });
         }
     });
 
     container.addEventListener("seeking", function() {
-
         if (!skipInitSeek) {
-
-            analyze.record(analyze.events.SEEK, {
+            analytics.record(analytics.events.SEEK, {
                 currentTime:    toSeconds(player.getCurrentTime())
             });
         }
     });
 
     container.addEventListener("waiting", function() {
-
-        analyze.record(analyze.events.START_BUFFERING, {
+        analytics.record(analytics.events.START_BUFFERING, {
             currentTime:   toSeconds(player.getCurrentTime())
         });
     });
 
     container.addEventListener("seeked", function() {
-
         if (!skipInitSeek) {
-
-            analyze.record(analyze.events.END_BUFFERING, {
+            analytics.record(analytics.events.END_BUFFERING, {
                 currentTime:    toSeconds(player.getCurrentTime())
             });
         }
@@ -118,49 +96,44 @@ function testRadiantAnalytics(container, player) {
     });
 
     container.addEventListener("enterfullscreen", function() {
-
-        analyze.record(analyze.events.START_FULLSCREEN, {
-
+        analytics.record(analytics.events.START_FULLSCREEN, {
             currentTime:    toSeconds(player.getCurrentTime())
         });
     });
 
     container.addEventListener("exitfullscreen", function() {
-
-        analyze.record(analyze.events.END_FULLSCREEN, {
-
+        analytics.record(analytics.events.END_FULLSCREEN, {
             currentTime:    toSeconds(player.getCurrentTime())
         });
     });
 
     container.addEventListener('error', function() {
-
-        analyze.record(analyze.events.ERROR, {
-
+        analytics.record(analytics.events.ERROR, {
             message:        "Radiant error occurs",
             currentTime:    player.getCurrentTime()
         });
     });
 
     rmpContainer.addEventListener('ended', function() {
-
-        analyze.record(analyze.events.PLAYBACK_FINISHED);
+        analytics.record(analytics.events.PLAYBACK_FINISHED);
     });
 
     container.addEventListener("qualitychangestarted", function() {
-
         console.log("SWITCH");
     });
 
     container.addEventListener("adloaded", function() {
-
-        analyze.record(analyze.events.START_AD);
+        analytics.record(analytics.events.START_AD);
     });
 
     container.addEventListener("adcomplete", function() {
+        analytics.record(analytics.events.END_AD, {
+            currentTime:    toSeconds(player.getCurrentTime())
+        });
+    });
 
-        analyze.record(analyze.events.END_AD, {
-
+    window.addEventListener("unload", function() {
+        analytics.record(analytics.events.UNLOAD, {
             currentTime:    toSeconds(player.getCurrentTime())
         });
     });

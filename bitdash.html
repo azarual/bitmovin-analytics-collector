@@ -13,15 +13,13 @@
 
     // init bitdash analytics reporting
     var config = {
-      key:  "830a8f27-6609-4603-a40b-436a7bb2f8a0",
-      playerKey: "8cac45ae-dff8-44b5-9a59-1080c02d2067",
-      player: "bitmovin-player",
-      debug:  true,
-      localTest:  true  // if true no requests will be sent to analytics backend
+      key: "830a8f27-6609-4603-a40b-436a7bb2f8a0", //Your bitmovin analytics key
+      playerKey: "8cac45ae-dff8-44b5-9a59-1080c02d2067", //Your player key (bitmovin, jw, ..) (optional)
+      player: "bitmovin-player"
     };
 
-    var analyze = new BitAnalytics("player");
-    analyze.init(config);
+    var analytics = new BitAnalytics("player");
+    analytics.init(config);
 
     // init bitdash player instance
     var conf = {
