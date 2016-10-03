@@ -69,6 +69,7 @@ function BitAnalytics(videoId) {
 
     var analyticsObject = {
         key: "",
+        playerKey: "",
         domain: window.location.hostname,
         path: window.location.pathname,
         userId: "",
@@ -280,6 +281,8 @@ function BitAnalytics(videoId) {
         }
 
         analyticsObject.key = object.key;
+        analyticsObject.playerKey = object.playerKey;
+        analyticsObject.player = object.player;
 
         /**
          *      initialize width and height of player container
@@ -289,14 +292,14 @@ function BitAnalytics(videoId) {
 
         /**
          *
-         *      get bitdash userId from cookie if exists
-         *      if not make sure to generate one
+         *      get bitmovin analytics userId from cookie if exists
+         *      if not generate one
          *
          */
-        var userID = getCookie("bitdash_uuid");
+        var userID = getCookie("bitmovin_analytics_uuid");
         if (userID == "") {
-            document.cookie = "bitmovin_player_uuid=" + generateImpressionID();
-            analyticsObject.userId = getCookie("bitmovin_player_uuid");
+            document.cookie = "bitmovin_analytics_uuid=" + generateImpressionID();
+            analyticsObject.userId = getCookie("bitmovin_analytics_uuid");
         }
         else {
             analyticsObject.userId = userID;
@@ -697,27 +700,6 @@ function BitAnalytics(videoId) {
 
             case this.events.END_CAST:
                 analyticsObject.isCasting = false;
-                break;
-
-            case this.events.SCREEN_RESIZE:
-                /*
-                 send new sample if window size is changing
-                 */
-                if (validNumber(eventObject.currentTime)) {
-                    analyticsObject.videoTimeEnd = calculateTime(eventObject.currentTime);
-                }
-                if (validNumber(eventObject.droppedFrames)) {
-                    analyticsObject.droppedFrames = getDroppedFrames(eventObject.droppedFrames);
-                }
-                analyticsObject.duration = calculateDuration(initTime, timestamp);
-
-                debugReport();
-                sendRequest();
-
-                analyticsObject.videoWindowWidth = document.getElementById(containerId).offsetWidth;
-                analyticsObject.videoWindowHeight = document.getElementById(containerId).offsetHeight;
-
-                clearValues();
                 break;
 
             default:

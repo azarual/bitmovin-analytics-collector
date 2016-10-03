@@ -2,13 +2,7 @@
  * Created by Bitmovin on 13.09.2016.
  */
 
-function testAnalytics(player) {
-
-    window.addEventListener("resize", function() {
-        analyze.record(analyze.events.SCREEN_RESIZE, {
-            currentTime:    player.getCurrentTime()
-        });
-    });
+function registerEvents(player) {
 
     player.addEventHandler(bitdash.EVENT.ON_SOURCE_LOADED, function() {
         analyze.record(analyze.events.SOURCE_LOADED);

@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <title>Bitdash Analytics</title>
-  <script type="text/javascript" src="//bitmovin-a.akamaihd.net/bitdash/latest/bitdash.min.js"></script>
+  <script type="text/javascript" src="//bitmovin-a.akamaihd.net/bitmovin-player/stable/5/bitdash.min.js"></script>
   <script type="text/javascript" src="js/bitanalytics.js"></script>
   <script type="text/javascript" src="js/bitdash-analyticInterface.js"></script>
 </head>
@@ -13,7 +13,9 @@
 
     // init bitdash analytics reporting
     var config = {
-      key:  "3809b62d-a8f4-4ce7-b051-bf8284717811",
+      key:  "830a8f27-6609-4603-a40b-436a7bb2f8a0",
+      playerKey: "8cac45ae-dff8-44b5-9a59-1080c02d2067",
+      player: "bitmovin-player",
       debug:  true,
       localTest:  true  // if true no requests will be sent to analytics backend
     };
@@ -23,7 +25,7 @@
 
     // init bitdash player instance
     var conf = {
-      key: "b22f6885-dd8b-4f28-a157-62b8fc8712b5",
+      key: "c1d68e74-c84b-4216-9654-b5d74c0b0866",
       source:    {
         dash: "http://bitdash-a.akamaihd.net/content/sintel/sintel.mpd",
         hls:  "https://bitdash-a.akamaihd.net/content/sintel/hls/playlist.m3u8",
@@ -31,24 +33,14 @@
           url:  "https://bitdash-a.akamaihd.net/content/MI201109210084_1/MI201109210084_mpeg-4_hd_high_1080p25_10mbits.mp4",
           type: "video/mp4"
         }],
-        userId:  "Amazing customer name",
-        videoId: "sintellll"
-      },
-      advertising: {
-        client    : 'vast',
-        admessage : 'This ad will end in xx seconds',
-        schedule : {
-          'pre-roll-ad': {
-            offset : '10',
-            tag    : 'https://pubads.g.doubleclick.net/gampad/ads?sz=640x480&iu=/32573358/2nd_test_ad_unit&impl=s&gdfp_req=1&env=vp&output=xml_vast2&unviewed_position_start=1&url=[referrer_url]&description_url=[description_url]&correlator=[random]'
-          }
-        }
+        userId:  "customer#123",
+        videoId: "Sintel"
       }
     };
     var player = bitdash('player');
 
     player.setup(conf);
-    testAnalytics(player);
+    registerEvents(player);
 
   </script>
 </body>
