@@ -8,7 +8,6 @@
 function BitAnalytics(videoId) {
 
     var initTime = 0;
-    var debug = true;
     var containerId = videoId;
 
     /*
@@ -275,9 +274,6 @@ function BitAnalytics(videoId) {
         granted = true;
         initTime = new Date().getTime();
 
-        if (validBoolean(object.debug)) {
-            debug = object.debug;
-        }
         if (validBoolean(object.localTest)) {
             localTest = object.localTest;
         }
@@ -419,9 +415,6 @@ function BitAnalytics(videoId) {
                     if (!isPausing && !isSeeking) {
                         playing = timestamp - initPlayTime;
                         analyticsObject.played = Math.round(playing);
-                        if (debug) {
-                            console.log(playing);
-                        }
                     }
 
                     /*

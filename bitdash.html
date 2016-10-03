@@ -5,7 +5,7 @@
   <title>Bitdash Analytics</title>
   <script type="text/javascript" src="//bitmovin-a.akamaihd.net/bitmovin-player/stable/5/bitdash.min.js"></script>
   <script type="text/javascript" src="js/bitanalytics.js"></script>
-  <script type="text/javascript" src="js/bitdash-analyticInterface.js"></script>
+  <script type="text/javascript" src="js/bitmovin-player-analytics.js"></script>
 </head>
 <body>
 <div id="player" style=" width: 50%; height: 200px"></div>
@@ -18,7 +18,7 @@
       player: "bitmovin-player"
     };
 
-    var analytics = new BitAnalytics("player");
+    var analytics = new BitAnalytics("bitmovin-player");
     analytics.init(config);
 
     // init bitdash player instance
