@@ -131,10 +131,14 @@ function registerEvents(player) {
         });
     });
 
-    window.addEventListener("unload", function() {
-        analytics.record(analytics.events.UNLOAD, {
-            currentTime:    player.getCurrentTime(),
-            droppedFrames:  player.getDroppedFrames()
-        });
-    });
+    var onBeforeUnLoadEvent = false;
+    window.onunload = window.onbeforeunload = function() {
+        if(!onBeforeUnLoadEvent) {
+            onBeforeUnLoadEvent = true;
+            analytics.record(analytics.events.UNLOAD, {
+                currentTime: player.getCurrentTime(),
+                droppedFrames: player.getDroppedFrames()
+            });
+        }
+    };
 }

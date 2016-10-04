@@ -66,6 +66,10 @@ function BitAnalytics(videoId) {
      */
     var url = "https://bitmovin-bitanalytics.appspot.com/analytics";
 
+    var status;
+    var heartBeat = null;
+    var lastSampleTimestamp;
+
     var analyticsObject = {
         key: "",
         playerKey: "",
@@ -168,6 +172,8 @@ function BitAnalytics(videoId) {
 
         if(typeof async === "undefined")
             async = true;
+
+        lastSampleTimestamp = new Date().getTime();
 
         xhttp.open("POST", url, async);
         xhttp.setRequestHeader("Content-Type", "application/json");
@@ -428,6 +434,8 @@ function BitAnalytics(videoId) {
                         }
                     }
                 }
+
+                sendHeartBeatIfRequired(eventObject);
                 break;
 
 
@@ -687,6 +695,24 @@ function BitAnalytics(videoId) {
 
             default:
                 break;
+        }
+    };
+
+    function sendHeartBeatIfRequired(eventObject) {
+        var now = new Date().getTime();
+
+        var timeSinceLastSample = now - lastSampleTimestamp;
+        if(timeSinceLastSample > 60000) {
+            if (validNumber(eventObject.currentTime)) {
+                analyticsObject.videoTimeEnd = calculateTime(eventObject.currentTime);
+            }
+            if (validNumber(eventObject.droppedFrames)) {
+                analyticsObject.droppedFrames = getDroppedFrames(eventObject.droppedFrames);
+            }
+            analyticsObject.duration = calculateDuration(initTime, now);
+
+            sendRequest();
+            clearValues();
         }
     }
 }
