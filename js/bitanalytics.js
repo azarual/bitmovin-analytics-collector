@@ -165,15 +165,6 @@ function BitAnalytics(videoId) {
             return;
 
         var xhttp = new XMLHttpRequest();
-        xhttp.onreadystatechange = function () {
-            if (xhttp.readyState == 4) {
-                if (xhttp.status == 204) {
-                    console.log('Connection successful');
-                } else {
-                    console.log('Connection failed');
-                }
-            }
-        };
 
         if(typeof async === "undefined")
             async = true;
@@ -267,16 +258,12 @@ function BitAnalytics(videoId) {
 
     this.init = function (object) {
         if (object.key == "" || !validString(object.key)) {
-            console.log("Invalid analytics license key");
+            console.error("Invalid analytics license key provided");
             return;
         }
 
         granted = true;
         initTime = new Date().getTime();
-
-        if (validBoolean(object.localTest)) {
-            localTest = object.localTest;
-        }
 
         analyticsObject.key = object.key;
         analyticsObject.playerKey = object.playerKey;
@@ -308,8 +295,9 @@ function BitAnalytics(videoId) {
         if (!granted) {
             if (once) {
                 once = false;
-                console.log("No right API key provided - Connection refused");
+                console.log("No right API key provided");
             }
+            return;
         }
 
         eventObject = eventObject || {};
@@ -396,7 +384,6 @@ function BitAnalytics(videoId) {
                 }
                 analyticsObject.duration = calculateDuration(initTime, timestamp);
 
-                debugReport();
                 sendRequest();
 
                 clearValues();
