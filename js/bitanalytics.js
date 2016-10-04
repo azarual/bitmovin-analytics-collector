@@ -702,7 +702,7 @@ function BitAnalytics(videoId) {
         var now = new Date().getTime();
 
         var timeSinceLastSample = now - lastSampleTimestamp;
-        if(timeSinceLastSample > 60000) {
+        if(timeSinceLastSample > 59700) {
             if (validNumber(eventObject.currentTime)) {
                 analyticsObject.videoTimeEnd = calculateTime(eventObject.currentTime);
             }
