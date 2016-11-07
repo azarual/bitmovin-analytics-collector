@@ -239,6 +239,8 @@ function BitAnalytics(videoId) {
         analyticsObject.played = 0;
         analyticsObject.seeked = 0;
         analyticsObject.buffered = 0;
+        analyticsObject.playerStartupTime = 0;
+        analyticsObject.videoStartupTime = 0;
     }
 
     function getDroppedFrames(frames) {
