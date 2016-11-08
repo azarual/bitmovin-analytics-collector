@@ -66,8 +66,6 @@ function BitAnalytics(videoId) {
      */
     var url = "https://bitmovin-bitanalytics.appspot.com/analytics";
 
-    var status;
-    var heartBeat = null;
     var lastSampleTimestamp;
 
     var analyticsObject = {
@@ -141,7 +139,6 @@ function BitAnalytics(videoId) {
      *  - validBoolean      --> check if input is a boolean and not undefined (needed for checking input from user)
      *  - validNumber       --> check if input is a number and not undefined (needed for checking input from user)
      *
-     *  - debugReport       --> output to console if debug is enabled
      *  - sendRequest       --> method to send analytics object to bitmovin analytics backend
      *  - calculateTime     --> converts milliseconds to seconds and rounds them
      *  - calculateDuration --> needed to calculate duration of one individual sample

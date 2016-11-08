@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <title>Bitdash Analytics</title>
-  <script type="text/javascript" src="//bitmovin-a.akamaihd.net/bitmovin-player/stable/5/bitdash.min.js"></script>
+  <script type="text/javascript" src="//bitmovin-a.akamaihd.net/bitmovin-player/stable/6/bitmovinplayer.min.js"></script>
   <script type="text/javascript" src="js/bitanalytics.js"></script>
   <script type="text/javascript" src="js/bitmovin-player-analytics.js"></script>
 </head>
@@ -13,8 +13,8 @@
 
     // init bitdash analytics reporting
     var config = {
-      key: "830a8f27-6609-4603-a40b-436a7bb2f8a0", //Your bitmovin analytics key
-      playerKey: "8cac45ae-dff8-44b5-9a59-1080c02d2067", //Your player key (bitmovin, jw, ..) (optional)
+      key: "e3cf8a50-3cd2-4fba-95aa-917b18b6b6ee", //Your bitmovin analytics key
+      playerKey: "a6e31908-550a-4f75-b4bc-a9d89880a733", //Your player key (bitmovin, jw, ..) (optional)
       player: "bitmovin-player"
     };
 
@@ -35,7 +35,7 @@
         videoId: "Sintel"
       }
     };
-    var player = bitdash('player');
+    var player = bitmovin.player('player');
 
     player.setup(conf);
     registerEvents(player);
