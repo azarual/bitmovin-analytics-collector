@@ -72,7 +72,7 @@ function BitAnalytics(videoId) {
         key: "",
         playerKey: "",
         domain: window.location.hostname,
-        path: window.location.pathname,
+        path: sanitizePath(window.location.pathname),
         userId: "",
         language: navigator.language || navigator.userLanguage,
         impressionId: "",
@@ -159,6 +159,10 @@ function BitAnalytics(videoId) {
 
     function validNumber(number) {
         return (number != undefined && typeof number == 'number');
+    }
+
+    function sanitizePath(path) {
+        return path.replace(/\/$/g, '');
     }
 
     function sendRequest(async) {
