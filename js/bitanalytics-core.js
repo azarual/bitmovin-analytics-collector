@@ -14,7 +14,7 @@ function BitAnalytics(videoId) {
    if user just wants to test locally and debug output
    if enabled there will be no communication to the analytics backend
    */
-  var localTest = true;
+  var localTest = false;
 
   /*
    firstSample - boolean to check if first sample is being played
