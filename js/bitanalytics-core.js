@@ -69,13 +69,9 @@ function BitAnalytics(videoId) {
   var lastSampleTimestamp;
 
   var analyticsObject = {
-    key                : "",
-    playerKey          : "",
     domain             : sanitizePath(window.location.hostname),
     path               : sanitizePath(window.location.pathname),
-    userId             : "",
     language           : navigator.language || navigator.userLanguage,
-    impressionId       : "",
     playerTech         : "unknown",
     userAgent          : navigator.userAgent,
     screenWidth        : screen.width,
@@ -86,8 +82,6 @@ function BitAnalytics(videoId) {
     isCasting          : false,
     videoDuration      : 0,
     videoId            : "",
-    playerStartupTime  : 0,
-    videoStartupTime   : 0,
     customUserId       : "",
     size               : "WINDOW",
     videoWindowWidth   : 0,
@@ -130,6 +124,12 @@ function BitAnalytics(videoId) {
     UNLOAD           : "unload"
   };
 
+  this.players = {
+    BITMOVIN: 'bitmovin',
+    JW      : 'jw',
+    RADIANT : 'radiant'
+  };
+
   /**
    *
    *  private methods
@@ -168,6 +168,10 @@ function BitAnalytics(videoId) {
   function sendRequest(async) {
       if (localTest) {
           return;
+      }
+
+      if (!isAnalyticsObjectValid()) {
+        return;
       }
 
       var xhttp = new XMLHttpRequest();
@@ -259,6 +263,18 @@ function BitAnalytics(videoId) {
     }
   }
 
+  function isAnalyticsObjectValid() {
+    if (!analyticsObject.impressionId || analyticsObject.impressionId === '') {
+      return false;
+    }
+
+    if (!analyticsObject.userId || analyticsObject.userId === '') {
+      return false;
+    }
+
+    return true;
+  }
+
   /**
    *
    *  public methods
@@ -283,24 +299,18 @@ function BitAnalytics(videoId) {
     analyticsObject.player    = object.player;
 
     /**
-     *      initialize width and height of player container
-     */
-    analyticsObject.videoWindowWidth = document.getElementById(containerId).offsetWidth;
-    analyticsObject.videoWindowHeight = document.getElementById(containerId).offsetHeight;
-
-    /**
      *
      *      get bitmovin analytics userId from cookie if exists
      *      if not generate one
      *
      */
-    var userID = getCookie("bitmovin_analytics_uuid");
-    if (userID == "") {
+    var userId = getCookie("bitmovin_analytics_uuid");
+    if (userId == "") {
       document.cookie        = "bitmovin_analytics_uuid=" + generateImpressionID();
       analyticsObject.userId = getCookie("bitmovin_analytics_uuid");
     }
     else {
-      analyticsObject.userId = userID;
+      analyticsObject.userId = userId;
     }
   };
 
@@ -308,7 +318,7 @@ function BitAnalytics(videoId) {
     if (!granted) {
       if (once) {
         once = false;
-        console.log("No right API key provided");
+        console.log("No valid API key provided");
       }
       return;
     }
@@ -323,6 +333,9 @@ function BitAnalytics(videoId) {
 
       case this.events.READY:
         analyticsObject.playerStartupTime = timestamp - initTime;
+
+        analyticsObject.videoWindowWidth = document.getElementById(containerId).offsetWidth;
+        analyticsObject.videoWindowHeight = document.getElementById(containerId).offsetHeight;
 
         /**
          * check if all parameters are valid, otherwise leave them default
@@ -420,7 +433,7 @@ function BitAnalytics(videoId) {
           /*
            only relevant if first frame occurs
            */
-          if (firstSample == true) {
+          if (firstSample === true) {
             firstSample                      = false;
             analyticsObject.videoStartupTime = timestamp - initPlayTime;
             lastSampleDuration               = timestamp - initTime;
@@ -434,7 +447,7 @@ function BitAnalytics(videoId) {
 
             clearValues();
           }
-          else if (!firstSample && start == true) {
+          else if (!firstSample && start === true) {
             start = false;
             if (validNumber(eventObject.currentTime)) {
               analyticsObject.videoTimeStart = calculateTime(eventObject.currentTime);

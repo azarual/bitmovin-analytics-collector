@@ -6,7 +6,6 @@ function registerEvents(player) {
 
   player.addEventHandler(bitmovin.player.EVENT.ON_SOURCE_LOADED, function() {
     analytics.record(analytics.events.SOURCE_LOADED);
-    //analytics.generateImpressionID;
   });
 
   player.addEventHandler(bitmovin.player.EVENT.ON_READY, function() {
