@@ -10,6 +10,8 @@ function BitAnalytics(videoId) {
   var initTime    = 0;
   var containerId = videoId;
 
+  var VERSION = '0.1.0';
+
   /*
    if user just wants to test locally and debug output
    if enabled there will be no communication to the analytics backend
@@ -98,7 +100,8 @@ function BitAnalytics(videoId) {
     audioBitrate       : 0,
     videoTimeStart     : 0,
     videoTimeEnd       : 0,
-    duration           : 0
+    duration           : 0,
+    version            : VERSION
   };
 
   this.events = {
