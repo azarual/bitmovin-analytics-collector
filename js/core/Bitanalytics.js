@@ -53,8 +53,6 @@ function BitAnalytics(videoId) {
 
     checkLicensing(config.key);
 
-    granted = false;
-
     initTime = new Date().getTime();
 
     sample.key       = config.key;
