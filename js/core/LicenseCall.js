@@ -16,6 +16,10 @@ function LicenseCall() {
 
     xhttp.onreadystatechange = function() {
       if (xhttp.readyState == XMLHttpRequest.DONE) {
+        if (xhttp.responseText.length <= 0) {
+          return;
+        }
+
         var licensingResponse = JSON.parse(xhttp.responseText);
         callback(licensingResponse);
       }
