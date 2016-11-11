@@ -601,8 +601,6 @@ function BitAnalytics(videoId) {
       return;
     }
 
-    console.log('sending request', sample);
-
     lastSampleTimestamp = new Date().getTime();
 
     analyticsCall.sendRequest(sample, utils.noOp);
