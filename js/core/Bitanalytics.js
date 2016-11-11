@@ -93,7 +93,7 @@ function BitAnalytics(videoId) {
         break;
 
       case this.events.TIMECHANGED:
-        playerFiredTimechanged(eventObject);
+        playerFiredTimeChanged(eventObject);
         break;
 
       case this.events.SEEK:
@@ -247,7 +247,7 @@ function BitAnalytics(videoId) {
     isPausing     = true;
   }
 
-  function playerFiredTimechanged(event) {
+  function playerFiredTimeChanged(event) {
     var now = new Date().getTime();
 
     if (playbackFinished) {
