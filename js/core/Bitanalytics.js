@@ -16,40 +16,22 @@ function BitAnalytics(videoId) {
   this.players = Players;
   this.events  = Events;
 
-  /*
-   firstSample - boolean to check if first sample is being played
-
-   skipAudio and skipVideo
-   the quality will change at the beginning as soon as the player enters the play state.
-   we will skip it and provide quality information in the first sample otherwise a new sample will be sent.
-   this will only happen for the first sample - so just once
-   */
   var firstSample             = true;
   var skipVideoPlaybackChange = true;
   var skipAudioPlaybackChange = true;
 
-  /*
-   overall - summarized time of all samples
-   lastSampleDuration - summarized time of last samples except the new one
-   */
   var overall            = 0;
   var lastSampleDuration = 0;
 
   var playing             = 0;
   var droppedSampleFrames = 0;
 
-  /*
-   members to initialize individual start time depending on the events
-   */
   var initAdTime     = 0;
   var initPlayTime   = 0;
   var initSeekTime   = 0;
   var initPauseTime  = 0;
   var initBufferTime = 0;
-
-  /*
-   Bool'sche members to check playing, seeking, pausing and ending status
-   */
+  
   var start            = true;
   var isSeeking        = false;
   var isPausing        = false;
@@ -123,141 +105,24 @@ function BitAnalytics(videoId) {
         break;
 
       case this.events.END_BUFFERING:
-        /*
-         calculate time of whole seeking process
-         */
-        sample.buffered = now - initBufferTime;
-
-        if (isSeeking) {
-          /* have to set played attribute to 0 due to some time changing between seek end and buffering */
-          sample.played = 0;
-
-          sample.seeked = now - initSeekTime;
-          if (utils.validNumber(eventObject.currentTime)) {
-            sample.videoTimeEnd = utils.calculateTime(eventObject.currentTime);
-          }
-          if (utils.validNumber(eventObject.droppedFrames)) {
-            sample.droppedFrames = getDroppedFrames(eventObject.droppedFrames);
-          }
-          sample.duration = calculateDuration(initTime, now);
-
-          sendAnalyticsRequest();
-
-          clearValues();
-          isSeeking = false;
-        }
+        playerFiredEndBuffering(eventObject);
         break;
-
 
       case this.events.AUDIO_CHANGE:
-        if (!skipAudioPlaybackChange && !isSeeking) {
-          /*
-           get the audio bitrate data for the new sample
-           */
-          if (utils.validNumber(eventObject.bitrate)) {
-            sample.audioBitrate = eventObject.bitrate;
-          }
-          if (utils.validNumber(eventObject.currentTime)) {
-            sample.videoTimeEnd = utils.calculateTime(eventObject.currentTime);
-          }
-          if (utils.validNumber(eventObject.droppedFrames)) {
-            sample.droppedFrames = getDroppedFrames(eventObject.droppedFrames);
-          }
-          sample.duration = calculateDuration(initTime, now);
-
-          sendAnalyticsRequest();
-
-          clearValues();
-        }
-        else {
-          /*
-           set audio playback data
-           for first frame and if audio playback data has not changed yet
-           */
-          if (utils.validNumber(eventObject.bitrate)) {
-            sample.audioBitrate = eventObject.bitrate;
-          }
-          skipAudioPlaybackChange = false;
-        }
+        playerFiredAudioChange(eventObject);
         break;
-
 
       case this.events.VIDEO_CHANGE:
-        if (!skipVideoPlaybackChange && !isSeeking) {
-          /*
-           get the video playback data for the new sample
-           */
-          if (utils.validNumber(eventObject.width)) {
-            sample.videoPlaybackWidth = eventObject.width;
-          }
-          if (utils.validNumber(eventObject.height)) {
-            sample.videoPlaybackHeight = eventObject.height;
-          }
-          if (utils.validNumber(eventObject.bitrate)) {
-            sample.videoBitrate = eventObject.bitrate;
-          }
-
-          if (utils.validNumber(eventObject.currentTime)) {
-            sample.videoTimeEnd = utils.calculateTime(eventObject.currentTime);
-          }
-          if (utils.validNumber(eventObject.droppedFrames)) {
-            sample.droppedFrames = getDroppedFrames(eventObject.droppedFrames);
-          }
-          sample.duration = calculateDuration(initTime, now);
-
-          sendAnalyticsRequest();
-
-          clearValues();
-        }
-        else {
-          /*
-           set video playback data
-           for first frame and if video playback data has not changed yet
-           */
-          if (utils.validNumber(eventObject.width)) {
-            sample.videoPlaybackWidth = eventObject.width;
-          }
-          if (utils.validNumber(eventObject.height)) {
-            sample.videoPlaybackHeight = eventObject.height;
-          }
-          if (utils.validNumber(eventObject.bitrate)) {
-            sample.videoBitrate = eventObject.bitrate;
-          }
-          skipVideoPlaybackChange = false;
-        }
+        playerFiredVideoChange(eventObject);
         break;
 
-
       case this.events.START_FULLSCREEN:
-        if (utils.validNumber(eventObject.currentTime)) {
-          sample.videoTimeEnd = utils.calculateTime(eventObject.currentTime);
-        }
-        if (utils.validNumber(eventObject.droppedFrames)) {
-          sample.droppedFrames = getDroppedFrames(eventObject.droppedFrames);
-        }
-        sample.duration = calculateDuration(initTime, now);
-
-        sendAnalyticsRequest();
-
-        clearValues();
-        sample.size = 'FULLSCREEN';
+        playerFiredStartFullscreen(eventObject);
         break;
 
       case this.events.END_FULLSCREEN:
-        if (utils.validNumber(eventObject.currentTime)) {
-          sample.videoTimeEnd = utils.calculateTime(eventObject.currentTime);
-        }
-        if (utils.validNumber(eventObject.droppedFrames)) {
-          sample.droppedFrames = getDroppedFrames(eventObject.droppedFrames);
-        }
-        sample.duration = calculateDuration(initTime, now);
-
-        sendAnalyticsRequest();
-
-        clearValues();
-        sample.size = 'WINDOW';
+        playerFiredEndFullscreen(eventObject);
         break;
-
 
       case this.events.START_AD:
         initAdTime = now;
@@ -265,75 +130,19 @@ function BitAnalytics(videoId) {
         break;
 
       case this.events.END_AD:
-        sample.ad = now - initAdTime;
-
-        sample.played = 0;
-        if (utils.validNumber(eventObject.currentTime)) {
-          sample.videoTimeEnd = utils.calculateTime(eventObject.currentTime);
-        }
-        if (utils.validNumber(eventObject.droppedFrames)) {
-          sample.droppedFrames = getDroppedFrames(eventObject.droppedFrames);
-        }
-        sample.duration = calculateDuration(initTime, now);
-
-        sendAnalyticsRequest();
-
-        clearValues();
+        playerFiredEndAd(eventObject);
         break;
 
-
       case this.events.ERROR:
-        /*
-         add error code property from analytics object
-         */
-        if (utils.validNumber(eventObject.code)) {
-          sample.errorCode = eventObject.code;
-        }
-        if (utils.validString(eventObject.message)) {
-          sample.errorMessage = eventObject.message;
-        }
-        if (utils.validNumber(eventObject.currentTime)) {
-          sample.videoTimeEnd = utils.calculateTime(eventObject.currentTime);
-        }
-        if (utils.validNumber(eventObject.droppedFrames)) {
-          sample.droppedFrames = getDroppedFrames(eventObject.droppedFrames);
-        }
-        sample.duration = calculateDuration(initTime, now);
-
-        sendAnalyticsRequest();
-
-        /*
-         delete error code property from analytics object
-         */
-        delete sample.errorCode;
-        delete sample.errorMessage;
-
-        clearValues();
+        playerFiredError(eventObject);
         break;
 
       case this.events.PLAYBACK_FINISHED:
-        firstSample         = true;
-        playbackFinished    = true;
-        sample.videoTimeEnd = sample.videoDuration;
-
-        if (utils.validNumber(eventObject.droppedFrames)) {
-          sample.droppedFrames = getDroppedFrames(eventObject.droppedFrames);
-        }
-        sample.duration = calculateDuration(initTime, now);
-
-        sendAnalyticsRequest();
+        playerFiredPlaybackFinished(eventObject);
         break;
 
       case this.events.UNLOAD:
-        if (utils.validNumber(eventObject.currentTime)) {
-          sample.videoTimeEnd = utils.calculateTime(eventObject.currentTime);
-        }
-        if (utils.validNumber(eventObject.droppedFrames)) {
-          sample.droppedFrames = getDroppedFrames(eventObject.droppedFrames);
-        }
-        sample.duration = calculateDuration(initTime, now);
-
-        sendUnloadRequest();
+        playerFiredUnload(eventObject);
         break;
 
       case this.events.START_CAST:
@@ -510,6 +319,218 @@ function BitAnalytics(videoId) {
     if (utils.validNumber(event.currentTime)) {
       sample.videoTimeStart = utils.calculateTime(event.currentTime);
     }
+  }
+
+  function playerFiredEndBuffering(event) {
+    var now = new Date().getTime();
+
+    sample.buffered = now - initBufferTime;
+    if (isSeeking) {
+      /* have to set played attribute to 0 due to some time changing between seek end and buffering */
+      sample.played = 0;
+
+      sample.seeked = now - initSeekTime;
+      if (utils.validNumber(event.currentTime)) {
+        sample.videoTimeEnd = utils.calculateTime(event.currentTime);
+      }
+      if (utils.validNumber(event.droppedFrames)) {
+        sample.droppedFrames = getDroppedFrames(event.droppedFrames);
+      }
+      sample.duration = calculateDuration(initTime, now);
+
+      sendAnalyticsRequest();
+
+      clearValues();
+      isSeeking = false;
+    }
+  }
+
+  function playerFiredAudioChange(event) {
+    var now = new Date().getTime();
+
+    if (!skipAudioPlaybackChange && !isSeeking) {
+      /*
+       get the audio bitrate data for the new sample
+       */
+      if (utils.validNumber(event.bitrate)) {
+        sample.audioBitrate = event.bitrate;
+      }
+      if (utils.validNumber(event.currentTime)) {
+        sample.videoTimeEnd = utils.calculateTime(event.currentTime);
+      }
+      if (utils.validNumber(event.droppedFrames)) {
+        sample.droppedFrames = getDroppedFrames(event.droppedFrames);
+      }
+      sample.duration = calculateDuration(initTime, now);
+
+      sendAnalyticsRequest();
+
+      clearValues();
+    }
+    else {
+      /*
+       set audio playback data
+       for first frame and if audio playback data has not changed yet
+       */
+      if (utils.validNumber(event.bitrate)) {
+        sample.audioBitrate = event.bitrate;
+      }
+      skipAudioPlaybackChange = false;
+    }
+  }
+
+  function playerFiredVideoChange(event) {
+    var now = new Date().getTime();
+
+    if (!skipVideoPlaybackChange && !isSeeking) {
+      /*
+       get the video playback data for the new sample
+       */
+      if (utils.validNumber(event.width)) {
+        sample.videoPlaybackWidth = event.width;
+      }
+      if (utils.validNumber(event.height)) {
+        sample.videoPlaybackHeight = event.height;
+      }
+      if (utils.validNumber(event.bitrate)) {
+        sample.videoBitrate = event.bitrate;
+      }
+
+      if (utils.validNumber(event.currentTime)) {
+        sample.videoTimeEnd = utils.calculateTime(event.currentTime);
+      }
+      if (utils.validNumber(event.droppedFrames)) {
+        sample.droppedFrames = getDroppedFrames(event.droppedFrames);
+      }
+      sample.duration = calculateDuration(initTime, now);
+
+      sendAnalyticsRequest();
+
+      clearValues();
+    }
+    else {
+      /*
+       set video playback data
+       for first frame and if video playback data has not changed yet
+       */
+      if (utils.validNumber(event.width)) {
+        sample.videoPlaybackWidth = event.width;
+      }
+      if (utils.validNumber(event.height)) {
+        sample.videoPlaybackHeight = event.height;
+      }
+      if (utils.validNumber(event.bitrate)) {
+        sample.videoBitrate = event.bitrate;
+      }
+      skipVideoPlaybackChange = false;
+    }
+  }
+
+  function playerFiredStartFullscreen(event) {
+    var now = new Date().getTime();
+
+    if (utils.validNumber(event.currentTime)) {
+      sample.videoTimeEnd = utils.calculateTime(event.currentTime);
+    }
+    if (utils.validNumber(event.droppedFrames)) {
+      sample.droppedFrames = getDroppedFrames(event.droppedFrames);
+    }
+    sample.duration = calculateDuration(initTime, now);
+
+    sample.size = 'FULLSCREEN';
+    sendAnalyticsRequest();
+
+    clearValues();
+  }
+
+  function playerFiredEndFullscreen(event) {
+    var now = new Date().getTime();
+
+    if (utils.validNumber(event.currentTime)) {
+      sample.videoTimeEnd = utils.calculateTime(event.currentTime);
+    }
+    if (utils.validNumber(event.droppedFrames)) {
+      sample.droppedFrames = getDroppedFrames(event.droppedFrames);
+    }
+    sample.duration = calculateDuration(initTime, now);
+
+    sendAnalyticsRequest();
+
+    clearValues();
+    sample.size = 'WINDOW';
+  }
+
+  function playerFiredEndAd(event) {
+    var now = new Date().getTime();
+
+    sample.ad = now - initAdTime;
+
+    sample.played = 0;
+    if (utils.validNumber(event.currentTime)) {
+      sample.videoTimeEnd = utils.calculateTime(event.currentTime);
+    }
+    if (utils.validNumber(event.droppedFrames)) {
+      sample.droppedFrames = getDroppedFrames(event.droppedFrames);
+    }
+    sample.duration = calculateDuration(initTime, now);
+
+    sendAnalyticsRequest();
+
+    clearValues();
+  }
+
+  function playerFiredError(event) {
+    var now = new Date().getTime();
+
+    if (utils.validNumber(event.code)) {
+      sample.errorCode = event.code;
+    }
+    if (utils.validString(event.message)) {
+      sample.errorMessage = event.message;
+    }
+    if (utils.validNumber(event.currentTime)) {
+      sample.videoTimeEnd = utils.calculateTime(event.currentTime);
+    }
+    if (utils.validNumber(event.droppedFrames)) {
+      sample.droppedFrames = getDroppedFrames(event.droppedFrames);
+    }
+    sample.duration = calculateDuration(initTime, now);
+
+    sendAnalyticsRequest();
+
+    delete sample.errorCode;
+    delete sample.errorMessage;
+
+    clearValues();
+  }
+
+  function playerFiredPlaybackFinished(event) {
+    var now = new Date().getTime();
+
+    firstSample         = true;
+    playbackFinished    = true;
+    sample.videoTimeEnd = sample.videoDuration;
+
+    if (utils.validNumber(event.droppedFrames)) {
+      sample.droppedFrames = getDroppedFrames(event.droppedFrames);
+    }
+    sample.duration = calculateDuration(initTime, now);
+
+    sendAnalyticsRequest();
+  }
+
+  function playerFiredUnload(event) {
+    var now = new Date().getTime();
+
+    if (utils.validNumber(event.currentTime)) {
+      sample.videoTimeEnd = utils.calculateTime(event.currentTime);
+    }
+    if (utils.validNumber(event.droppedFrames)) {
+      sample.droppedFrames = getDroppedFrames(event.droppedFrames);
+    }
+    sample.duration = calculateDuration(initTime, now);
+
+    sendUnloadRequest();
   }
 
   function setupSample() {
