@@ -562,7 +562,7 @@ function BitAnalytics(videoId) {
   }
 
   function checkLicensing(key) {
-    licenseCall.sendRequest(key, sample.domain, sample.version, handleLicensingResponse);
+    licenseCall.sendRequest(key, sample.domain, sample.analyticsVersion, handleLicensingResponse);
   }
 
   function handleLicensingResponse(licensingResponse) {
