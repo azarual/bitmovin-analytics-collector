@@ -15,6 +15,7 @@ module.exports = {
     "one-var"           : [2, "never"],
     "no-inline-comments": 2,
     "eol-last"          : 2,
-    "no-fallthrough"    : 0
+    "no-fallthrough"    : 0,
+    "no-debugger"       : 0
   }
 };

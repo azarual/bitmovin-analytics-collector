@@ -9,7 +9,7 @@ function LicenseCall() {
     var licensingRequest = {
       key: key,
       domain: domain,
-      version: version
+      analyticsVersion: version
     };
 
     var xhttp = new XMLHttpRequest();
