@@ -18,6 +18,10 @@ function AnalyticsCall() {
 
     xhttp.onreadystatechange = function() {
       if (xhttp.readyState == XMLHttpRequest.DONE) {
+        if (xhttp.responseText <= 0) {
+          return;
+        }
+
         var sampleResponse = JSON.parse(xhttp.responseText);
 
         callback(sampleResponse);
