@@ -51,4 +51,22 @@ function Utils() {
   this.noOp = function() {
 
   };
+
+  this.times = function (fn, times) {
+    var that = this;
+    var count = 0;
+    var retVal;
+    return function () {
+      if (count >= times) {
+        return retVal;
+      }
+      retVal = fn.apply(that, arguments);
+      count++;
+      return retVal;
+    };
+  };
+
+  this.once = function (fn) {
+    return this.times(fn, 1);
+  };
 }
