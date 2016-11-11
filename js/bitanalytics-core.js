@@ -7,6 +7,7 @@
 
 function BitAnalytics(videoId) {
 
+  var self        = this;
   var initTime    = 0;
   var containerId = videoId;
 
@@ -66,7 +67,7 @@ function BitAnalytics(videoId) {
   /*
    analytics backend url
    */
-  var url = "https://bitmovin-bitanalytics.appspot.com/analytics";
+  var url = 'https://bitmovin-bitanalytics.appspot.com/analytics';
 
   var lastSampleTimestamp;
 
@@ -74,18 +75,18 @@ function BitAnalytics(videoId) {
     domain             : sanitizePath(window.location.hostname),
     path               : sanitizePath(window.location.pathname),
     language           : navigator.language || navigator.userLanguage,
-    playerTech         : "unknown",
+    playerTech         : 'unknown',
     userAgent          : navigator.userAgent,
     screenWidth        : screen.width,
     screenHeight       : screen.height,
-    streamFormat       : "unknown",
-    version            : "unknown",
+    streamFormat       : 'unknown',
+    version            : 'unknown',
     isLive             : false,
     isCasting          : false,
     videoDuration      : 0,
-    videoId            : "",
-    customUserId       : "",
-    size               : "WINDOW",
+    videoId            : '',
+    customUserId       : '',
+    size               : 'WINDOW',
     videoWindowWidth   : 0,
     videoWindowHeight  : 0,
     droppedFrames      : 0,
@@ -101,30 +102,30 @@ function BitAnalytics(videoId) {
     videoTimeStart     : 0,
     videoTimeEnd       : 0,
     duration           : 0,
-    version            : VERSION
+    analyticsVersion   : VERSION
   };
 
   this.events = {
-    READY            : "ready",
-    SOURCE_LOADED    : "sourceLoaded",
-    PLAY             : "play",
-    PAUSE            : "pause",
-    TIMECHANGED      : "timechange",
-    SEEK             : "seek",
-    START_CAST       : "startCasting",
-    END_CAST         : "endCasting",
-    START_BUFFERING  : "startBuffering",
-    END_BUFFERING    : "endBuffering",
-    AUDIO_CHANGE     : "audioChange",
-    VIDEO_CHANGE     : "videoChange",
-    START_FULLSCREEN : "startFullscreen",
-    END_FULLSCREEN   : "endFullscreen",
-    START_AD         : "adStart",
-    END_AD           : "adEnd",
-    ERROR            : "error",
-    PLAYBACK_FINISHED: "end",
-    SCREEN_RESIZE    : "resize",
-    UNLOAD           : "unload"
+    READY            : 'ready',
+    SOURCE_LOADED    : 'sourceLoaded',
+    PLAY             : 'play',
+    PAUSE            : 'pause',
+    TIMECHANGED      : 'timechange',
+    SEEK             : 'seek',
+    START_CAST       : 'startCasting',
+    END_CAST         : 'endCasting',
+    START_BUFFERING  : 'startBuffering',
+    END_BUFFERING    : 'endBuffering',
+    AUDIO_CHANGE     : 'audioChange',
+    VIDEO_CHANGE     : 'videoChange',
+    START_FULLSCREEN : 'startFullscreen',
+    END_FULLSCREEN   : 'endFullscreen',
+    START_AD         : 'adStart',
+    END_AD           : 'adEnd',
+    ERROR            : 'error',
+    PLAYBACK_FINISHED: 'end',
+    SCREEN_RESIZE    : 'resize',
+    UNLOAD           : 'unload'
   };
 
   this.players = {
@@ -168,41 +169,41 @@ function BitAnalytics(videoId) {
     return path.replace(/\/$/g, '');
   }
 
-  function sendRequest(async) {
-      if (localTest) {
-          return;
-      }
+  function sendAnalyticsRequest(async) {
+    if (localTest) {
+      return;
+    }
 
-      if (!isAnalyticsObjectValid()) {
-        return;
-      }
+    if (!isAnalyticsObjectValid()) {
+      return;
+    }
 
-      var xhttp = new XMLHttpRequest();
+    var xhttp = new XMLHttpRequest();
 
-      if (typeof async === "undefined") {
-          async = true;
-      }
+    if (typeof async === 'undefined') {
+      async = true;
+    }
 
-      lastSampleTimestamp = new Date().getTime();
+    lastSampleTimestamp = new Date().getTime();
 
-    xhttp.open("POST", url, async);
-    xhttp.setRequestHeader("Content-Type", "application/json");
+    xhttp.open('POST', url, async);
+    xhttp.setRequestHeader('Content-Type', 'application/json');
     xhttp.send(JSON.stringify(analyticsObject));
   }
 
   function sendUnloadRequest() {
-      if (localTest) {
-          return;
-      }
+    if (localTest) {
+      return;
+    }
 
-      if (typeof navigator.sendBeacon === "undefined") {
-      sendRequest(false);
+    if (typeof navigator.sendBeacon === 'undefined') {
+      sendAnalyticsRequest(false);
     }
     else {
       var success = navigator.sendBeacon(url, JSON.stringify(analyticsObject));
-          if (!success) {
-              sendRequest(false);
-          }
+      if (!success) {
+        sendAnalyticsRequest(false);
+      }
     }
   }
 
@@ -226,7 +227,7 @@ function BitAnalytics(videoId) {
   }
 
   function getCookie(cname) {
-    var name = cname + "=";
+    var name = cname + '=';
     var ca   = document.cookie.split(';');
     for (var i = 0; i < ca.length; i++) {
       var c = ca[i];
@@ -237,7 +238,7 @@ function BitAnalytics(videoId) {
         return c.substring(name.length, c.length);
       }
     }
-    return "";
+    return '';
   }
 
   function clearValues() {
@@ -289,12 +290,16 @@ function BitAnalytics(videoId) {
    */
 
   this.init = function(object) {
-    if (object.key == "" || !validString(object.key)) {
-      console.error("Invalid analytics license key provided");
+    if (object.key == '' || !validString(object.key)) {
+      console.error('Invalid analytics license key provided');
       return;
     }
 
-    granted  = true;
+    var licensingStatus = getLicensingStatus(object.key, object.domain);
+
+    if (licensingStatus !== 'denied') {
+      granted = true;
+    }
     initTime = new Date().getTime();
 
     analyticsObject.key       = object.key;
@@ -307,10 +312,10 @@ function BitAnalytics(videoId) {
      *      if not generate one
      *
      */
-    var userId = getCookie("bitmovin_analytics_uuid");
-    if (userId == "") {
-      document.cookie        = "bitmovin_analytics_uuid=" + generateImpressionID();
-      analyticsObject.userId = getCookie("bitmovin_analytics_uuid");
+    var userId = getCookie('bitmovin_analytics_uuid');
+    if (userId == '') {
+      document.cookie        = 'bitmovin_analytics_uuid=' + generateImpressionID();
+      analyticsObject.userId = getCookie('bitmovin_analytics_uuid');
     }
     else {
       analyticsObject.userId = userId;
@@ -321,7 +326,7 @@ function BitAnalytics(videoId) {
     if (!granted) {
       if (once) {
         once = false;
-        console.log("No valid API key provided");
+        console.log('No valid API key provided');
       }
       return;
     }
@@ -337,7 +342,7 @@ function BitAnalytics(videoId) {
       case this.events.READY:
         analyticsObject.playerStartupTime = timestamp - initTime;
 
-        analyticsObject.videoWindowWidth = document.getElementById(containerId).offsetWidth;
+        analyticsObject.videoWindowWidth  = document.getElementById(containerId).offsetWidth;
         analyticsObject.videoWindowHeight = document.getElementById(containerId).offsetHeight;
 
         /**
@@ -397,7 +402,7 @@ function BitAnalytics(videoId) {
             analyticsObject.droppedFrames = getDroppedFrames(eventObject.droppedFrames);
           }
 
-          sendRequest();
+          sendAnalyticsRequest();
 
           clearValues();
           isPausing = false;
@@ -413,7 +418,7 @@ function BitAnalytics(videoId) {
         }
         analyticsObject.duration = calculateDuration(initTime, timestamp);
 
-        sendRequest();
+        sendAnalyticsRequest();
 
         clearValues();
         /*
@@ -446,7 +451,7 @@ function BitAnalytics(videoId) {
               analyticsObject.droppedFrames = getDroppedFrames(eventObject.droppedFrames);
             }
 
-            sendRequest();
+            sendAnalyticsRequest();
 
             clearValues();
           }
@@ -478,7 +483,7 @@ function BitAnalytics(videoId) {
           }
           analyticsObject.duration = calculateDuration(initTime, timestamp);
 
-          sendRequest();
+          sendAnalyticsRequest();
 
           clearValues();
 
@@ -513,7 +518,7 @@ function BitAnalytics(videoId) {
           }
           analyticsObject.duration = calculateDuration(initTime, timestamp);
 
-          sendRequest();
+          sendAnalyticsRequest();
 
           clearValues();
           isSeeking = false;
@@ -537,7 +542,7 @@ function BitAnalytics(videoId) {
           }
           analyticsObject.duration = calculateDuration(initTime, timestamp);
 
-          sendRequest();
+          sendAnalyticsRequest();
 
           clearValues();
         }
@@ -577,7 +582,7 @@ function BitAnalytics(videoId) {
           }
           analyticsObject.duration = calculateDuration(initTime, timestamp);
 
-          sendRequest();
+          sendAnalyticsRequest();
 
           clearValues();
         }
@@ -609,10 +614,10 @@ function BitAnalytics(videoId) {
         }
         analyticsObject.duration = calculateDuration(initTime, timestamp);
 
-        sendRequest();
+        sendAnalyticsRequest();
 
         clearValues();
-        analyticsObject.size = "FULLSCREEN";
+        analyticsObject.size = 'FULLSCREEN';
         break;
 
       case this.events.END_FULLSCREEN:
@@ -624,10 +629,10 @@ function BitAnalytics(videoId) {
         }
         analyticsObject.duration = calculateDuration(initTime, timestamp);
 
-        sendRequest();
+        sendAnalyticsRequest();
 
         clearValues();
-        analyticsObject.size = "WINDOW";
+        analyticsObject.size = 'WINDOW';
         break;
 
 
@@ -648,7 +653,7 @@ function BitAnalytics(videoId) {
         }
         analyticsObject.duration = calculateDuration(initTime, timestamp);
 
-        sendRequest();
+        sendAnalyticsRequest();
 
         clearValues();
         break;
@@ -672,7 +677,7 @@ function BitAnalytics(videoId) {
         }
         analyticsObject.duration = calculateDuration(initTime, timestamp);
 
-        sendRequest();
+        sendAnalyticsRequest();
 
         /*
          delete error code property from analytics object
@@ -693,7 +698,7 @@ function BitAnalytics(videoId) {
         }
         analyticsObject.duration = calculateDuration(initTime, timestamp);
 
-        sendRequest();
+        sendAnalyticsRequest();
         break;
 
       case this.events.UNLOAD:
@@ -734,7 +739,7 @@ function BitAnalytics(videoId) {
       }
       analyticsObject.duration = calculateDuration(initTime, now);
 
-      sendRequest();
+      sendAnalyticsRequest();
       clearValues();
     }
   }
