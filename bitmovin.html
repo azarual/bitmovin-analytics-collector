@@ -10,6 +10,7 @@
 <div id="player"></div>
   <script type="text/javascript">
 
+    var analytics = new BitAnalytics("player");
     // init bitdash analytics reporting
     var config = {
       key: "e3cf8a50-3cd2-4fba-95aa-917b18b6b6ee", //Your bitmovin analytics key
@@ -17,7 +18,6 @@
       player: analytics.players.BITMOVIN
     };
 
-    var analytics = new BitAnalytics("player");
     analytics.init(config);
 
     // init bitdash player instance
