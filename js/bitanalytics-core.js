@@ -2,22 +2,12 @@
  * Created by Bitmovin on 19.09.2016.
  *
  * Bitmovin analytics
- * developed by Patrick Struger
  */
 
 function BitAnalytics(videoId) {
 
-  var self        = this;
   var initTime    = 0;
   var containerId = videoId;
-
-  var VERSION = '0.1.0';
-
-  /*
-   if user just wants to test locally and debug output
-   if enabled there will be no communication to the analytics backend
-   */
-  var localTest = false;
 
   /*
    firstSample - boolean to check if first sample is being played
@@ -58,16 +48,9 @@ function BitAnalytics(videoId) {
   var isPausing        = false;
   var playbackFinished = false;
 
-  /*
-   Boolean to check if right API key was provided
-   */
-  var once    = true;
   var granted = false;
 
-  /*
-   analytics backend url
-   */
-  var url = 'https://bitmovin-bitanalytics.appspot.com/analytics';
+  var analyticsBackend = 'https://bitmovin-bitanalytics.appspot.com';
 
   var lastSampleTimestamp;
 
@@ -102,7 +85,7 @@ function BitAnalytics(videoId) {
     videoTimeStart     : 0,
     videoTimeEnd       : 0,
     duration           : 0,
-    analyticsVersion   : VERSION
+    analyticsVersion   : getAnalyticsVersion()
   };
 
   this.events = {
@@ -136,151 +119,6 @@ function BitAnalytics(videoId) {
 
   /**
    *
-   *  private methods
-   *  not accessible from outside
-   *
-   *  - validString       --> check if input is a string and not undefined (needed for checking input from user)
-   *  - validBoolean      --> check if input is a boolean and not undefined (needed for checking input from user)
-   *  - validNumber       --> check if input is a number and not undefined (needed for checking input from user)
-   *
-   *  - sendRequest       --> method to send analytics object to bitmovin analytics backend
-   *  - calculateTime     --> converts milliseconds to seconds and rounds them
-   *  - calculateDuration --> needed to calculate duration of one individual sample
-   *  - generateImpressionID  --> needed to generate an impression or user id if not available
-   *  - getCookie         --> function to read cookie from customer to obtain bitmovin user id
-   *  - clearValues       --> after a sample is sended, all values are cleared to provide exacct data for next sample
-   *  - getDroppedFrames  --> calculates dropped frames for every single sample
-   *
-   */
-
-  function validString(string) {
-    return (string != undefined && typeof string == 'string');
-  }
-
-  function validBoolean(boolean) {
-    return (boolean != undefined && typeof boolean == 'boolean');
-  }
-
-  function validNumber(number) {
-    return (number != undefined && typeof number == 'number');
-  }
-
-  function sanitizePath(path) {
-    return path.replace(/\/$/g, '');
-  }
-
-  function sendAnalyticsRequest(async) {
-    if (localTest) {
-      return;
-    }
-
-    if (!isAnalyticsObjectValid()) {
-      return;
-    }
-
-    var xhttp = new XMLHttpRequest();
-
-    if (typeof async === 'undefined') {
-      async = true;
-    }
-
-    lastSampleTimestamp = new Date().getTime();
-
-    xhttp.open('POST', url, async);
-    xhttp.setRequestHeader('Content-Type', 'application/json');
-    xhttp.send(JSON.stringify(analyticsObject));
-  }
-
-  function sendUnloadRequest() {
-    if (localTest) {
-      return;
-    }
-
-    if (typeof navigator.sendBeacon === 'undefined') {
-      sendAnalyticsRequest(false);
-    }
-    else {
-      var success = navigator.sendBeacon(url, JSON.stringify(analyticsObject));
-      if (!success) {
-        sendAnalyticsRequest(false);
-      }
-    }
-  }
-
-  function calculateTime(time) {
-    time = time * 1000;
-    return Math.round(time);
-  }
-
-  function calculateDuration(initTime, timestamp) {
-    lastSampleDuration = timestamp - initTime - overall;
-    overall += lastSampleDuration;
-    return lastSampleDuration;
-  }
-
-  function generateImpressionID() {
-    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-      var r = Math.random() * 16 | 0;
-      var v = c == 'x' ? r : (r & 0x3 | 0x8);
-      return v.toString(16);
-    });
-  }
-
-  function getCookie(cname) {
-    var name = cname + '=';
-    var ca   = document.cookie.split(';');
-    for (var i = 0; i < ca.length; i++) {
-      var c = ca[i];
-      while (c.charAt(0) == ' ') {
-        c = c.substring(1);
-      }
-      if (c.indexOf(name) == 0) {
-        return c.substring(name.length, c.length);
-      }
-    }
-    return '';
-  }
-
-  function clearValues() {
-    start         = true;
-    initPauseTime = 0;
-    isPausing     = false;
-    initPlayTime  = new Date().getTime();
-
-    analyticsObject.ad                = 0;
-    analyticsObject.paused            = 0;
-    analyticsObject.played            = 0;
-    analyticsObject.seeked            = 0;
-    analyticsObject.buffered          = 0;
-    analyticsObject.playerStartupTime = 0;
-    analyticsObject.videoStartupTime  = 0;
-  }
-
-  function getDroppedFrames(frames) {
-    if (frames != undefined && frames != 0) {
-      var droppedFrames   = frames - droppedSampleFrames;
-      droppedSampleFrames = frames;
-      return droppedFrames;
-    }
-    else {
-      return 0;
-    }
-  }
-
-  function isAnalyticsObjectValid() {
-    if (!analyticsObject.impressionId || analyticsObject.impressionId === '') {
-      return false;
-    }
-
-    if (!analyticsObject.userId || analyticsObject.userId === '') {
-      return false;
-    }
-
-    return true;
-  }
-
-  /**
-   *
    *  public methods
    *  accessible from outside
    *
@@ -295,11 +133,10 @@ function BitAnalytics(videoId) {
       return;
     }
 
-    var licensingStatus = getLicensingStatus(object.key, object.domain);
+    checkLicensing(object.key);
 
-    if (licensingStatus !== 'denied') {
-      granted = true;
-    }
+    granted = false;
+
     initTime = new Date().getTime();
 
     analyticsObject.key       = object.key;
@@ -323,13 +160,6 @@ function BitAnalytics(videoId) {
   };
 
   this.record = function(event, eventObject) {
-    if (!granted) {
-      if (once) {
-        once = false;
-        console.log('No valid API key provided');
-      }
-      return;
-    }
 
     eventObject   = eventObject || {};
     var timestamp = new Date().getTime();
@@ -726,6 +556,37 @@ function BitAnalytics(videoId) {
     }
   };
 
+  function checkLicensing(key) {
+    var licensingRequest = {
+      key: key,
+      domain: analyticsObject.domain,
+      analyticsVersion: getAnalyticsVersion()
+    };
+
+    sendLicensingRequest(licensingRequest);
+  }
+
+  function sendLicensingRequest(licensingRequest) {
+    var xhttp = new XMLHttpRequest();
+
+    xhttp.onreadystatechange = function() {
+      if (xhttp.readyState == XMLHttpRequest.DONE) {
+        var licensingResponse = JSON.parse(xhttp.responseText);
+        handleLicensingResponse(licensingResponse);
+      }
+    };
+
+    xhttp.open('POST', analyticsBackend + '/licensing', true);
+    xhttp.setRequestHeader('Content-Type', 'application/json');
+    xhttp.send(JSON.stringify(licensingRequest));
+  }
+
+  function handleLicensingResponse(licensingResponse) {
+    if (licensingResponse.status === 'granted') {
+      granted = true;
+    }
+  }
+
   function sendHeartBeatIfRequired(eventObject) {
     var now = new Date().getTime();
 
@@ -742,5 +603,130 @@ function BitAnalytics(videoId) {
       sendAnalyticsRequest();
       clearValues();
     }
+  }
+
+  function getAnalyticsVersion() {
+    return "0.1.0";
+  }
+
+  function validString(string) {
+    return (string != undefined && typeof string == 'string');
+  }
+
+  function validBoolean(boolean) {
+    return (boolean != undefined && typeof boolean == 'boolean');
+  }
+
+  function validNumber(number) {
+    return (number != undefined && typeof number == 'number');
+  }
+
+  function sanitizePath(path) {
+    return path.replace(/\/$/g, '');
+  }
+
+  function sendAnalyticsRequest(async) {
+    if (!granted) {
+      return;
+    }
+    if (!isAnalyticsObjectValid()) {
+      return;
+    }
+
+    var xhttp = new XMLHttpRequest();
+
+    if (typeof async === 'undefined') {
+      async = true;
+    }
+
+    lastSampleTimestamp = new Date().getTime();
+
+    xhttp.open('POST', analyticsBackend + '/analytics', async);
+    xhttp.setRequestHeader('Content-Type', 'application/json');
+    xhttp.send(JSON.stringify(analyticsObject));
+  }
+
+  function sendUnloadRequest() {
+    if (typeof navigator.sendBeacon === 'undefined') {
+      sendAnalyticsRequest(false);
+    }
+    else {
+      var success = navigator.sendBeacon(analyticsBackend + '/analytics', JSON.stringify(analyticsObject));
+      if (!success) {
+        sendAnalyticsRequest(false);
+      }
+    }
+  }
+
+  function calculateTime(time) {
+    time = time * 1000;
+    return Math.round(time);
+  }
+
+  function calculateDuration(initTime, timestamp) {
+    lastSampleDuration = timestamp - initTime - overall;
+    overall += lastSampleDuration;
+    return lastSampleDuration;
+  }
+
+  function generateImpressionID() {
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+      var r = Math.random() * 16 | 0;
+      var v = c == 'x' ? r : (r & 0x3 | 0x8);
+      return v.toString(16);
+    });
+  }
+
+  function getCookie(cname) {
+    var name = cname + '=';
+    var ca   = document.cookie.split(';');
+    for (var i = 0; i < ca.length; i++) {
+      var c = ca[i];
+      while (c.charAt(0) == ' ') {
+        c = c.substring(1);
+      }
+      if (c.indexOf(name) == 0) {
+        return c.substring(name.length, c.length);
+      }
+    }
+    return '';
+  }
+
+  function clearValues() {
+    start         = true;
+    initPauseTime = 0;
+    isPausing     = false;
+    initPlayTime  = new Date().getTime();
+
+    analyticsObject.ad                = 0;
+    analyticsObject.paused            = 0;
+    analyticsObject.played            = 0;
+    analyticsObject.seeked            = 0;
+    analyticsObject.buffered          = 0;
+    analyticsObject.playerStartupTime = 0;
+    analyticsObject.videoStartupTime  = 0;
+  }
+
+  function getDroppedFrames(frames) {
+    if (frames != undefined && frames != 0) {
+      var droppedFrames   = frames - droppedSampleFrames;
+      droppedSampleFrames = frames;
+      return droppedFrames;
+    }
+    else {
+      return 0;
+    }
+  }
+
+  function isAnalyticsObjectValid() {
+    if (!analyticsObject.impressionId || analyticsObject.impressionId === '') {
+      return false;
+    }
+
+    if (!analyticsObject.userId || analyticsObject.userId === '') {
+      return false;
+    }
+
+    return true;
   }
 }
