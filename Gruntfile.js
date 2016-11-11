@@ -21,9 +21,9 @@ module.exports = function(grunt) {
       },
       build: {
         files: {
-          'build/<%= pkg.name %>-bitmovin.js': ['js/bitanalytics-core.js', 'js/bitanalytics-bitmovin.js'],
-          'build/<%= pkg.name %>-jw.js': ['js/bitanalytics-core.js', 'js/bitanalytics-jw.js'],
-          'build/<%= pkg.name %>-radiant.js': ['js/bitanalytics-core.js', 'js/bitanalytics-radiant.js']
+          'build/<%= pkg.name %>-bitmovin.js': ['js/core/*.js', 'js/bitanalytics-core.js', 'js/adapters/bitanalytics-bitmovin.js'],
+          'build/<%= pkg.name %>-jw.js': ['js/core/*.js', 'js/bitanalytics-core.js', 'js/adapters/bitanalytics-jw.js'],
+          'build/<%= pkg.name %>-radiant.js': ['js/core/*.js', 'js/bitanalytics-core.js', 'js/adapters/bitanalytics-radiant.js'],
         }
       }
     },
