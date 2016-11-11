@@ -31,7 +31,7 @@ function BitAnalytics(videoId) {
   var initSeekTime   = 0;
   var initPauseTime  = 0;
   var initBufferTime = 0;
-  
+
   var start            = true;
   var isSeeking        = false;
   var isPausing        = false;
