@@ -2,19 +2,12 @@
  * Created by Bitmovin on 19.09.2016.
  *
  * Bitmovin analytics
- * developed by Patrick Struger
  */
 
 function BitAnalytics(videoId) {
 
   var initTime    = 0;
   var containerId = videoId;
-
-  /*
-   if user just wants to test locally and debug output
-   if enabled there will be no communication to the analytics backend
-   */
-  var localTest = false;
 
   /*
    firstSample - boolean to check if first sample is being played
@@ -55,16 +48,9 @@ function BitAnalytics(videoId) {
   var isPausing        = false;
   var playbackFinished = false;
 
-  /*
-   Boolean to check if right API key was provided
-   */
-  var once    = true;
   var granted = false;
 
-  /*
-   analytics backend url
-   */
-  var url = "https://bitmovin-bitanalytics.appspot.com/analytics";
+  var analyticsBackend = 'https://bitmovin-bitanalytics.appspot.com';
 
   var lastSampleTimestamp;
 
@@ -72,18 +58,18 @@ function BitAnalytics(videoId) {
     domain             : sanitizePath(window.location.hostname),
     path               : sanitizePath(window.location.pathname),
     language           : navigator.language || navigator.userLanguage,
-    playerTech         : "unknown",
+    playerTech         : 'unknown',
     userAgent          : navigator.userAgent,
     screenWidth        : screen.width,
     screenHeight       : screen.height,
-    streamFormat       : "unknown",
-    version            : "unknown",
+    streamFormat       : 'unknown',
+    version            : 'unknown',
     isLive             : false,
     isCasting          : false,
     videoDuration      : 0,
-    videoId            : "",
-    customUserId       : "",
-    size               : "WINDOW",
+    videoId            : '',
+    customUserId       : '',
+    size               : 'WINDOW',
     videoWindowWidth   : 0,
     videoWindowHeight  : 0,
     droppedFrames      : 0,
@@ -98,30 +84,31 @@ function BitAnalytics(videoId) {
     audioBitrate       : 0,
     videoTimeStart     : 0,
     videoTimeEnd       : 0,
-    duration           : 0
+    duration           : 0,
+    analyticsVersion   : getAnalyticsVersion()
   };
 
   this.events = {
-    READY            : "ready",
-    SOURCE_LOADED    : "sourceLoaded",
-    PLAY             : "play",
-    PAUSE            : "pause",
-    TIMECHANGED      : "timechange",
-    SEEK             : "seek",
-    START_CAST       : "startCasting",
-    END_CAST         : "endCasting",
-    START_BUFFERING  : "startBuffering",
-    END_BUFFERING    : "endBuffering",
-    AUDIO_CHANGE     : "audioChange",
-    VIDEO_CHANGE     : "videoChange",
-    START_FULLSCREEN : "startFullscreen",
-    END_FULLSCREEN   : "endFullscreen",
-    START_AD         : "adStart",
-    END_AD           : "adEnd",
-    ERROR            : "error",
-    PLAYBACK_FINISHED: "end",
-    SCREEN_RESIZE    : "resize",
-    UNLOAD           : "unload"
+    READY            : 'ready',
+    SOURCE_LOADED    : 'sourceLoaded',
+    PLAY             : 'play',
+    PAUSE            : 'pause',
+    TIMECHANGED      : 'timechange',
+    SEEK             : 'seek',
+    START_CAST       : 'startCasting',
+    END_CAST         : 'endCasting',
+    START_BUFFERING  : 'startBuffering',
+    END_BUFFERING    : 'endBuffering',
+    AUDIO_CHANGE     : 'audioChange',
+    VIDEO_CHANGE     : 'videoChange',
+    START_FULLSCREEN : 'startFullscreen',
+    END_FULLSCREEN   : 'endFullscreen',
+    START_AD         : 'adStart',
+    END_AD           : 'adEnd',
+    ERROR            : 'error',
+    PLAYBACK_FINISHED: 'end',
+    SCREEN_RESIZE    : 'resize',
+    UNLOAD           : 'unload'
   };
 
   this.players = {
@@ -129,151 +116,6 @@ function BitAnalytics(videoId) {
     JW      : 'jw',
     RADIANT : 'radiant'
   };
-
-  /**
-   *
-   *  private methods
-   *  not accessible from outside
-   *
-   *  - validString       --> check if input is a string and not undefined (needed for checking input from user)
-   *  - validBoolean      --> check if input is a boolean and not undefined (needed for checking input from user)
-   *  - validNumber       --> check if input is a number and not undefined (needed for checking input from user)
-   *
-   *  - sendRequest       --> method to send analytics object to bitmovin analytics backend
-   *  - calculateTime     --> converts milliseconds to seconds and rounds them
-   *  - calculateDuration --> needed to calculate duration of one individual sample
-   *  - generateImpressionID  --> needed to generate an impression or user id if not available
-   *  - getCookie         --> function to read cookie from customer to obtain bitmovin user id
-   *  - clearValues       --> after a sample is sended, all values are cleared to provide exacct data for next sample
-   *  - getDroppedFrames  --> calculates dropped frames for every single sample
-   *
-   */
-
-  function validString(string) {
-    return (string != undefined && typeof string == 'string');
-  }
-
-  function validBoolean(boolean) {
-    return (boolean != undefined && typeof boolean == 'boolean');
-  }
-
-  function validNumber(number) {
-    return (number != undefined && typeof number == 'number');
-  }
-
-  function sanitizePath(path) {
-    return path.replace(/\/$/g, '');
-  }
-
-  function sendRequest(async) {
-      if (localTest) {
-          return;
-      }
-
-      if (!isAnalyticsObjectValid()) {
-        return;
-      }
-
-      var xhttp = new XMLHttpRequest();
-
-      if (typeof async === "undefined") {
-          async = true;
-      }
-
-      lastSampleTimestamp = new Date().getTime();
-
-    xhttp.open("POST", url, async);
-    xhttp.setRequestHeader("Content-Type", "application/json");
-    xhttp.send(JSON.stringify(analyticsObject));
-  }
-
-  function sendUnloadRequest() {
-      if (localTest) {
-          return;
-      }
-
-      if (typeof navigator.sendBeacon === "undefined") {
-      sendRequest(false);
-    }
-    else {
-      var success = navigator.sendBeacon(url, JSON.stringify(analyticsObject));
-          if (!success) {
-              sendRequest(false);
-          }
-    }
-  }
-
-  function calculateTime(time) {
-    time = time * 1000;
-    return Math.round(time);
-  }
-
-  function calculateDuration(initTime, timestamp) {
-    lastSampleDuration = timestamp - initTime - overall;
-    overall += lastSampleDuration;
-    return lastSampleDuration;
-  }
-
-  function generateImpressionID() {
-    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-      var r = Math.random() * 16 | 0;
-      var v = c == 'x' ? r : (r & 0x3 | 0x8);
-      return v.toString(16);
-    });
-  }
-
-  function getCookie(cname) {
-    var name = cname + "=";
-    var ca   = document.cookie.split(';');
-    for (var i = 0; i < ca.length; i++) {
-      var c = ca[i];
-      while (c.charAt(0) == ' ') {
-        c = c.substring(1);
-      }
-      if (c.indexOf(name) == 0) {
-        return c.substring(name.length, c.length);
-      }
-    }
-    return "";
-  }
-
-  function clearValues() {
-    start         = true;
-    initPauseTime = 0;
-    isPausing     = false;
-    initPlayTime  = new Date().getTime();
-
-    analyticsObject.ad                = 0;
-    analyticsObject.paused            = 0;
-    analyticsObject.played            = 0;
-    analyticsObject.seeked            = 0;
-    analyticsObject.buffered          = 0;
-    analyticsObject.playerStartupTime = 0;
-    analyticsObject.videoStartupTime  = 0;
-  }
-
-  function getDroppedFrames(frames) {
-    if (frames != undefined && frames != 0) {
-      var droppedFrames   = frames - droppedSampleFrames;
-      droppedSampleFrames = frames;
-      return droppedFrames;
-    }
-    else {
-      return 0;
-    }
-  }
-
-  function isAnalyticsObjectValid() {
-    if (!analyticsObject.impressionId || analyticsObject.impressionId === '') {
-      return false;
-    }
-
-    if (!analyticsObject.userId || analyticsObject.userId === '') {
-      return false;
-    }
-
-    return true;
-  }
 
   /**
    *
@@ -286,12 +128,15 @@ function BitAnalytics(videoId) {
    */
 
   this.init = function(object) {
-    if (object.key == "" || !validString(object.key)) {
-      console.error("Invalid analytics license key provided");
+    if (object.key == '' || !validString(object.key)) {
+      console.error('Invalid analytics license key provided');
       return;
     }
 
-    granted  = true;
+    checkLicensing(object.key);
+
+    granted = false;
+
     initTime = new Date().getTime();
 
     analyticsObject.key       = object.key;
@@ -304,10 +149,10 @@ function BitAnalytics(videoId) {
      *      if not generate one
      *
      */
-    var userId = getCookie("bitmovin_analytics_uuid");
-    if (userId == "") {
-      document.cookie        = "bitmovin_analytics_uuid=" + generateImpressionID();
-      analyticsObject.userId = getCookie("bitmovin_analytics_uuid");
+    var userId = getCookie('bitmovin_analytics_uuid');
+    if (userId == '') {
+      document.cookie        = 'bitmovin_analytics_uuid=' + generateImpressionID();
+      analyticsObject.userId = getCookie('bitmovin_analytics_uuid');
     }
     else {
       analyticsObject.userId = userId;
@@ -315,13 +160,6 @@ function BitAnalytics(videoId) {
   };
 
   this.record = function(event, eventObject) {
-    if (!granted) {
-      if (once) {
-        once = false;
-        console.log("No valid API key provided");
-      }
-      return;
-    }
 
     eventObject   = eventObject || {};
     var timestamp = new Date().getTime();
@@ -334,7 +172,7 @@ function BitAnalytics(videoId) {
       case this.events.READY:
         analyticsObject.playerStartupTime = timestamp - initTime;
 
-        analyticsObject.videoWindowWidth = document.getElementById(containerId).offsetWidth;
+        analyticsObject.videoWindowWidth  = document.getElementById(containerId).offsetWidth;
         analyticsObject.videoWindowHeight = document.getElementById(containerId).offsetHeight;
 
         /**
@@ -394,7 +232,7 @@ function BitAnalytics(videoId) {
             analyticsObject.droppedFrames = getDroppedFrames(eventObject.droppedFrames);
           }
 
-          sendRequest();
+          sendAnalyticsRequest();
 
           clearValues();
           isPausing = false;
@@ -410,7 +248,7 @@ function BitAnalytics(videoId) {
         }
         analyticsObject.duration = calculateDuration(initTime, timestamp);
 
-        sendRequest();
+        sendAnalyticsRequest();
 
         clearValues();
         /*
@@ -443,7 +281,7 @@ function BitAnalytics(videoId) {
               analyticsObject.droppedFrames = getDroppedFrames(eventObject.droppedFrames);
             }
 
-            sendRequest();
+            sendAnalyticsRequest();
 
             clearValues();
           }
@@ -475,7 +313,7 @@ function BitAnalytics(videoId) {
           }
           analyticsObject.duration = calculateDuration(initTime, timestamp);
 
-          sendRequest();
+          sendAnalyticsRequest();
 
           clearValues();
 
@@ -510,7 +348,7 @@ function BitAnalytics(videoId) {
           }
           analyticsObject.duration = calculateDuration(initTime, timestamp);
 
-          sendRequest();
+          sendAnalyticsRequest();
 
           clearValues();
           isSeeking = false;
@@ -534,7 +372,7 @@ function BitAnalytics(videoId) {
           }
           analyticsObject.duration = calculateDuration(initTime, timestamp);
 
-          sendRequest();
+          sendAnalyticsRequest();
 
           clearValues();
         }
@@ -574,7 +412,7 @@ function BitAnalytics(videoId) {
           }
           analyticsObject.duration = calculateDuration(initTime, timestamp);
 
-          sendRequest();
+          sendAnalyticsRequest();
 
           clearValues();
         }
@@ -606,10 +444,10 @@ function BitAnalytics(videoId) {
         }
         analyticsObject.duration = calculateDuration(initTime, timestamp);
 
-        sendRequest();
+        sendAnalyticsRequest();
 
         clearValues();
-        analyticsObject.size = "FULLSCREEN";
+        analyticsObject.size = 'FULLSCREEN';
         break;
 
       case this.events.END_FULLSCREEN:
@@ -621,10 +459,10 @@ function BitAnalytics(videoId) {
         }
         analyticsObject.duration = calculateDuration(initTime, timestamp);
 
-        sendRequest();
+        sendAnalyticsRequest();
 
         clearValues();
-        analyticsObject.size = "WINDOW";
+        analyticsObject.size = 'WINDOW';
         break;
 
 
@@ -645,7 +483,7 @@ function BitAnalytics(videoId) {
         }
         analyticsObject.duration = calculateDuration(initTime, timestamp);
 
-        sendRequest();
+        sendAnalyticsRequest();
 
         clearValues();
         break;
@@ -669,7 +507,7 @@ function BitAnalytics(videoId) {
         }
         analyticsObject.duration = calculateDuration(initTime, timestamp);
 
-        sendRequest();
+        sendAnalyticsRequest();
 
         /*
          delete error code property from analytics object
@@ -690,7 +528,7 @@ function BitAnalytics(videoId) {
         }
         analyticsObject.duration = calculateDuration(initTime, timestamp);
 
-        sendRequest();
+        sendAnalyticsRequest();
         break;
 
       case this.events.UNLOAD:
@@ -718,6 +556,37 @@ function BitAnalytics(videoId) {
     }
   };
 
+  function checkLicensing(key) {
+    var licensingRequest = {
+      key: key,
+      domain: analyticsObject.domain,
+      analyticsVersion: getAnalyticsVersion()
+    };
+
+    sendLicensingRequest(licensingRequest);
+  }
+
+  function sendLicensingRequest(licensingRequest) {
+    var xhttp = new XMLHttpRequest();
+
+    xhttp.onreadystatechange = function() {
+      if (xhttp.readyState == XMLHttpRequest.DONE) {
+        var licensingResponse = JSON.parse(xhttp.responseText);
+        handleLicensingResponse(licensingResponse);
+      }
+    };
+
+    xhttp.open('POST', analyticsBackend + '/licensing', true);
+    xhttp.setRequestHeader('Content-Type', 'application/json');
+    xhttp.send(JSON.stringify(licensingRequest));
+  }
+
+  function handleLicensingResponse(licensingResponse) {
+    if (licensingResponse.status === 'granted') {
+      granted = true;
+    }
+  }
+
   function sendHeartBeatIfRequired(eventObject) {
     var now = new Date().getTime();
 
@@ -731,8 +600,133 @@ function BitAnalytics(videoId) {
       }
       analyticsObject.duration = calculateDuration(initTime, now);
 
-      sendRequest();
+      sendAnalyticsRequest();
       clearValues();
     }
+  }
+
+  function getAnalyticsVersion() {
+    return "0.1.0";
+  }
+
+  function validString(string) {
+    return (string != undefined && typeof string == 'string');
+  }
+
+  function validBoolean(boolean) {
+    return (boolean != undefined && typeof boolean == 'boolean');
+  }
+
+  function validNumber(number) {
+    return (number != undefined && typeof number == 'number');
+  }
+
+  function sanitizePath(path) {
+    return path.replace(/\/$/g, '');
+  }
+
+  function sendAnalyticsRequest(async) {
+    if (!granted) {
+      return;
+    }
+    if (!isAnalyticsObjectValid()) {
+      return;
+    }
+
+    var xhttp = new XMLHttpRequest();
+
+    if (typeof async === 'undefined') {
+      async = true;
+    }
+
+    lastSampleTimestamp = new Date().getTime();
+
+    xhttp.open('POST', analyticsBackend + '/analytics', async);
+    xhttp.setRequestHeader('Content-Type', 'application/json');
+    xhttp.send(JSON.stringify(analyticsObject));
+  }
+
+  function sendUnloadRequest() {
+    if (typeof navigator.sendBeacon === 'undefined') {
+      sendAnalyticsRequest(false);
+    }
+    else {
+      var success = navigator.sendBeacon(analyticsBackend + '/analytics', JSON.stringify(analyticsObject));
+      if (!success) {
+        sendAnalyticsRequest(false);
+      }
+    }
+  }
+
+  function calculateTime(time) {
+    time = time * 1000;
+    return Math.round(time);
+  }
+
+  function calculateDuration(initTime, timestamp) {
+    lastSampleDuration = timestamp - initTime - overall;
+    overall += lastSampleDuration;
+    return lastSampleDuration;
+  }
+
+  function generateImpressionID() {
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+      var r = Math.random() * 16 | 0;
+      var v = c == 'x' ? r : (r & 0x3 | 0x8);
+      return v.toString(16);
+    });
+  }
+
+  function getCookie(cname) {
+    var name = cname + '=';
+    var ca   = document.cookie.split(';');
+    for (var i = 0; i < ca.length; i++) {
+      var c = ca[i];
+      while (c.charAt(0) == ' ') {
+        c = c.substring(1);
+      }
+      if (c.indexOf(name) == 0) {
+        return c.substring(name.length, c.length);
+      }
+    }
+    return '';
+  }
+
+  function clearValues() {
+    start         = true;
+    initPauseTime = 0;
+    isPausing     = false;
+    initPlayTime  = new Date().getTime();
+
+    analyticsObject.ad                = 0;
+    analyticsObject.paused            = 0;
+    analyticsObject.played            = 0;
+    analyticsObject.seeked            = 0;
+    analyticsObject.buffered          = 0;
+    analyticsObject.playerStartupTime = 0;
+    analyticsObject.videoStartupTime  = 0;
+  }
+
+  function getDroppedFrames(frames) {
+    if (frames != undefined && frames != 0) {
+      var droppedFrames   = frames - droppedSampleFrames;
+      droppedSampleFrames = frames;
+      return droppedFrames;
+    }
+    else {
+      return 0;
+    }
+  }
+
+  function isAnalyticsObjectValid() {
+    if (!analyticsObject.impressionId || analyticsObject.impressionId === '') {
+      return false;
+    }
+
+    if (!analyticsObject.userId || analyticsObject.userId === '') {
+      return false;
+    }
+
+    return true;
   }
 }
