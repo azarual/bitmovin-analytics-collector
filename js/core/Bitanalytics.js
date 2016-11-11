@@ -163,9 +163,6 @@ function BitAnalytics(videoId) {
     sample.videoWindowWidth  = document.getElementById(containerId).offsetWidth;
     sample.videoWindowHeight = document.getElementById(containerId).offsetHeight;
 
-    /**
-     * check if all parameters are valid, otherwise leave them default
-     */
     if (utils.validBoolean(event.isLive)) {
       sample.isLive = event.isLive;
     }
@@ -238,9 +235,6 @@ function BitAnalytics(videoId) {
     sendAnalyticsRequest();
     clearValues();
 
-    /*
-     init playing time
-     */
     initPauseTime = now;
     isPausing     = true;
   }
@@ -606,6 +600,8 @@ function BitAnalytics(videoId) {
     if (!isAnalyticsObjectValid()) {
       return;
     }
+
+    console.log('sending request', sample);
 
     lastSampleTimestamp = new Date().getTime();
 
