@@ -1,4 +1,5 @@
 module.exports = function(grunt) {
+  require('load-grunt-tasks')(grunt);
   grunt.initConfig({
     pkg: grunt.file.readJSON('package.json'),
     uglify: {
@@ -25,11 +26,20 @@ module.exports = function(grunt) {
           'build/<%= pkg.name %>-radiant.js': ['js/bitanalytics-core.js', 'js/bitanalytics-radiant.js']
         }
       }
+    },
+    watch: {
+      files: ['Gruntfile.js', 'js/**/*.js'],
+      tasks: ['eslint', 'concat']
+    },
+    eslint: {
+      target: ['Gruntfile.js', 'js/**/*.js']
     }
   });
 
   grunt.loadNpmTasks('grunt-contrib-uglify');
-  //grunt.loadNpmTasks('grunt-contrib-watch');
+  grunt.loadNpmTasks('grunt-contrib-watch');
   grunt.loadNpmTasks('grunt-contrib-concat');
-  grunt.registerTask('default', ['concat', 'uglify']);
+  grunt.registerTask('default', ['eslint', 'concat', 'uglify']);
+  grunt.registerTask('debug', ['eslint', 'concat']);
+  grunt.registerTask('lint', ['eslint']);
 };
