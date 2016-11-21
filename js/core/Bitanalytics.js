@@ -71,7 +71,6 @@ function BitAnalytics(videoId) {
 
   this.record = function(eventType, eventObject) {
     eventObject = eventObject || {};
-    var now     = new Date().getTime();
 
     switch (eventType) {
       case this.events.SOURCE_LOADED:
@@ -99,7 +98,7 @@ function BitAnalytics(videoId) {
         break;
 
       case this.events.START_BUFFERING:
-        initBufferTime = now;
+        playerFiredStartBuffering(eventObject);
         break;
 
       case this.events.END_BUFFERING:
@@ -123,8 +122,7 @@ function BitAnalytics(videoId) {
         break;
 
       case this.events.START_AD:
-        initAdTime = now;
-        clearValues();
+        playerFiredStartAd(eventObject);
         break;
 
       case this.events.END_AD:
@@ -313,6 +311,13 @@ function BitAnalytics(videoId) {
     }
   }
 
+  function playerFiredStartBuffering(event)
+  {
+    var now = new Date().getTime();
+
+    initBufferTime = now;
+  }
+
   function playerFiredEndBuffering(event) {
     var now = new Date().getTime();
 
@@ -450,6 +455,14 @@ function BitAnalytics(videoId) {
 
     clearValues();
     sample.size = 'WINDOW';
+  }
+
+  function playerFiredStartAd(event)
+  {
+    var now = new Date().getTime();
+
+    initAdTime = now;
+    clearValues();
   }
 
   function playerFiredEndAd(event) {
