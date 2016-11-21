@@ -56,6 +56,13 @@ function registerEvents(player) {
     });
   });
 
+  player.addEventHandler(bitmovin.player.EVENT.ON_SEEKED, function() {
+    analytics.record(analytics.events.SEEKED, {
+      currentTime  : player.getCurrentTime(),
+      droppedFrames: player.getDroppedFrames()
+    });
+  });
+
   player.addEventHandler(bitmovin.player.EVENT.ON_START_BUFFERING, function() {
     analytics.record(analytics.events.START_BUFFERING);
   });
