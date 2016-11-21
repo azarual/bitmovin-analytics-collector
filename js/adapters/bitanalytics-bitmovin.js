@@ -131,6 +131,7 @@ function registerEvents(player) {
   });
 
   var onBeforeUnLoadEvent = false;
+  // TODO: Check if event is not called twice
   window.onunload         = window.onbeforeunload = function() {
     if (!onBeforeUnLoadEvent) {
       onBeforeUnLoadEvent = true;

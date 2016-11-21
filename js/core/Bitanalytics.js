@@ -21,6 +21,7 @@ function BitAnalytics(videoId) {
   var skipAudioPlaybackChange = true;
 
   var overall            = 0;
+  // Rename to something sane
   var lastSampleDuration = 0;
 
   var playing             = 0;
@@ -182,6 +183,7 @@ function BitAnalytics(videoId) {
     if (utils.validString(event.userId)) {
       sample.customUserId = event.userId;
     }
+    // TODO: Ship sample
   }
 
   function playerFiredPlay(event) {
@@ -271,6 +273,7 @@ function BitAnalytics(videoId) {
       clearValues();
     }
     else if (!firstSample && start === true) {
+      // TODO: Refactor this to make understandable
       start = false;
       if (utils.validNumber(event.currentTime)) {
         sample.videoTimeStart = utils.calculateTime(event.currentTime);
@@ -281,6 +284,8 @@ function BitAnalytics(videoId) {
   }
 
   function playerFiredSeek(event) {
+    // SeekDelay - Time from letting scrubber go to first frame afterwards
+    // Time required (buffering etc) until playback resumed
     if (isSeeking || playbackFinished) {
       return;
     }
@@ -322,10 +327,15 @@ function BitAnalytics(videoId) {
     var now = new Date().getTime();
 
     sample.buffered = now - initBufferTime;
+    // TODO: Immediately send out end buffered sample
+
     if (isSeeking) {
       /* have to set played attribute to 0 due to some time changing between seek end and buffering */
       sample.played = 0;
 
+      // Seeked = Seekdelay
+      // Time from end scrub to first frame
+      // TODO: Move to timeChanged
       sample.seeked = now - initSeekTime;
       if (utils.validNumber(event.currentTime)) {
         sample.videoTimeEnd = utils.calculateTime(event.currentTime);
@@ -345,16 +355,21 @@ function BitAnalytics(videoId) {
   function playerFiredAudioChange(event) {
     var now = new Date().getTime();
 
+    // TODO: Investigate this fishy if
     if (!skipAudioPlaybackChange && !isSeeking) {
       /*
        get the audio bitrate data for the new sample
        */
+       // TODO: Fix bullshit
+       // Bitate change should not be in past sample - only future sample
+       // TODO: Move sendAnalyticsRequest to top
       if (utils.validNumber(event.bitrate)) {
         sample.audioBitrate = event.bitrate;
       }
       if (utils.validNumber(event.currentTime)) {
         sample.videoTimeEnd = utils.calculateTime(event.currentTime);
       }
+      // TODO: Make generic method for sending sample that always calculates videTimeEnd, droppedFrames etc
       if (utils.validNumber(event.droppedFrames)) {
         sample.droppedFrames = getDroppedFrames(event.droppedFrames);
       }
@@ -379,6 +394,7 @@ function BitAnalytics(videoId) {
   function playerFiredVideoChange(event) {
     var now = new Date().getTime();
 
+    // Investigate!
     if (!skipVideoPlaybackChange && !isSeeking) {
       /*
        get the video playback data for the new sample
@@ -389,6 +405,7 @@ function BitAnalytics(videoId) {
       if (utils.validNumber(event.height)) {
         sample.videoPlaybackHeight = event.height;
       }
+      // TODO: Bullshit - videoBitrate should be set after sample is sent
       if (utils.validNumber(event.bitrate)) {
         sample.videoBitrate = event.bitrate;
       }
@@ -434,6 +451,7 @@ function BitAnalytics(videoId) {
     }
     sample.duration = calculateDuration(initTime, now);
 
+    // TODO: sample size is set too soon - AFTER sendAnalyticsRequest
     sample.size = 'FULLSCREEN';
     sendAnalyticsRequest();
 
@@ -462,6 +480,7 @@ function BitAnalytics(videoId) {
     var now = new Date().getTime();
 
     initAdTime = now;
+    // TODO: Send analytics Request
     clearValues();
   }
 
@@ -487,6 +506,7 @@ function BitAnalytics(videoId) {
   function playerFiredError(event) {
     var now = new Date().getTime();
 
+    // TODO: Send analytics Request with non-faulty playback before this error occured
     if (utils.validNumber(event.code)) {
       sample.errorCode = event.code;
     }
@@ -494,6 +514,7 @@ function BitAnalytics(videoId) {
       sample.errorMessage = event.message;
     }
     if (utils.validNumber(event.currentTime)) {
+      // TODO: Set videoTimeStart
       sample.videoTimeEnd = utils.calculateTime(event.currentTime);
     }
     if (utils.validNumber(event.droppedFrames)) {
@@ -512,6 +533,8 @@ function BitAnalytics(videoId) {
   function playerFiredPlaybackFinished(event) {
     var now = new Date().getTime();
 
+    // Make sure this does not report player startuptime twice
+    // Generate new ImpressionId
     firstSample         = true;
     playbackFinished    = true;
     sample.videoTimeEnd = sample.videoDuration;
