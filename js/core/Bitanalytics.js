@@ -27,19 +27,19 @@ function BitAnalytics(videoId) {
   var initSeekTime = 0;
 
   var states = {
-    SETUP: 'setup',
-    LOADED: 'loaded',
-    READY: 'ready',
-    PLAY: 'play',
-    PLAYING: 'playing',
-    PAUSED: 'paused',
-    BUFFERING: 'buffering',
-    BUFFERED: 'buffered',
-    SEEKING: 'seeking',
-    SEEKED: 'seeked',
-    ENDED: 'ended',
+    SETUP     : 'setup',
+    LOADED    : 'loaded',
+    READY     : 'ready',
+    PLAY      : 'play',
+    PLAYING   : 'playing',
+    PAUSED    : 'paused',
+    BUFFERING : 'buffering',
+    BUFFERED  : 'buffered',
+    SEEKING   : 'seeking',
+    SEEKED    : 'seeked',
+    ENDED     : 'ended',
     FULLSCREEN: 'fullscreen',
-    WINDOW: 'window'
+    WINDOW    : 'window'
   };
 
   var state = states.SETUP;
@@ -47,8 +47,8 @@ function BitAnalytics(videoId) {
 
   var wasSeeking = false;
 
-  var granted  = false;
-  var debug    = false;
+  var granted = false;
+  var debug   = false;
 
   var lastSampleTimestamp;
 
@@ -495,8 +495,8 @@ function BitAnalytics(videoId) {
 
     if (statusNew === states.ENDED) {
       sample.videoTimeEnd = sample.videoDuration;
-      sample.duration = getTimeSinceLastSampleTimestamp();
-      sample.played   = sample.duration;
+      sample.duration     = getTimeSinceLastSampleTimestamp();
+      sample.played       = sample.duration;
 
       setDroppedFrames(event);
 
@@ -561,12 +561,14 @@ function BitAnalytics(videoId) {
 
     if (statusNew === states.PLAYING) {
       if (firstSample) {
-        sample.videoStartupTime = utils.getDurationFromTimestampToNow(initPlayTime);
         firstSample             = false;
+        sample.videoStartupTime = utils.getDurationFromTimestampToNow(initPlayTime);
+        sample.duration         = sample.videoStartupTime;
+        sample.buffered         = sample.videoStartupTime;
+      } else {
+        sample.duration = getTimeSinceLastSampleTimestamp();
+        sample.buffered = sample.duration;
       }
-
-      sample.duration = getTimeSinceLastSampleTimestamp();
-      sample.buffered = sample.duration;
 
       setDroppedFrames(event);
       setVideoTimeStartFromEvent(event);
