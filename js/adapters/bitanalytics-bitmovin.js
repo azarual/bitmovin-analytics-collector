@@ -16,7 +16,10 @@ function registerEvents(player) {
       duration  : player.getDuration(),
       streamType: player.getStreamType(),
       videoId   : player.getConfig().source.videoId,
-      userId    : player.getConfig().source.userId
+      userId    : player.getConfig().source.userId,
+      mpdUrl    : player.getConfig().source.dash,
+      m3u8Url   : player.getConfig().source.hls,
+      progUrl   : player.getConfig().source.progressive
     });
   });
 
