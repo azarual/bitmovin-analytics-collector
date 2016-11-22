@@ -24,6 +24,10 @@ function Utils() {
     return Math.round(time);
   };
 
+  this.getCurrentTimestamp = function() {
+    return new Date().getTime();
+  };
+
   this.generateUUID = function() {
     return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
       var r = Math.random() * 16 | 0;

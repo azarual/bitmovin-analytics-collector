@@ -34,7 +34,6 @@ function registerEvents(player) {
     });
   });
 
-  // ALSO FOR AD STARTING
   player.addEventHandler(bitmovin.player.EVENT.ON_PAUSE, function() {
     analytics.record(analytics.events.PAUSE, {
       currentTime  : player.getCurrentTime(),
@@ -67,7 +66,6 @@ function registerEvents(player) {
     analytics.record(analytics.events.START_BUFFERING);
   });
 
-  // ALSO FOR SEEK END
   player.addEventHandler(bitmovin.player.EVENT.ON_STOP_BUFFERING, function() {
     analytics.record(analytics.events.END_BUFFERING, {
       currentTime  : player.getCurrentTime(),
@@ -138,7 +136,6 @@ function registerEvents(player) {
   });
 
   var onBeforeUnLoadEvent = false;
-  // TODO: Check if event is not called twice
   window.onunload         = window.onbeforeunload = function() {
     if (!onBeforeUnLoadEvent) {
       onBeforeUnLoadEvent = true;
