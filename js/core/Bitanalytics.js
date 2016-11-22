@@ -307,13 +307,7 @@ function BitAnalytics(videoId) {
 
   function playerFiredPlaybackFinished(eventType, event) {
     firstSample         = true;
-    sample.videoTimeEnd = sample.videoDuration;
-
-    setDroppedFrames(event);
-
-    sample.duration = getTimeSinceLastSampleTimestamp();
-
-    sendAnalyticsRequest(String(eventType));
+    handleStatusChange(status, 'ended', event);
   }
 
   function playerFiredUnload(event) {
@@ -497,6 +491,7 @@ function BitAnalytics(videoId) {
 
       sample.size = 'FULLSCREEN';
       setVideoTimeStartFromEvent(event);
+      return;
     }
 
     if (statusNew === 'window') {
@@ -511,6 +506,17 @@ function BitAnalytics(videoId) {
 
       sample.size = 'WINDOW';
       setVideoTimeStartFromEvent(event);
+      return;
+    }
+
+    if (statusNew === 'ended') {
+      sample.videoTimeEnd = sample.videoDuration;
+      setDroppedFrames(event);
+
+      sample.duration = getTimeSinceLastSampleTimestamp();
+      sample.played = sample.duration;
+
+      sendAnalyticsRequest('ended');
     }
   }
 
@@ -641,7 +647,7 @@ function BitAnalytics(videoId) {
       sample.videoTimeStart = utils.calculateTime(event.currentTime);
     }
   }
-  
+
   function setPlaybackVideoPropertiesFromEvent(event) {
     if (utils.validNumber(event.width)) {
       sample.videoPlaybackWidth = event.width;
