@@ -9,6 +9,7 @@ var Events = {
   PAUSE            : 'pause',
   TIMECHANGED      : 'timechange',
   SEEK             : 'seek',
+  SEEKED           : 'seeked',
   START_CAST       : 'startCasting',
   END_CAST         : 'endCasting',
   START_BUFFERING  : 'startBuffering',

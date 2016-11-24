@@ -16,7 +16,10 @@ function registerEvents(player) {
       duration  : player.getDuration(),
       streamType: player.getStreamType(),
       videoId   : player.getConfig().source.videoId,
-      userId    : player.getConfig().source.userId
+      userId    : player.getConfig().source.userId,
+      mpdUrl    : player.getConfig().source.dash,
+      m3u8Url   : player.getConfig().source.hls,
+      progUrl   : player.getConfig().source.progressive
     });
   });
 
@@ -34,7 +37,6 @@ function registerEvents(player) {
     });
   });
 
-  // ALSO FOR AD STARTING
   player.addEventHandler(bitmovin.player.EVENT.ON_PAUSE, function() {
     analytics.record(analytics.events.PAUSE, {
       currentTime  : player.getCurrentTime(),
@@ -56,11 +58,17 @@ function registerEvents(player) {
     });
   });
 
+  player.addEventHandler(bitmovin.player.EVENT.ON_SEEKED, function() {
+    analytics.record(analytics.events.SEEKED, {
+      currentTime  : player.getCurrentTime(),
+      droppedFrames: player.getDroppedFrames()
+    });
+  });
+
   player.addEventHandler(bitmovin.player.EVENT.ON_START_BUFFERING, function() {
     analytics.record(analytics.events.START_BUFFERING);
   });
 
-  // ALSO FOR SEEK END
   player.addEventHandler(bitmovin.player.EVENT.ON_STOP_BUFFERING, function() {
     analytics.record(analytics.events.END_BUFFERING, {
       currentTime  : player.getCurrentTime(),
@@ -118,9 +126,7 @@ function registerEvents(player) {
   player.addEventHandler(bitmovin.player.EVENT.ON_ERROR, function(event) {
     analytics.record(analytics.events.ERROR, {
       code         : event.code,
-      message      : event.message,
-      currentTime  : player.getCurrentTime(),
-      droppedFrames: player.getDroppedFrames()
+      message      : event.message
     });
   });
 
