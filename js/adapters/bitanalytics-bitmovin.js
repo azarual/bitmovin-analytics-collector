@@ -126,9 +126,7 @@ function registerEvents(player) {
   player.addEventHandler(bitmovin.player.EVENT.ON_ERROR, function(event) {
     analytics.record(analytics.events.ERROR, {
       code         : event.code,
-      message      : event.message,
-      currentTime  : player.getCurrentTime(),
-      droppedFrames: player.getDroppedFrames()
+      message      : event.message
     });
   });
 

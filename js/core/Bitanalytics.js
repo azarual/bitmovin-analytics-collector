@@ -269,8 +269,9 @@ function BitAnalytics(videoId) {
   }
 
   function playerFiredError(eventType, event) {
-    setDroppedFrames(event);
-    setVideoTimeEndFromEvent(event);
+    sample.videoTimeEnd = sample.videoTimeStart + utils.getDurationFromTimestampToNow(lastSampleTimestamp);
+
+    var errorTimestamp = sample.videoTimeEnd;
 
     sendAnalyticsRequest(String(eventType));
     clearValues();
@@ -282,9 +283,8 @@ function BitAnalytics(videoId) {
       sample.errorMessage = event.message;
     }
 
-    setVideoTimeEndFromEvent(event);
-    setVideoTimeStartFromEvent(event);
-    setDroppedFrames(event);
+    sample.videoTimeEnd = errorTimestamp;
+    sample.videoTimeStart = errorTimestamp;
 
     sendAnalyticsRequest(String(eventType));
     clearValues();
