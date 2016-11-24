@@ -749,7 +749,7 @@ function BitAnalytics(videoId) {
   }
 
   function getAnalyticsVersion() {
-    return '0.2.0';
+    return '0.2.1';
   }
 
   function sendAnalyticsRequest(event) {
