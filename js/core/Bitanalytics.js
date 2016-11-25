@@ -10,7 +10,7 @@ function BitAnalytics(videoId) {
   var analyticsCall = new AnalyticsCall();
   var utils         = new Utils();
 
-  var initTime    = 0;
+  var initTime    = utils.getCurrentTimestamp();
   var containerId = videoId;
 
   this.players = Players;
@@ -359,6 +359,7 @@ function BitAnalytics(videoId) {
 
   function handleStatusChangeFromLoaded(statusNew, event) {
     var newStatusWas = States.LOADED;
+    sample.state = newStatusWas;
 
     if (statusNew === States.READY) {
       sample.playerStartupTime = utils.getDurationFromTimestampToNow(initTime);
@@ -379,6 +380,7 @@ function BitAnalytics(videoId) {
 
   function handleStatusChangeFromReady(statusNew, event) {
     var newStatusWas = States.READY;
+    sample.state = newStatusWas;
 
     if (statusNew === States.PLAY) {
       initPlayTime = utils.getCurrentTimestamp();
@@ -391,6 +393,7 @@ function BitAnalytics(videoId) {
 
   function handleStatusChangeFromPlay(statusNew, event) {
     var newStatusWas = States.PLAY;
+    sample.state = newStatusWas;
 
     if (statusNew === States.PLAYING) {
       if (firstSample) {
@@ -424,6 +427,7 @@ function BitAnalytics(videoId) {
 
   function handleStatusChangeFromPlaying(statusNew, event) {
     var newStatusWas = States.PLAYING;
+    sample.state = newStatusWas;
 
     if (statusNew === States.PAUSED) {
       sample.duration = getTimeSinceLastSampleTimestamp();
@@ -491,6 +495,7 @@ function BitAnalytics(videoId) {
 
   function handleStatusChangeFromEnded(statusNew, event) {
     var newStatusWas = States.ENDED;
+    sample.state = newStatusWas;
 
     if (statusNew === States.PLAY) {
       sample.impressionId = utils.generateUUID();
@@ -507,6 +512,7 @@ function BitAnalytics(videoId) {
 
   function handleStatusChangeFromPaused(statusNew, event) {
     var newStatusWas = States.PAUSED;
+    sample.state = newStatusWas;
 
     if (statusNew === States.PLAYING) {
       var timeSinceLastSampleTimestamp = getTimeSinceLastSampleTimestamp();
@@ -542,6 +548,7 @@ function BitAnalytics(videoId) {
 
   function handleStatusChangeFromBuffering(statusNew, event) {
     var newStatusWas = States.BUFFERING;
+    sample.state = newStatusWas;
 
     if (statusNew === States.PLAYING) {
       if (firstSample) {
@@ -585,6 +592,7 @@ function BitAnalytics(videoId) {
 
   function handleStatusChangeFromSeeking(statusNew, event) {
     var newStatusWas = States.SEEKING;
+    sample.state = newStatusWas;
 
     if (statusNew === States.PLAYING) {
       setVideoTimeEndFromEvent(event);
@@ -603,6 +611,7 @@ function BitAnalytics(videoId) {
 
   function handleStatusChangeFromBuffered(statusNew, event) {
     var newStatusWas = States.BUFFERED;
+    sample.state = newStatusWas;
 
     if (statusNew === States.PLAYING) {
       sample.buffered = getTimeSinceLastSampleTimestamp();
@@ -718,7 +727,8 @@ function BitAnalytics(videoId) {
       videoTimeEnd       : 0,
       videoStartupTime   : 0,
       duration           : 0,
-      analyticsVersion   : getAnalyticsVersion()
+      analyticsVersion   : getAnalyticsVersion(),
+      state              : state
     };
   }
 
@@ -749,7 +759,7 @@ function BitAnalytics(videoId) {
   }
 
   function getAnalyticsVersion() {
-    return '0.2.1';
+    return '0.2.2';
   }
 
   function sendAnalyticsRequest(event) {
@@ -759,6 +769,11 @@ function BitAnalytics(videoId) {
     if (!granted) {
       return;
     }
+
+    if (lastSampleTimestamp > (initTime + 86400000)) {
+      return;
+    }
+
     analyticsCall.sendRequest(sample, utils.noOp);
   }
 
