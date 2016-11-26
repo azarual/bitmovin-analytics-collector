@@ -180,10 +180,6 @@ function BitAnalytics(videoId) {
   }
 
   function playerFiredEndBuffering(eventType, event) {
-    if (state !== States.BUFFERING) {
-      return;
-    }
-
     handleStatusChange(state, States.BUFFERED, event);
   }
 
@@ -443,6 +439,50 @@ function BitAnalytics(videoId) {
 
       setStateWas(newStatusWas);
       setState(statusNew);
+      return;
+    }
+
+    if (statusNew === States.BUFFERING) {
+      sample.duration = getTimeSinceLastSampleTimestamp();
+      sample.played   = sample.duration;
+
+      setVideoTimeEndFromEvent(event);
+      setDroppedFrames(event);
+
+      sendAnalyticsRequest(newStatusWas);
+
+      clearValues();
+      setVideoTimeStartFromEvent(event);
+
+      setStateWas(newStatusWas);
+      setState(statusNew);
+      return;
+    }
+
+    if (statusNew === States.BUFFERED) {
+      if (firstSample) {
+        firstSample             = false;
+        sample.videoStartupTime = utils.getDurationFromTimestampToNow(initPlayTime);
+        sample.duration         = sample.videoStartupTime;
+        sample.buffered         = sample.videoStartupTime;
+      } else {
+        sample.duration = getTimeSinceLastSampleTimestamp();
+        sample.buffered = sample.duration;
+      }
+
+      sample.state = States.BUFFERED;
+
+      setDroppedFrames(event);
+      setVideoTimeStartFromEvent(event);
+      setVideoTimeEndFromEvent(event);
+
+      sendAnalyticsRequest(newStatusWas);
+      clearValues();
+
+      setVideoTimeStartFromEvent(event);
+
+      setStateWas(statusNew);
+      setState(newStatusWas);
       return;
     }
 
@@ -759,7 +799,7 @@ function BitAnalytics(videoId) {
   }
 
   function getAnalyticsVersion() {
-    return '0.2.2';
+    return '0.2.3';
   }
 
   function sendAnalyticsRequest(event) {
