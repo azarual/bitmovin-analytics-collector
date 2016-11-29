@@ -13,8 +13,9 @@ function BitAnalytics(videoId) {
   var initTime    = utils.getCurrentTimestamp();
   var containerId = videoId;
 
-  this.players = Players;
-  this.events  = Events;
+  this.players      = Players;
+  this.events       = Events;
+  this.cdnProviders = CDNProviders;
 
   var firstSample             = true;
   var skipVideoPlaybackChange = true;
@@ -50,9 +51,10 @@ function BitAnalytics(videoId) {
 
     initTime = new Date().getTime();
 
-    sample.key       = config.key;
-    sample.playerKey = config.playerKey;
-    sample.player    = config.player;
+    sample.key         = config.key;
+    sample.playerKey   = config.playerKey;
+    sample.player      = config.player;
+    sample.cdnProvider = config.cdnProvider;
 
     var userId = utils.getCookie('bitmovin_analytics_uuid');
     if (userId == '') {
@@ -279,7 +281,7 @@ function BitAnalytics(videoId) {
       sample.errorMessage = event.message;
     }
 
-    sample.videoTimeEnd = errorTimestamp;
+    sample.videoTimeEnd   = errorTimestamp;
     sample.videoTimeStart = errorTimestamp;
 
     sendAnalyticsRequest(String(eventType));
@@ -355,7 +357,7 @@ function BitAnalytics(videoId) {
 
   function handleStatusChangeFromLoaded(statusNew, event) {
     var newStatusWas = States.LOADED;
-    sample.state = newStatusWas;
+    sample.state     = newStatusWas;
 
     if (statusNew === States.READY) {
       sample.playerStartupTime = utils.getDurationFromTimestampToNow(initTime);
@@ -376,7 +378,7 @@ function BitAnalytics(videoId) {
 
   function handleStatusChangeFromReady(statusNew, event) {
     var newStatusWas = States.READY;
-    sample.state = newStatusWas;
+    sample.state     = newStatusWas;
 
     if (statusNew === States.PLAY) {
       initPlayTime = utils.getCurrentTimestamp();
@@ -389,7 +391,7 @@ function BitAnalytics(videoId) {
 
   function handleStatusChangeFromPlay(statusNew, event) {
     var newStatusWas = States.PLAY;
-    sample.state = newStatusWas;
+    sample.state     = newStatusWas;
 
     if (statusNew === States.PLAYING) {
       if (firstSample) {
@@ -423,7 +425,7 @@ function BitAnalytics(videoId) {
 
   function handleStatusChangeFromPlaying(statusNew, event) {
     var newStatusWas = States.PLAYING;
-    sample.state = newStatusWas;
+    sample.state     = newStatusWas;
 
     if (statusNew === States.PAUSED) {
       sample.duration = getTimeSinceLastSampleTimestamp();
@@ -535,7 +537,7 @@ function BitAnalytics(videoId) {
 
   function handleStatusChangeFromEnded(statusNew, event) {
     var newStatusWas = States.ENDED;
-    sample.state = newStatusWas;
+    sample.state     = newStatusWas;
 
     if (statusNew === States.PLAY) {
       sample.impressionId = utils.generateUUID();
@@ -552,7 +554,7 @@ function BitAnalytics(videoId) {
 
   function handleStatusChangeFromPaused(statusNew, event) {
     var newStatusWas = States.PAUSED;
-    sample.state = newStatusWas;
+    sample.state     = newStatusWas;
 
     if (statusNew === States.PLAYING) {
       var timeSinceLastSampleTimestamp = getTimeSinceLastSampleTimestamp();
@@ -588,7 +590,7 @@ function BitAnalytics(videoId) {
 
   function handleStatusChangeFromBuffering(statusNew, event) {
     var newStatusWas = States.BUFFERING;
-    sample.state = newStatusWas;
+    sample.state     = newStatusWas;
 
     if (statusNew === States.PLAYING) {
       if (firstSample) {
@@ -632,7 +634,7 @@ function BitAnalytics(videoId) {
 
   function handleStatusChangeFromSeeking(statusNew, event) {
     var newStatusWas = States.SEEKING;
-    sample.state = newStatusWas;
+    sample.state     = newStatusWas;
 
     if (statusNew === States.PLAYING) {
       setVideoTimeEndFromEvent(event);
@@ -651,7 +653,7 @@ function BitAnalytics(videoId) {
 
   function handleStatusChangeFromBuffered(statusNew, event) {
     var newStatusWas = States.BUFFERED;
-    sample.state = newStatusWas;
+    sample.state     = newStatusWas;
 
     if (statusNew === States.PLAYING) {
       sample.buffered = getTimeSinceLastSampleTimestamp();
@@ -799,7 +801,7 @@ function BitAnalytics(videoId) {
   }
 
   function getAnalyticsVersion() {
-    return '0.2.3';
+    return '0.3.0';
   }
 
   function sendAnalyticsRequest(event) {
