@@ -31,7 +31,8 @@ var Fsm = {
   PAUSED_SEEKING: 'PAUSED_SEEKING',
   PLAY_SEEKING: 'PLAY_SEEKING',
   QUALITYCHANGE_PAUSE: 'QUALITYCHANGE_PAUSE',
-  END: 'END'
+  END: 'END',
+  ERROR: 'ERROR'
 };
 
 var pad = function (str, length) {
@@ -97,7 +98,7 @@ var AnalyticsStateMachine = StateMachine.create({
     { name: Events.END, from: Fsm.PAUSED_SEEKING, to: Fsm.END },
     { name: Events.END, from: Fsm.PLAYING, to: Fsm.END },
     { name: Events.END, from: Fsm.PAUSE, to: Fsm.END },
-    { name: Events.SEEK, from: Fsm.END, to: Fsm.END },
+	{ name: Events.SEEK, from: Fsm.END, to: Fsm.END },
     { name: Events.SEEKED, from: Fsm.END, to: Fsm.END },
     { name: Events.TIMECHANGED, from: Fsm.END, to: Fsm.END },
     { name: Events.END_BUFFERING, from: Fsm.END, to: Fsm.END },
@@ -105,9 +106,22 @@ var AnalyticsStateMachine = StateMachine.create({
     { name: Events.END, from: Fsm.END, to: Fsm.END },
 
     { name: Events.PLAY, from: Fsm.END, to: Fsm.PLAYING }
+
+    { name: Events.ERROR, from: [Fsm.SETUP, Fsm.SETUP,
+      Fsm.STARTUP,
+      Fsm.READY,
+      Fsm.PLAYING,
+      Fsm.REBUFFERING,
+      Fsm.PAUSE,
+      Fsm.QUALITYCHANGE,
+      Fsm.PAUSED_SEEKING,
+      Fsm.PLAY_SEEKING,
+      Fsm.QUALITYCHANGE_PAUSE,
+      Fsm.END,
+      Fsm.ERROR], to          : Fsm.ERROR
+    }
   ],
   callbacks: {
-    //onleavestate: function (event, from, to) { console.error('LEAVE State: ', from, to); },
     onpause: function (event, from, to, timestamp) {
       if (from === Fsm.PLAYING) {
         pausedTimestamp = timestamp;
