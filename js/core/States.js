@@ -47,5 +47,8 @@ var AnalyticsStateMachine = StateMachine.create({
 
     { name: Events.PAUSE, from: Fsm.PLAYING, to: Fsm.PAUSE },
     { name: Events.PLAY, from: Fsm.PAUSE, to: Fsm.PLAYING },
-  ]
+  ],
+  callbacks: {
+    onleavestate: function (event, from, to) { console.log('LEAVE State: ', from, to); }
+  }
 });
