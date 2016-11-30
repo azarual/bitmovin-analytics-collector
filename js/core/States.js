@@ -28,7 +28,9 @@ var Fsm = {
   REBUFFERING: 'REBUFFERING',
   PAUSE: 'PAUSE',
   QUALITYCHANGE: 'QUALITYCHANGE',
-  SEEKING: 'SEEKING'
+  SEEKING: 'SEEKING',
+  PLAY_SEEKING: 'PLAY_SEEKING',
+  QUALITYCHANGE_PAUSE: 'QUALITYCHANGE_PAUSE'
 };
 
 var pad = function (str, length) {
@@ -36,6 +38,7 @@ var pad = function (str, length) {
   return (str + padStr).slice(0, length);
 };
 
+var pausedTimestamp = null;
 var AnalyticsStateMachine = StateMachine.create({
   initial: Fsm.SETUP,
   events: [
@@ -62,18 +65,55 @@ var AnalyticsStateMachine = StateMachine.create({
     { name: Events.AUDIO_CHANGE, from: Fsm.QUALITYCHANGE, to: Fsm.QUALITYCHANGE },
     { name: Events.TIMECHANGED, from: Fsm.QUALITYCHANGE, to: Fsm.PLAYING },
 
+    { name: Events.VIDEO_CHANGE, from: Fsm.PAUSE, to: Fsm.QUALITYCHANGE_PAUSE },
+    { name: Events.AUDIO_CHANGE, from: Fsm.PAUSE, to: Fsm.QUALITYCHANGE_PAUSE },
+    { name: Events.VIDEO_CHANGE, from: Fsm.QUALITYCHANGE_PAUSE, to: Fsm.QUALITYCHANGE_PAUSE },
+    { name: Events.AUDIO_CHANGE, from: Fsm.QUALITYCHANGE_PAUSE, to: Fsm.QUALITYCHANGE_PAUSE },
+    { name: 'FINISH_QUALITYCHANGE_PAUSE', from: Fsm.QUALITYCHANGE_PAUSE, to: Fsm.PAUSE },
+
     { name: Events.SEEK, from: Fsm.PAUSE, to: Fsm.SEEKING },
     { name: Events.SEEK, from: Fsm.SEEKING, to: Fsm.SEEKING },
     { name: Events.AUDIO_CHANGE, from: Fsm.SEEKING, to: Fsm.SEEKING },
     { name: Events.VIDEO_CHANGE, from: Fsm.SEEKING, to: Fsm.SEEKING },
     { name: Events.START_BUFFERING, from: Fsm.SEEKING, to: Fsm.SEEKING },
     { name: Events.END_BUFFERING, from: Fsm.SEEKING, to: Fsm.SEEKING },
-    { name: Events.SEEKED, from: Fsm.SEEKING, to: Fsm.PLAYING },
-    { name: Events.PLAY, from: Fsm.SEEKING, to: Fsm.SEEKING }
+    { name: Events.SEEKED, from: Fsm.SEEKING, to: Fsm.PAUSE },
+    { name: Events.PLAY, from: Fsm.SEEKING, to: Fsm.SEEKING },
+
+    { name: 'PLAY_SEEK', from: Fsm.PAUSE, to: Fsm.PLAY_SEEKING },
+    { name: 'PLAY_SEEK', from: Fsm.SEEKING, to: Fsm.PLAY_SEEKING },
+    { name: 'PLAY_SEEK', from: Fsm.PLAY_SEEKING, to: Fsm.PLAY_SEEKING },
+    //{ name: Events.SEEK, from: Fsm.PAUSE, to: Fsm.PLAY_SEEKING },
+    { name: Events.SEEK, from: Fsm.PLAY_SEEKING, to: Fsm.PLAY_SEEKING },
+    { name: Events.AUDIO_CHANGE, from: Fsm.PLAY_SEEKING, to: Fsm.PLAY_SEEKING },
+    { name: Events.VIDEO_CHANGE, from: Fsm.PLAY_SEEKING, to: Fsm.PLAY_SEEKING },
+    { name: Events.START_BUFFERING, from: Fsm.PLAY_SEEKING, to: Fsm.PLAY_SEEKING },
+    { name: Events.END_BUFFERING, from: Fsm.PLAY_SEEKING, to: Fsm.PLAY_SEEKING },
+    { name: Events.SEEKED, from: Fsm.PLAY_SEEKING, to: Fsm.PLAYING },
+    { name: Events.PLAY, from: Fsm.PLAY_SEEKING, to: Fsm.PLAY_SEEKING },
 
   ],
   callbacks: {
     //onleavestate: function (event, from, to) { console.error('LEAVE State: ', from, to); },
-    onafterevent: function (event, from, to, timestamp) { console.log(pad(timestamp, 20) + 'EVENT: ', pad(event, 20), ' from ', pad(from, 14), '->', pad(to, 14)); }
+    onpause: function (event, from, to, timestamp) {
+      if (from === Fsm.PLAYING) {
+        pausedTimestamp = timestamp;
+      }
+    },
+    onbeforeevent: function (event, from, to, timestamp) {
+      if (event === Events.SEEK && from === Fsm.PAUSE) {
+        console.log(timestamp, pausedTimestamp, timestamp - pausedTimestamp, timestamp - pausedTimestamp < 20);
+        if (timestamp - pausedTimestamp < 20) {
+          AnalyticsStateMachine.PLAY_SEEK(timestamp);
+          return false;
+        }
+      }
+    },
+    onafterevent: function (event, from, to, timestamp) {
+      console.log(pad(timestamp, 20) + 'EVENT: ', pad(event, 20), ' from ', pad(from, 14), '->', pad(to, 14));
+      if (to === Fsm.QUALITYCHANGE_PAUSE) {
+        AnalyticsStateMachine.FINISH_QUALITYCHANGE_PAUSE(timestamp);
+      }
+    }
   }
 });
