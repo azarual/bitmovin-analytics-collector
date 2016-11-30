@@ -20,42 +20,26 @@ var States = {
   STARTUP   : 'startup',
   REBUFFERING: 'rebuffering'
 };
+var Fsm = {
+  STARTUP : 'STARTUP',
+  READY: 'READY',
+  PLAYING: 'PLAYING',
+  REBUFFERING: 'REBUFFERING',
+  PAUSE: 'PAUSE'
+};
 
 var AnalyticsStateMachine = StateMachine.create({
-  initial: States.SETUP,
+  initial: Fsm.STARTUP,
   events: [
-    { name: Events.SOURCE_LOADED, from: States.SETUP, to: States.LOADED },
-    { name: Events.READY, from: States.LOADED, to: States.READY },
-    { name: Events.PLAY, from: States.READY, to: States.STARTUP },
+    { name: Events.READY, from: Fsm.STARTUP, to: Fsm.READY },
+    { name: Events.PLAY, from: Fsm.READY, to: Fsm.PLAYING },
+    { name: Events.TIMECHANGED, from: Fsm.PLAYING, to: Fsm.PLAYING },
+    { name: Events.END_BUFFERING, from: Fsm.PLAYING, to: Fsm.PLAYING },
+    { name: Events.START_BUFFERING, from: Fsm.PLAYING, to: Fsm.REBUFFERING },
+    { name: Events.END_BUFFERING, from: Fsm.REBUFFERING, to: Fsm.PLAYING },
+    { name: Events.TIMECHANGED, from: Fsm.REBUFFERING, to: Fsm.PLAYING },
 
-    { name: Events.START_BUFFERING, from: [States.STARTUP], to: States.STARTUP },
-    { name: Events.END_BUFFERING, from: [States.STARTUP], to:States.PLAY },
-
-    { name: Events.START_BUFFERING, from: [States.PLAY], to: States.REBUFFERING },
-    { name: Events.END_BUFFERING, from: States.REBUFFERING, to: States.PLAY },
-
-    { name: Events.END_BUFFERING, from: States.PLAY, to: States.PLAY },
-
-    { name: Events.TIMECHANGED, from: States.PLAY, to: States.PLAY },
-    { name: Events.TIMECHANGED, from: States.STARTUP, to: States.PLAY },
-    { name: Events.TIMECHANGED, from: States.PAUSED, to: States.PAUSED },
-    { name: Events.TIMECHANGED, from: States.REBUFFERING, to: States.REBUFFERING },
-
-    { name: Events.PAUSE, from: States.PLAY, to: States.PAUSED },
-    { name: Events.PLAY,  from: States.PAUSED, to: States.PLAY },
-
-    //{ name: Events.VIDEO_CHANGE, from: States.PLAY, to: States.PLAY },
-    // { name: Events.AUDIO_CHANGE, from: States.PLAY, to: States.PLAY },
-
-    // { name: Events.START_FULLSCREEN, from: [States.PLAY], to: States.PLAYING },
-    // { name: Events.END_FULLSCREEN, from: [States.PLAY], to: States.PLAYING },
-    // { name: Events.START_AD, from: [States.PLAY], to: States.PLAYING },
-    // { name: Events.END_AD, from: [States.PLAY], to: States.PLAYING },
-    // { name: Events.ERROR, from: [States.PLAY], to: States.PLAYING },
-    // { name: Events.ERROR, from: [States.PLAY], to: States.PLAYING },
-    { name: Events.PLAYBACK_FINISHED, from: States.PLAY, to: States.ENDED },
-    { name: Events.UNLOAD, from: [States.PLAY], to: States.UNLOADED },
-    // { name: Events.START_CAST, from: [States.PLAY], to: States.PLAYING },
-    // { name: Events.END_CAST', from: [States.PLAY], to: States.PLAYING },
+    { name: Events.PAUSE, from: Fsm.PLAYING, to: Fsm.PAUSE },
+    { name: Events.PLAY, from: Fsm.PAUSE, to: Fsm.PLAYING },
   ]
 });
