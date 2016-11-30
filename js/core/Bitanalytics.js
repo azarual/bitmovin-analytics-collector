@@ -84,7 +84,7 @@ function BitAnalytics(videoId) {
     } catch (e) {
       console.error(e);
     }
-
+    
     switch (eventType) {
       case this.events.SOURCE_LOADED:
         sample.impressionId = utils.generateUUID();

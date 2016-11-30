@@ -21,4 +21,9 @@ digraph finite_state_machine {
   QUALITYCHANGE -> PLAYING [ label = "TIMECHANGED"];
   PLAYING -> QUALITYCHANGE [ label = "AUDIOCHANGE"];
   QUALITYCHANGE -> PLAYING [ label = "TIMECHANGED"];
+
+
+  PAUSE -> SEEKING [ label = "SEEK" ];
+  SEEKING -> PLAYING [ label = "SEEKED" ];
+  SEEKING -> PAUSE [ label = "SEEKED" ];
 }

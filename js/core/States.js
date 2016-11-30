@@ -27,7 +27,8 @@ var Fsm = {
   PLAYING: 'PLAYING',
   REBUFFERING: 'REBUFFERING',
   PAUSE: 'PAUSE',
-  QUALITYCHANGE: 'QUALITYCHANGE'
+  QUALITYCHANGE: 'QUALITYCHANGE',
+  SEEKING: 'SEEKING'
 };
 
 var pad = function (str, length) {
@@ -60,6 +61,16 @@ var AnalyticsStateMachine = StateMachine.create({
     { name: Events.VIDEO_CHANGE, from: Fsm.QUALITYCHANGE, to: Fsm.QUALITYCHANGE },
     { name: Events.AUDIO_CHANGE, from: Fsm.QUALITYCHANGE, to: Fsm.QUALITYCHANGE },
     { name: Events.TIMECHANGED, from: Fsm.QUALITYCHANGE, to: Fsm.PLAYING },
+
+    { name: Events.SEEK, from: Fsm.PAUSE, to: Fsm.SEEKING },
+    { name: Events.SEEK, from: Fsm.SEEKING, to: Fsm.SEEKING },
+    { name: Events.AUDIO_CHANGE, from: Fsm.SEEKING, to: Fsm.SEEKING },
+    { name: Events.VIDEO_CHANGE, from: Fsm.SEEKING, to: Fsm.SEEKING },
+    { name: Events.START_BUFFERING, from: Fsm.SEEKING, to: Fsm.SEEKING },
+    { name: Events.END_BUFFERING, from: Fsm.SEEKING, to: Fsm.SEEKING },
+    { name: Events.SEEKED, from: Fsm.SEEKING, to: Fsm.PLAYING },
+    { name: Events.PLAY, from: Fsm.SEEKING, to: Fsm.SEEKING }
+
   ],
   callbacks: {
     //onleavestate: function (event, from, to) { console.error('LEAVE State: ', from, to); },
