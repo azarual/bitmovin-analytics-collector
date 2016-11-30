@@ -76,7 +76,7 @@ function BitAnalytics(videoId) {
     var exec = AnalyticsStateMachine[eventType];
     try {
       if (exec) {
-        exec.call(AnalyticsStateMachine, utils.getCurrentTimestamp());
+        exec.call(AnalyticsStateMachine, utils.getCurrentTimestamp(), eventObject);
         //console.log('FSM State to ', AnalyticsStateMachine.current);
       } else {
         console.log('Ignored Event: ', eventType);
@@ -84,7 +84,7 @@ function BitAnalytics(videoId) {
     } catch (e) {
       console.error(e);
     }
-    
+
     switch (eventType) {
       case this.events.SOURCE_LOADED:
         sample.impressionId = utils.generateUUID();
