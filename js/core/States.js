@@ -167,15 +167,15 @@ var States = {
       onenterstate : function(event, from, to, timestamp) {
         onEnterStateTimestamp = timestamp || new Date().getTime();
       },
-      onleavestate : function(event, from, to, timestamp, eventObject, callback) {
+      onleavestate : function(event, from, to, timestamp, eventObject) {
         if (!timestamp) {
           return;
         }
 
         var stateDuration = timestamp - onEnterStateTimestamp;
 
-        var fnName = event.toLowerCase();
-        callback[fnName](stateDuration, event, eventObject);
+        var fnName = from.toLowerCase();
+        analytics[fnName](stateDuration, event, eventObject);
 
         console.log('State', from, 'was', stateDuration);
       }

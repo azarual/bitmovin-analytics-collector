@@ -89,8 +89,9 @@ function BitAnalytics(videoId) {
 
   this.setup = function(time, state, event) {
     sample.impressionId = utils.generateUUID();
+    setDuration(time);
+    setState(state);
     sample.playerStartupTime = time;
-    sample.state = state;
 
     setPlaybackSettingsFromLoadedEvent(event);
 
@@ -98,16 +99,24 @@ function BitAnalytics(videoId) {
   };
 
   this.ready = function(time, state, event) {
-    sample.duration = time;
+    setDuration(time);
+    setState(state);
+
+    sendAnalyticsRequestAndClearValues();
+  };
+
+  this.startup = function(time, state, event) {
+    setDuration(time);
+    sample.videoStartupTime = time;
     sample.state = state;
 
     sendAnalyticsRequestAndClearValues();
   };
 
   this.playing = function(time, state, event) {
-    sample.duration = time;
+    setDuration(time);
+    setState(state);
     sample.played = time;
-    sample.state = state;
 
     setDroppedFrames(event);
     setVideoTimeEndFromEvent(event);
@@ -116,6 +125,25 @@ function BitAnalytics(videoId) {
 
     sendAnalyticsRequestAndClearValues();
   };
+
+  this.qualitychange = function(time, state, event) {
+    setDuration(time);
+    setState(state);
+
+    setVideoTimeEndFromEvent(event);
+    setVideoTimeStartFromEvent(event);
+    setPlaybackVideoPropertiesFromEvent(event);
+
+    sendAnalyticsRequestAndClearValues();
+  };
+
+  function setDuration(duration) {
+    sample.duration = duration;
+  }
+
+  function setState(state) {
+    sample.state = state;
+  }
 
   function setVideoTimeEndFromEvent(event) {
     if (utils.validNumber(event.currentTime)) {
@@ -275,77 +303,12 @@ function BitAnalytics(videoId) {
     }
   }
 
-  function sendAnalyticsRequestSynchronous(event) {
-    lastSampleTimestamp = new Date().getTime();
-    logSample(event);
-
+  function sendAnalyticsRequestSynchronous() {
     if (!granted) {
       return;
     }
+
     analyticsCall.sendRequestSynchronous(sample, utils.noOp);
-  }
-
-  function getTimeSinceLastSampleTimestamp() {
-    return utils.getCurrentTimestamp() - lastSampleTimestamp;
-  }
-
-  function logSample(event) {
-    if (debug !== true) {
-      return;
-    }
-
-    var tr = document.createElement('TR');
-
-    var td = document.createElement('TD');
-    td.appendChild(document.createTextNode(event));
-    tr.appendChild(td);
-    td = document.createElement('TD');
-    td.appendChild(document.createTextNode(String(sample.droppedFrames)));
-    tr.appendChild(td);
-    td = document.createElement('TD');
-    td.appendChild(document.createTextNode(String(sample.played)));
-    tr.appendChild(td);
-    td = document.createElement('TD');
-    td.appendChild(document.createTextNode(String(sample.buffered)));
-    tr.appendChild(td);
-    td = document.createElement('TD');
-    td.appendChild(document.createTextNode(String(sample.paused)));
-    tr.appendChild(td);
-    td = document.createElement('TD');
-    td.appendChild(document.createTextNode(String(sample.ad)));
-    tr.appendChild(td);
-    td = document.createElement('TD');
-    td.appendChild(document.createTextNode(String(sample.seeked)));
-    tr.appendChild(td);
-    td = document.createElement('TD');
-    td.appendChild(document.createTextNode(String(sample.videoTimeStart)));
-    tr.appendChild(td);
-    td = document.createElement('TD');
-    td.appendChild(document.createTextNode(String(sample.videoTimeEnd)));
-    tr.appendChild(td);
-    td = document.createElement('TD');
-    td.appendChild(document.createTextNode(String(sample.duration)));
-    tr.appendChild(td);
-    td = document.createElement('TD');
-    td.appendChild(document.createTextNode(String(sample.videoPlaybackWidth)));
-    tr.appendChild(td);
-    td = document.createElement('TD');
-    td.appendChild(document.createTextNode(String(sample.videoPlaybackHeight)));
-    tr.appendChild(td);
-    td = document.createElement('TD');
-    td.appendChild(document.createTextNode(String(sample.videoBitrate)));
-    tr.appendChild(td);
-    td = document.createElement('TD');
-    td.appendChild(document.createTextNode(String(sample.audioBitrate)));
-    tr.appendChild(td);
-    td = document.createElement('TD');
-    td.appendChild(document.createTextNode(String(sample.videoStartupTime)));
-    tr.appendChild(td);
-    td = document.createElement('TD');
-    td.appendChild(document.createTextNode(String(sample.playerStartupTime)));
-    tr.appendChild(td);
-
-    document.getElementById('logTable').appendChild(tr);
   }
 
   function clearValues() {
