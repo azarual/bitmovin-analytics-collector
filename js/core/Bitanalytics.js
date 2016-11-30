@@ -70,6 +70,21 @@ function BitAnalytics(videoId) {
   this.record = function(eventType, eventObject) {
     eventObject = eventObject || {};
 
+    var oldState = state;
+    var oldFSMState = AnalyticsStateMachine.current;
+    console.log('FSM State from ', oldFSMState, eventType);
+    var exec = AnalyticsStateMachine[eventType];
+    try {
+      if (exec) {
+        exec.call(AnalyticsStateMachine);
+        console.log('FSM State to ', AnalyticsStateMachine.current);
+      } else {
+        console.log('Ignored Event: ', eventType);
+      }
+    } catch (e) {
+      console.error(e);
+    }
+
     switch (eventType) {
       case this.events.SOURCE_LOADED:
         sample.impressionId = utils.generateUUID();

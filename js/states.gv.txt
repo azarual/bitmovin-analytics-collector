@@ -1,0 +1,15 @@
+digraph finite_state_machine {
+  rankdir=LR;
+  size="6,5"
+  node [shape = doublecircle]; STARTUP;
+  node [shape = circle];
+  STARTUP -> READY [ label = "READY"];
+  READY -> PLAYING [ label = "PLAY"];
+  PLAYING -> REBUFFERING [ label = "START_BUFFERING"];
+  REBUFFERING -> PLAYING [ label = "END_BUFFERING"];
+  REBUFFERING -> PLAYING [ label = "TIMECHANGED"];
+  PLAYING -> PLAYING [ label = "END_BUFFERING"];
+  PLAYING -> PAUSE [ label = "PAUSE"];
+  PLAYING -> PLAYING [ label = "TIMECHANGED"];
+  PAUSE -> PLAYING [ label = "PLAY"];
+}
