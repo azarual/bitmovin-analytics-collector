@@ -70,15 +70,11 @@ function BitAnalytics(videoId) {
   this.record = function(eventType, eventObject) {
     eventObject = eventObject || {};
 
-    var oldState = state;
-    var oldFSMState = AnalyticsStateMachine.current;
-    //console.log('FSM State from ', oldFSMState, eventType);
-
     var exec = AnalyticsStateMachine[eventType];
+
     try {
       if (exec) {
         exec.call(AnalyticsStateMachine, utils.getCurrentTimestamp(), eventObject, this);
-        //console.log('FSM State to ', AnalyticsStateMachine.current);
       } else {
         console.log('Ignored Event: ', eventType);
       }
@@ -98,17 +94,17 @@ function BitAnalytics(videoId) {
     sendAnalyticsRequestAndClearValues();
   };
 
-  this.ready = function(time, state, event) {
+  this.ready = function(time, state) {
     setDuration(time);
     setState(state);
 
     sendAnalyticsRequestAndClearValues();
   };
 
-  this.startup = function(time, state, event) {
+  this.startup = function(time, state) {
     setDuration(time);
     sample.videoStartupTime = time;
-    sample.state = state;
+    setState(state);
 
     sendAnalyticsRequestAndClearValues();
   };
@@ -120,21 +116,60 @@ function BitAnalytics(videoId) {
 
     setDroppedFrames(event);
     setVideoTimeEndFromEvent(event);
-
     sample.videoTimeStart = sample.videoTimeEnd - time;
 
     sendAnalyticsRequestAndClearValues();
   };
 
-  this.qualitychange = function(time, state, event) {
+  this.qualitychange = function(time, state) {
+    setDuration(time);
+    setState(state);
+
+    sendAnalyticsRequestAndClearValues();
+  };
+
+  this['qualitychange_pause'] = function(time, state) {
+    setDuration(time);
+    setState(state);
+
+    sendAnalyticsRequestAndClearValues();
+  };
+
+  this.videoChange = function(event) {
+    setPlaybackVideoPropertiesFromEvent(event);
+  };
+
+  this.audioChange = function(event) {
+    sample.audioBitrate = event.bitrate;
+  };
+
+  this.pause = function(time, state, event) {
+    setDuration(time);
+    setState(state);
+
+    sample.paused = time;
+
+    sendAnalyticsRequestAndClearValues();
+  };
+
+  this['paused_seeking'] = function(time, state, event) {
     setDuration(time);
     setState(state);
 
     setVideoTimeEndFromEvent(event);
-    setVideoTimeStartFromEvent(event);
-    setPlaybackVideoPropertiesFromEvent(event);
 
     sendAnalyticsRequestAndClearValues();
+  };
+
+  this.startSeeking = function(event) {
+    setVideoTimeStartFromEvent(event);
+  };
+
+  this['play_seeking'] = function(time, state, event) {
+    setDuration(time);
+    setState(state);
+
+    setVideoTimeEndFromEvent(event);
   };
 
   function setDuration(duration) {

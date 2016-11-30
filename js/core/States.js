@@ -173,11 +173,18 @@ var States = {
         }
 
         var stateDuration = timestamp - onEnterStateTimestamp;
+        console.log('State', from, 'was', stateDuration, event, to, eventObject);
 
         var fnName = from.toLowerCase();
-        analytics[fnName](stateDuration, event, eventObject);
+        analytics[fnName](stateDuration, fnName, eventObject);
 
-        console.log('State', from, 'was', stateDuration);
+        if (event === Events.VIDEO_CHANGE) {
+          analytics.videoChange(eventObject);
+        } else if (event === Events.AUDIO_CHANGE) {
+          analytics.audioChange(eventObject);
+        } else if (event === Fsm.PAUSED_SEEKING) {
+          analytics.startSeeking(eventObject);
+        }
       }
     }
   });
