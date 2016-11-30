@@ -1,3 +1,4 @@
+@startuml
 digraph finite_state_machine {
   rankdir=LR;
   node [shape = doublecircle]; SETUP END;
@@ -55,3 +56,4 @@ digraph finite_state_machine {
   PLAYING -> END [ label = "END" ]
   PAUSE -> END [ label = "END" ]
 }
+@enduml
