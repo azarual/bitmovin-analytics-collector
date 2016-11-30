@@ -76,7 +76,7 @@ function BitAnalytics(videoId) {
     var exec = AnalyticsStateMachine[eventType];
     try {
       if (exec) {
-        exec.call(AnalyticsStateMachine);
+        exec.call(AnalyticsStateMachine, utils.getCurrentTimestamp());
         //console.log('FSM State to ', AnalyticsStateMachine.current);
       } else {
         console.log('Ignored Event: ', eventType);

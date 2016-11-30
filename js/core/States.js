@@ -29,6 +29,11 @@ var Fsm = {
   PAUSE: 'PAUSE'
 };
 
+var pad = function (str, length) {
+  var padStr = Array(length).join(' ');
+  return (str + padStr).slice(0, length);
+};
+
 var AnalyticsStateMachine = StateMachine.create({
   initial: Fsm.SETUP,
   events: [
@@ -43,12 +48,16 @@ var AnalyticsStateMachine = StateMachine.create({
     { name: Events.END_BUFFERING, from: Fsm.PLAYING, to: Fsm.PLAYING },
     { name: Events.START_BUFFERING, from: Fsm.PLAYING, to: Fsm.REBUFFERING },
     { name: Events.END_BUFFERING, from: Fsm.REBUFFERING, to: Fsm.PLAYING },
-    { name: Events.TIMECHANGED, from: Fsm.REBUFFERING, to: Fsm.PLAYING },
+    { name: Events.TIMECHANGED, from: Fsm.REBUFFERING, to: Fsm.REBUFFERING },
 
     { name: Events.PAUSE, from: Fsm.PLAYING, to: Fsm.PAUSE },
     { name: Events.PLAY, from: Fsm.PAUSE, to: Fsm.PLAYING },
+
+    { name: Events.VIDEO_CHANGE, from: Fsm.PLAYING, to: Fsm.PLAYING },
+    { name: Events.AUDIO_CHANGE, from: Fsm.PLAYING, to: Fsm.PLAYING },
   ],
   callbacks: {
-    onleavestate: function (event, from, to) { console.log('LEAVE State: ', from, to); }
+    //onleavestate: function (event, from, to) { console.error('LEAVE State: ', from, to); },
+    onafterevent: function (event, from, to, timestamp) { console.log(pad(timestamp, 20) + 'EVENT: ', pad(event, 20), ' from ', pad(from, 14), '->', pad(to, 14)); }
   }
 });

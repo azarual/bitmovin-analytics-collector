@@ -10,9 +10,12 @@ digraph finite_state_machine {
   STARTUP -> PLAYING [ label = "TIMECHANGED"];
   PLAYING -> REBUFFERING [ label = "START_BUFFERING"];
   REBUFFERING -> PLAYING [ label = "END_BUFFERING"];
-  REBUFFERING -> PLAYING [ label = "TIMECHANGED"];
+  REBUFFERING -> REBUFFERING [ label = "TIMECHANGED"];
   PLAYING -> PLAYING [ label = "END_BUFFERING"];
   PLAYING -> PAUSE [ label = "PAUSE"];
   PLAYING -> PLAYING [ label = "TIMECHANGED"];
   PAUSE -> PLAYING [ label = "PLAY"];
+
+  PLAYING -> PLAYING [ label = "VIDEOCHANGE"];
+  PLAYING -> PLAYING [ label = "AUDIOCHANGE"];
 }
