@@ -23,5 +23,6 @@ var Events = {
   ERROR            : 'error',
   PLAYBACK_FINISHED: 'end',
   SCREEN_RESIZE    : 'resize',
-  UNLOAD           : 'unload'
+  UNLOAD           : 'unload',
+  END              : 'end'
 };
