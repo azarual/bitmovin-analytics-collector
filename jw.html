@@ -15,31 +15,30 @@
   var player = jwplayer('player');
 
   player.setup({
-    file:   "//bitdash-a.akamaihd.net/content/sintel/sintel.mpd",
-    autostart: true,
-    advertising:  {
-      client: "vast",
-      tag    : 'https://pubads.g.doubleclick.net/gampad/ads?sz=640x480&iu=/32573358/2nd_test_ad_unit&impl=s&gdfp_req=1&env=vp&output=xml_vast2&unviewed_position_start=1&url=[referrer_url]&description_url=[description_url]&correlator=[random]'
-    }
-    /*advertising: {
-      client: "vast",
-      schedule: {
-        "ad-break": {
-          tag    : 'https://pubads.g.doubleclick.net/gampad/ads?sz=640x480&iu=/32573358/2nd_test_ad_unit&impl=s&gdfp_req=1&env=vp&output=xml_vast2&unviewed_position_start=1&url=[referrer_url]&description_url=[description_url]&correlator=[random]',
-          offset: "pre"
-        }
+    "playlist": [
+      {
+        "sources": [
+          {
+            "default": false,
+            "file": "//bitdash-a.akamaihd.net/content/MI201109210084_1/mpds/f08e80da-bf1d-4e3d-8899-f0f6155f6efa.mpd",
+            "label": "0",
+            "type": "dash",
+            "preload": "none"
+          }
+        ]
       }
-    }*/
+    ],
+    "autostart": false,
+    "primary": "html5"
   });
 
   var config = {
-    key: "830a8f27-6609-4603-a40b-436a7bb2f8a0", //Your bitmovin analytics key
+    key: "e3cf8a50-3cd2-4fba-95aa-917b18b6b6ee", //Your bitmovin analytics key
     playerKey: "8cac45ae-dff8-44b5-9a59-1080c02d2067", //Your player key (bitmovin, jw, ..) (optional)
     player: "jw-player"
   };
 
   var analytics = new BitAnalytics("player");
-  analytics.init(config);
   registerEvents(player);
 
 </script>

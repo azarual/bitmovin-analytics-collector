@@ -1,0 +1,24 @@
+@startuml
+digraph finite_state_machine {
+  rankdir=LR;
+  size="6,5"
+  node [shape = doublecircle]; SETUP;
+  node [shape = circle];
+  SETUP -> READY [ label = "READY"];
+  READY -> STARTUP [ label = "PLAY"];
+  STARTUP -> STARTUP [ label = "START_BUFFERING"];
+  STARTUP -> STARTUP [ label = "END_BUFFERING"];
+  STARTUP -> PLAYING [ label = "TIMECHANGED"];
+  PLAYING -> REBUFFERING [ label = "START_BUFFERING"];
+  REBUFFERING -> PLAYING [ label = "END_BUFFERING"];
+  REBUFFERING -> PLAYING [ label = "TIMECHANGED"];
+  PLAYING -> PLAYING [ label = "END_BUFFERING"];
+  PLAYING -> PAUSE [ label = "PAUSE"];
+  PLAYING -> PLAYING [ label = "TIMECHANGED"];
+  PAUSE -> PLAYING [ label = "PLAY"];
+  PLAYING -> SEEKING [ label = "SEEK" ];
+  SEEKING -> SEEKING [ label = "SEEKED" ];
+  SEEKING -> SEEKING [ label = "SEEK" ];
+  SEEKING -> PLAYING [ label = "TIMECHANGED"];
+}
+@enduml
