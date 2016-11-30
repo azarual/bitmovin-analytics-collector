@@ -44,7 +44,6 @@ digraph finite_state_machine {
   PAUSE -> PLAY_SEEKING [ label = "PLAY_SEEK" ]
   PAUSED_SEEKING -> PLAY_SEEKING [ label = "PLAY_SEEK" ]
   PLAY_SEEKING -> PLAY_SEEKING [ label = "PLAY_SEEK" ]
-  //PAUSE -> PLAY_SEEKING [ label = "SEEK" ]
   PLAY_SEEKING -> PLAY_SEEKING [ label = "SEEK" ]
   PLAY_SEEKING -> PLAY_SEEKING [ label = "AUDIO_CHANGE" ]
   PLAY_SEEKING -> PLAY_SEEKING [ label = "VIDEO_CHANGE" ]
