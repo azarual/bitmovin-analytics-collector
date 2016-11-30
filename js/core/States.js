@@ -132,12 +132,12 @@ var States = {
       { name: 'FINISH_PLAY_SEEKING', from: Fsm.END_PLAY_SEEKING, to: Fsm.PLAYING }
     ],
     callbacks: {
-      onpause: function (event, from, to, timestamp) {
+      onpause      : function(event, from, to, timestamp) {
         if (from === Fsm.PLAYING) {
           pausedTimestamp = timestamp;
         }
       },
-      onbeforeevent: function (event, from, to, timestamp) {
+      onbeforeevent: function(event, from, to, timestamp) {
         if (event === Events.SEEK && from === Fsm.PAUSE) {
           if (timestamp - pausedTimestamp < PAUSE_SEEK_DELAY) {
             AnalyticsStateMachine.PLAY_SEEK(timestamp);
@@ -149,12 +149,12 @@ var States = {
         }
         if (event === Events.SEEKED && from === Fsm.PLAY_SEEKING) {
           window.clearTimeout(endSeekTimeout);
-          endSeekTimeout = window.setTimeout(function () {
+          endSeekTimeout = window.setTimeout(function() {
             AnalyticsStateMachine.FINISH_PLAY_SEEKING(timestamp);
           }, PAUSE_SEEK_DELAY);
         }
       },
-      onafterevent: function (event, from, to, timestamp) {
+      onafterevent : function(event, from, to, timestamp) {
         console.log(pad(timestamp, 20) + 'EVENT: ', pad(event, 20), ' from ', pad(from, 14), '->', pad(to, 14));
         if (to === Fsm.QUALITYCHANGE_PAUSE) {
           AnalyticsStateMachine.FINISH_QUALITYCHANGE_PAUSE(timestamp);
@@ -162,6 +162,14 @@ var States = {
         if (to === Fsm.QUALITYCHANGE) {
           AnalyticsStateMachine.FINISH_QUALITYCHANGE(timestamp);
         }
+      },
+      onenterstate : function(event, from, to, timestamp) {
+        onEnterStateTimestamp = timestamp;
+      },
+      onleavestate : function(event, from, to, timestamp) {
+        var stateDuration = timestamp - onEnterStateTimestamp;
+
+        console.log('State ', from, 'was ', stateDuration);
       }
     }
   });
