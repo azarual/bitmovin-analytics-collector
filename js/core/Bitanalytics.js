@@ -172,6 +172,8 @@ function BitAnalytics(videoId) {
     setVideoTimeEndFromEvent(event);
   };
 
+  this['end_play_seeking'] = utils.noOp;
+
   function setDuration(duration) {
     sample.duration = duration;
   }
