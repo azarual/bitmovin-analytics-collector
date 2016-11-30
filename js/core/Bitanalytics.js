@@ -73,10 +73,11 @@ function BitAnalytics(videoId) {
     var oldState = state;
     var oldFSMState = AnalyticsStateMachine.current;
     //console.log('FSM State from ', oldFSMState, eventType);
+
     var exec = AnalyticsStateMachine[eventType];
     try {
       if (exec) {
-        exec.call(AnalyticsStateMachine, utils.getCurrentTimestamp(), eventObject);
+        exec.call(AnalyticsStateMachine, utils.getCurrentTimestamp(), eventObject, this);
         //console.log('FSM State to ', AnalyticsStateMachine.current);
       } else {
         console.log('Ignored Event: ', eventType);
@@ -84,609 +85,37 @@ function BitAnalytics(videoId) {
     } catch (e) {
       console.error(e);
     }
-
-    switch (eventType) {
-      case this.events.SOURCE_LOADED:
-        sample.impressionId = utils.generateUUID();
-        setState(States.LOADED);
-        break;
-
-      case this.events.READY:
-        handleStatusChange(state, States.READY, eventObject);
-        break;
-
-      case this.events.PLAY:
-        handleStatusChange(state, States.PLAY, eventObject);
-        break;
-
-      case this.events.PAUSE:
-        handleStatusChange(state, States.PAUSED, eventObject);
-        break;
-
-      case this.events.TIMECHANGED:
-        playerFiredTimeChanged(eventObject);
-        break;
-
-      case this.events.SEEK:
-        playerFiredSeek(eventObject);
-        break;
-
-      case this.events.SEEKED:
-        playerFiredSeeked(eventType, eventObject);
-        break;
-
-      case this.events.START_BUFFERING:
-        handleStatusChange(state, States.BUFFERING, eventObject);
-        break;
-
-      case this.events.END_BUFFERING:
-        playerFiredEndBuffering(eventObject);
-        break;
-
-      case this.events.AUDIO_CHANGE:
-        playerFiredAudioChange(eventObject);
-        break;
-
-      case this.events.VIDEO_CHANGE:
-        playerFiredVideoChange(eventObject);
-        break;
-
-      case this.events.START_FULLSCREEN:
-        handleStatusChange(state, States.FULLSCREEN, eventObject);
-        break;
-
-      case this.events.END_FULLSCREEN:
-        handleStatusChange(state, States.WINDOW, eventObject);
-        break;
-
-      case this.events.START_AD:
-        playerFiredStartAd(eventType, eventObject);
-        break;
-
-      case this.events.END_AD:
-        playerFiredEndAd(eventType, eventObject);
-        break;
-
-      case this.events.ERROR:
-        playerFiredError(eventType, eventObject);
-        break;
-
-      case this.events.PLAYBACK_FINISHED:
-        playerFiredPlaybackFinished(eventObject);
-        break;
-
-      case this.events.UNLOAD:
-        playerFiredUnload(eventObject);
-        break;
-
-      case this.events.START_CAST:
-        sample.isCasting = true;
-        break;
-
-      case this.events.END_CAST:
-        sample.isCasting = false;
-        break;
-
-      default:
-        break;
-    }
   };
 
-  function playerFiredTimeChanged(event) {
-    handleStatusChange(state, States.PLAYING, event);
-  }
+  this.setup = function(time, state, event) {
+    sample.impressionId = utils.generateUUID();
+    sample.playerStartupTime = time;
+    sample.state = state;
 
-  function playerFiredSeek(event) {
-    handleStatusChange(state, States.SEEKING, event);
-  }
+    setPlaybackSettingsFromLoadedEvent(event);
 
-  function playerFiredSeeked(eventType, event) {
-    if (state !== States.SEEKING) {
-      return;
-    }
+    sendAnalyticsRequestAndClearValues();
+  };
 
-    sample.duration = utils.getDurationFromTimestampToNow(initSeekTime);
-    sample.seeked   = sample.duration;
+  this.ready = function(time, state, event) {
+    sample.duration = time;
+    sample.state = state;
 
-    wasSeeking = true;
-  }
+    sendAnalyticsRequestAndClearValues();
+  };
 
-  function playerFiredEndBuffering(event) {
-    handleStatusChange(state, States.BUFFERED, event);
-  }
+  this.playing = function(time, state, event) {
+    sample.duration = time;
+    sample.played = time;
+    sample.state = state;
 
-  function playerFiredAudioChange(event) {
-    if (skipAudioPlaybackChange) {
-      if (utils.validNumber(event.bitrate)) {
-        sample.audioBitrate = event.bitrate;
-      }
-
-      skipAudioPlaybackChange = false;
-      return;
-    }
-
-    if (state === States.SEEKING) {
-      return;
-    }
-
-    setVideoTimeEndFromEvent(event);
     setDroppedFrames(event);
-
-    sample.duration = getTimeSinceLastSampleTimestamp();
-    sample.played   = sample.duration;
-
-    sendAnalyticsRequest(state);
-    clearValues();
-
-    if (utils.validNumber(event.bitrate)) {
-      sample.audioBitrate = event.bitrate;
-    }
-
-    setVideoTimeStartFromEvent(event);
-  }
-
-  function playerFiredVideoChange(event) {
-    if (skipVideoPlaybackChange) {
-      setPlaybackVideoPropertiesFromEvent(event);
-      skipVideoPlaybackChange = false;
-      return;
-    }
-
-    if (state !== States.PLAYING) {
-      return;
-    }
-
-    setVideoTimeEndFromEvent(event);
-    setDroppedFrames(event);
-
-    sample.duration = getTimeSinceLastSampleTimestamp();
-    sample.played   = sample.duration;
-
-    sendAnalyticsRequest(state);
-    clearValues();
-
-    setPlaybackVideoPropertiesFromEvent(event);
-    setVideoTimeStartFromEvent(event);
-  }
-
-  function playerFiredStartAd(eventType, event) {
-    sample.duration = getTimeSinceLastSampleTimestamp();
-
-    setVideoTimeEndFromEvent(event);
-    setDroppedFrames(event);
-
-    sendAnalyticsRequest(String(eventType));
-    clearValues();
-
-    initAdTime = utils.getCurrentTimestamp();
-    setVideoTimeStartFromEvent(event);
-  }
-
-  function playerFiredEndAd(eventType, event) {
-    var now         = utils.getCurrentTimestamp();
-    sample.ad       = now - initAdTime;
-    sample.duration = now - initAdTime;
-
-    setVideoTimeEndFromEvent(event);
-    setDroppedFrames(event);
-
-    sendAnalyticsRequest(String(eventType));
-    clearValues();
-
-    setVideoTimeEndFromEvent(event);
-  }
-
-  function playerFiredError(eventType, event) {
-    sample.videoTimeEnd = sample.videoTimeStart + utils.getDurationFromTimestampToNow(lastSampleTimestamp);
-
-    var errorTimestamp = sample.videoTimeEnd;
-
-    sendAnalyticsRequest(String(eventType));
-    clearValues();
-
-    if (utils.validNumber(event.code)) {
-      sample.errorCode = event.code;
-    }
-    if (utils.validString(event.message)) {
-      sample.errorMessage = event.message;
-    }
-
-    sample.videoTimeEnd   = errorTimestamp;
-    sample.videoTimeStart = errorTimestamp;
-
-    sendAnalyticsRequest(String(eventType));
-    clearValues();
-
-    delete sample.errorCode;
-    delete sample.errorMessage;
-  }
-
-  function playerFiredPlaybackFinished(event) {
-    firstSample = true;
-    handleStatusChange(state, States.ENDED, event);
-  }
-
-  function playerFiredUnload(event) {
-    if (utils.validNumber(event.droppedFrames)) {
-      sample.droppedFrames = getDroppedFrames(event.droppedFrames);
-    }
-
-    sample.duration = getTimeSinceLastSampleTimestamp();
     setVideoTimeEndFromEvent(event);
 
-    sendUnloadRequest();
-    clearValues();
-  }
+    sample.videoTimeStart = sample.videoTimeEnd - time;
 
-  function handleStatusChange(statusWas, statusNew, event) {
-    if (statusWas === States.LOADED) {
-      handleStatusChangeFromLoaded(statusNew, event);
-      return;
-    }
-
-    if (statusWas === States.READY) {
-      handleStatusChangeFromReady(statusNew, event);
-      return;
-    }
-
-    if (statusWas === States.PLAY) {
-      handleStatusChangeFromPlay(statusNew, event);
-      return;
-    }
-
-    if (statusWas === States.PLAYING) {
-      handleStatusChangeFromPlaying(statusNew, event);
-      return;
-    }
-
-    if (statusWas === States.ENDED) {
-      handleStatusChangeFromEnded(statusNew, event);
-      return;
-    }
-
-    if (statusWas === States.PAUSED) {
-      handleStatusChangeFromPaused(statusNew, event);
-      return;
-    }
-
-    if (statusWas === States.BUFFERING) {
-      handleStatusChangeFromBuffering(statusNew, event);
-      return;
-    }
-
-    if (statusWas === States.SEEKING) {
-      handleStatusChangeFromSeeking(statusNew, event);
-      return;
-    }
-
-    if (statusWas === States.BUFFERED) {
-      handleStatusChangeFromBuffered(statusNew, event);
-      return;
-    }
-  }
-
-  function handleStatusChangeFromLoaded(statusNew, event) {
-    var newStatusWas = States.LOADED;
-    sample.state     = newStatusWas;
-
-    if (statusNew === States.READY) {
-      sample.playerStartupTime = utils.getDurationFromTimestampToNow(initTime);
-
-      sample.videoWindowWidth  = document.getElementById(containerId).offsetWidth;
-      sample.videoWindowHeight = document.getElementById(containerId).offsetHeight;
-
-      setPlaybackSettingsFromLoadedEvent(event);
-
-      sendAnalyticsRequest(newStatusWas);
-      clearValues();
-
-      setStateWas(newStatusWas);
-      setState(statusNew);
-      return;
-    }
-  }
-
-  function handleStatusChangeFromReady(statusNew, event) {
-    var newStatusWas = States.READY;
-    sample.state     = newStatusWas;
-
-    if (statusNew === States.PLAY) {
-      initPlayTime = utils.getCurrentTimestamp();
-
-      setStateWas(newStatusWas);
-      setState(statusNew);
-      return;
-    }
-  }
-
-  function handleStatusChangeFromPlay(statusNew, event) {
-    var newStatusWas = States.PLAY;
-    sample.state     = newStatusWas;
-
-    if (statusNew === States.PLAYING) {
-      if (firstSample) {
-        sample.videoStartupTime = utils.getDurationFromTimestampToNow(initPlayTime);
-        firstSample             = false;
-      }
-
-      sendAnalyticsRequest(newStatusWas);
-      clearValues();
-
-      setStateWas(newStatusWas);
-      setState(statusNew);
-      return;
-    }
-
-    if (statusNew === States.BUFFERING) {
-      setVideoTimeEndFromEvent(event);
-      setDroppedFrames(event);
-
-      sample.duration = getTimeSinceLastSampleTimestamp();
-
-      sendAnalyticsRequest(newStatusWas);
-      clearValues();
-      setVideoTimeStartFromEvent(event);
-
-      setStateWas(newStatusWas);
-      setState(statusNew);
-      return;
-    }
-  }
-
-  function handleStatusChangeFromPlaying(statusNew, event) {
-    var newStatusWas = States.PLAYING;
-    sample.state     = newStatusWas;
-
-    if (statusNew === States.PAUSED) {
-      sample.duration = getTimeSinceLastSampleTimestamp();
-      sample.played   = sample.duration;
-
-      setVideoTimeEndFromEvent(event);
-      setDroppedFrames(event);
-
-      sendAnalyticsRequest(newStatusWas);
-
-      clearValues();
-      setVideoTimeStartFromEvent(event);
-
-      setStateWas(newStatusWas);
-      setState(statusNew);
-      return;
-    }
-
-    if (statusNew === States.BUFFERING) {
-      sample.duration = getTimeSinceLastSampleTimestamp();
-      sample.played   = sample.duration;
-
-      setVideoTimeEndFromEvent(event);
-      setDroppedFrames(event);
-
-      sendAnalyticsRequest(newStatusWas);
-
-      clearValues();
-      setVideoTimeStartFromEvent(event);
-
-      setStateWas(newStatusWas);
-      setState(statusNew);
-      return;
-    }
-
-    if (statusNew === States.BUFFERED) {
-      if (bufferedAfterFirstSample) {
-        bufferedAfterFirstSample = false;
-        return;
-      }
-
-      if (firstSample) {
-        firstSample             = false;
-        sample.videoStartupTime = utils.getDurationFromTimestampToNow(initPlayTime);
-        sample.duration         = sample.videoStartupTime;
-      } else {
-        sample.duration = getTimeSinceLastSampleTimestamp();
-        sample.buffered = sample.duration;
-      }
-
-      sample.state = States.BUFFERED;
-
-      setDroppedFrames(event);
-      setVideoTimeStartFromEvent(event);
-      setVideoTimeEndFromEvent(event);
-
-      sendAnalyticsRequest(newStatusWas);
-      clearValues();
-
-      setVideoTimeStartFromEvent(event);
-
-      setStateWas(statusNew);
-      setState(newStatusWas);
-      return;
-    }
-
-    if (statusNew === States.PLAYING) {
-      sendHeartBeatIfRequired(event);
-      return;
-    }
-
-    if (statusNew === States.FULLSCREEN) {
-      sample.duration = getTimeSinceLastSampleTimestamp();
-      sample.played   = sample.duration;
-
-      setVideoTimeEndFromEvent(event);
-      setDroppedFrames(event);
-
-      sendAnalyticsRequest(newStatusWas);
-      clearValues();
-
-      sample.size = 'FULLSCREEN';
-      setVideoTimeStartFromEvent(event);
-      return;
-    }
-
-    if (statusNew === States.WINDOW) {
-      sample.duration = getTimeSinceLastSampleTimestamp();
-      sample.played   = sample.duration;
-
-      setVideoTimeEndFromEvent(event);
-      setDroppedFrames(event);
-
-      sendAnalyticsRequest(newStatusWas);
-      clearValues();
-
-      sample.size = 'WINDOW';
-      setVideoTimeStartFromEvent(event);
-      return;
-    }
-
-    if (statusNew === States.ENDED) {
-      sample.videoTimeEnd = sample.videoDuration;
-      sample.duration     = getTimeSinceLastSampleTimestamp();
-      sample.played       = sample.duration;
-
-      setDroppedFrames(event);
-
-      sendAnalyticsRequest(newStatusWas);
-      return;
-    }
-  }
-
-  function handleStatusChangeFromEnded(statusNew, event) {
-    var newStatusWas = States.ENDED;
-    sample.state     = newStatusWas;
-
-    if (statusNew === States.PLAY) {
-      sample.impressionId = utils.generateUUID();
-      initTime            = utils.getCurrentTimestamp();
-
-      clearValues();
-      sendAnalyticsRequest(newStatusWas);
-
-      setStateWas(newStatusWas);
-      setState(statusNew);
-      return;
-    }
-  }
-
-  function handleStatusChangeFromPaused(statusNew, event) {
-    var newStatusWas = States.PAUSED;
-    sample.state     = newStatusWas;
-
-    if (statusNew === States.PLAYING) {
-      var timeSinceLastSampleTimestamp = getTimeSinceLastSampleTimestamp();
-      if (wasSeeking) {
-        sample.seeked = timeSinceLastSampleTimestamp;
-        wasSeeking    = false;
-      } else {
-        sample.paused = timeSinceLastSampleTimestamp;
-      }
-
-      sample.duration = timeSinceLastSampleTimestamp;
-
-      setVideoTimeEndFromEvent(event);
-
-      sendAnalyticsRequest(newStatusWas);
-      clearValues();
-
-      setVideoTimeStartFromEvent(event);
-
-      setStateWas(newStatusWas);
-      setState(statusNew);
-      return;
-    }
-
-    if (statusNew === States.SEEKING) {
-      initSeekTime = utils.getCurrentTimestamp();
-
-      setStateWas(newStatusWas);
-      setState(statusNew);
-      return;
-    }
-  }
-
-  function handleStatusChangeFromBuffering(statusNew, event) {
-    var newStatusWas = States.BUFFERING;
-    sample.state     = newStatusWas;
-
-    if (statusNew === States.PLAYING) {
-      if (firstSample) {
-        firstSample             = false;
-        sample.videoStartupTime = utils.getDurationFromTimestampToNow(initPlayTime);
-        sample.duration         = sample.videoStartupTime;
-      } else {
-        sample.duration = getTimeSinceLastSampleTimestamp();
-        sample.buffered = sample.duration;
-      }
-
-      setDroppedFrames(event);
-      setVideoTimeStartFromEvent(event);
-      setVideoTimeEndFromEvent(event);
-
-      sendAnalyticsRequest(newStatusWas);
-      clearValues();
-
-      setVideoTimeStartFromEvent(event);
-
-      setStateWas(newStatusWas);
-      setState(statusNew);
-      return;
-    }
-
-    if (statusNew === States.BUFFERED) {
-      sample.buffered = getTimeSinceLastSampleTimestamp();
-      sample.duration = sample.buffered;
-
-      setVideoTimeEndFromEvent(event);
-      setDroppedFrames(event);
-
-      sendAnalyticsRequest(newStatusWas);
-      clearValues();
-
-      setVideoTimeStartFromEvent(event);
-      setState(stateWas);
-    }
-  }
-
-  function handleStatusChangeFromSeeking(statusNew, event) {
-    var newStatusWas = States.SEEKING;
-    sample.state     = newStatusWas;
-
-    if (statusNew === States.PLAYING) {
-      setVideoTimeEndFromEvent(event);
-
-      sendAnalyticsRequest(newStatusWas);
-      clearValues();
-
-      wasSeeking = false;
-      setVideoTimeStartFromEvent(event);
-
-      setStateWas(newStatusWas);
-      setState(statusNew);
-      return;
-    }
-  }
-
-  function handleStatusChangeFromBuffered(statusNew, event) {
-    var newStatusWas = States.BUFFERED;
-    sample.state     = newStatusWas;
-
-    if (statusNew === States.PLAYING) {
-      sample.buffered = getTimeSinceLastSampleTimestamp();
-
-      sendAnalyticsRequest(newStatusWas);
-      clearValues();
-      wasSeeking = false;
-
-      setStateWas(newStatusWas);
-      setState(statusNew);
-    }
-  }
-
-  function setStateWas(oldStatus) {
-    stateWas = oldStatus;
-  }
-
-  function setState(newStatus) {
-    state = newStatus;
-  }
+    sendAnalyticsRequestAndClearValues();
+  };
 
   function setVideoTimeEndFromEvent(event) {
     if (utils.validNumber(event.currentTime)) {
@@ -782,8 +211,7 @@ function BitAnalytics(videoId) {
       videoTimeEnd       : 0,
       videoStartupTime   : 0,
       duration           : 0,
-      analyticsVersion   : getAnalyticsVersion(),
-      state              : state
+      analyticsVersion   : getAnalyticsVersion()
     };
   }
 
@@ -817,19 +245,22 @@ function BitAnalytics(videoId) {
     return '0.3.1';
   }
 
-  function sendAnalyticsRequest(event) {
-    lastSampleTimestamp = new Date().getTime();
-    logSample(event);
-
+  function sendAnalyticsRequest() {
     if (!granted) {
       return;
     }
 
-    if (lastSampleTimestamp > (initTime + 86400000)) {
+    analyticsCall.sendRequest(sample, utils.noOp);
+  }
+
+  function sendAnalyticsRequestAndClearValues() {
+    if (!granted) {
       return;
     }
 
     analyticsCall.sendRequest(sample, utils.noOp);
+
+    clearValues();
   }
 
   function sendUnloadRequest() {

@@ -165,10 +165,17 @@ var States = {
         }
       },
       onenterstate : function(event, from, to, timestamp) {
-        onEnterStateTimestamp = timestamp;
+        onEnterStateTimestamp = timestamp || new Date().getTime();
       },
-      onleavestate : function(event, from, to, timestamp) {
+      onleavestate : function(event, from, to, timestamp, eventObject, callback) {
+        if (!timestamp) {
+          return;
+        }
+
         var stateDuration = timestamp - onEnterStateTimestamp;
+
+        var fnName = event.toLowerCase();
+        callback[fnName](stateDuration, event, eventObject);
 
         console.log('State', from, 'was', stateDuration);
       }
