@@ -18,6 +18,7 @@ function BitAnalytics(videoId) {
   this.cdnProviders = CDNProviders;
 
   var firstSample             = true;
+  var bufferedAfterFirstSample = true;
   var skipVideoPlaybackChange = true;
   var skipAudioPlaybackChange = true;
 
@@ -33,7 +34,7 @@ function BitAnalytics(videoId) {
   var wasSeeking = false;
 
   var granted = false;
-  var debug   = false;
+  var debug   = true;
 
   var lastSampleTimestamp;
 
@@ -104,7 +105,7 @@ function BitAnalytics(videoId) {
         break;
 
       case this.events.END_BUFFERING:
-        playerFiredEndBuffering(eventType, eventObject);
+        playerFiredEndBuffering(eventObject);
         break;
 
       case this.events.AUDIO_CHANGE:
@@ -157,12 +158,6 @@ function BitAnalytics(videoId) {
   };
 
   function playerFiredTimeChanged(event) {
-    if (firstSample) {
-      handleStatusChange(state, States.PLAYING, event);
-      firstSample = false;
-      return;
-    }
-
     handleStatusChange(state, States.PLAYING, event);
   }
 
@@ -181,7 +176,7 @@ function BitAnalytics(videoId) {
     wasSeeking = true;
   }
 
-  function playerFiredEndBuffering(eventType, event) {
+  function playerFiredEndBuffering(event) {
     handleStatusChange(state, States.BUFFERED, event);
   }
 
@@ -462,11 +457,15 @@ function BitAnalytics(videoId) {
     }
 
     if (statusNew === States.BUFFERED) {
+      if (bufferedAfterFirstSample) {
+        bufferedAfterFirstSample = false;
+        return;
+      }
+
       if (firstSample) {
         firstSample             = false;
         sample.videoStartupTime = utils.getDurationFromTimestampToNow(initPlayTime);
         sample.duration         = sample.videoStartupTime;
-        sample.buffered         = sample.videoStartupTime;
       } else {
         sample.duration = getTimeSinceLastSampleTimestamp();
         sample.buffered = sample.duration;
@@ -597,7 +596,6 @@ function BitAnalytics(videoId) {
         firstSample             = false;
         sample.videoStartupTime = utils.getDurationFromTimestampToNow(initPlayTime);
         sample.duration         = sample.videoStartupTime;
-        sample.buffered         = sample.videoStartupTime;
       } else {
         sample.duration = getTimeSinceLastSampleTimestamp();
         sample.buffered = sample.duration;
@@ -801,7 +799,7 @@ function BitAnalytics(videoId) {
   }
 
   function getAnalyticsVersion() {
-    return '0.3.0';
+    return '0.3.1';
   }
 
   function sendAnalyticsRequest(event) {
