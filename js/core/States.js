@@ -21,6 +21,7 @@ var States = {
   REBUFFERING: 'rebuffering'
 };
 var Fsm = {
+  SETUP: 'SETUP',
   STARTUP : 'STARTUP',
   READY: 'READY',
   PLAYING: 'PLAYING',
@@ -29,10 +30,15 @@ var Fsm = {
 };
 
 var AnalyticsStateMachine = StateMachine.create({
-  initial: Fsm.STARTUP,
+  initial: Fsm.SETUP,
   events: [
-    { name: Events.READY, from: Fsm.STARTUP, to: Fsm.READY },
-    { name: Events.PLAY, from: Fsm.READY, to: Fsm.PLAYING },
+    { name: Events.READY, from: Fsm.SETUP, to: Fsm.READY },
+    { name: Events.PLAY, from: Fsm.READY, to: Fsm.STARTUP },
+
+    { name: Events.START_BUFFERING, from: Fsm.STARTUP, to: Fsm.STARTUP},
+    { name: Events.END_BUFFERING, from: Fsm.STARTUP, to: Fsm.STARTUP},
+    { name: Events.TIMECHANGED, from: Fsm.STARTUP, to: Fsm.PLAYING},
+
     { name: Events.TIMECHANGED, from: Fsm.PLAYING, to: Fsm.PLAYING },
     { name: Events.END_BUFFERING, from: Fsm.PLAYING, to: Fsm.PLAYING },
     { name: Events.START_BUFFERING, from: Fsm.PLAYING, to: Fsm.REBUFFERING },
