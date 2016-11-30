@@ -98,14 +98,14 @@ var AnalyticsStateMachine = StateMachine.create({
     { name: Events.END, from: Fsm.PAUSED_SEEKING, to: Fsm.END },
     { name: Events.END, from: Fsm.PLAYING, to: Fsm.END },
     { name: Events.END, from: Fsm.PAUSE, to: Fsm.END },
-	{ name: Events.SEEK, from: Fsm.END, to: Fsm.END },
+	  { name: Events.SEEK, from: Fsm.END, to: Fsm.END },
     { name: Events.SEEKED, from: Fsm.END, to: Fsm.END },
     { name: Events.TIMECHANGED, from: Fsm.END, to: Fsm.END },
     { name: Events.END_BUFFERING, from: Fsm.END, to: Fsm.END },
     { name: Events.START_BUFFERING, from: Fsm.END, to: Fsm.END },
     { name: Events.END, from: Fsm.END, to: Fsm.END },
 
-    { name: Events.PLAY, from: Fsm.END, to: Fsm.PLAYING }
+    { name: Events.PLAY, from: Fsm.END, to: Fsm.PLAYING },
 
     { name: Events.ERROR, from: [Fsm.SETUP, Fsm.SETUP,
       Fsm.STARTUP,
