@@ -15,7 +15,10 @@ digraph finite_state_machine {
   PLAYING -> PAUSE [ label = "PAUSE"];
   PLAYING -> PLAYING [ label = "TIMECHANGED"];
   PAUSE -> PLAYING [ label = "PLAY"];
+  REBUFFERING -> PAUSE [ label = "PAUSE"];
 
-  PLAYING -> PLAYING [ label = "VIDEOCHANGE"];
-  PLAYING -> PLAYING [ label = "AUDIOCHANGE"];
+  PLAYING -> QUALITYCHANGE [ label = "VIDEOCHANGE"];
+  QUALITYCHANGE -> PLAYING [ label = "TIMECHANGED"];
+  PLAYING -> QUALITYCHANGE [ label = "AUDIOCHANGE"];
+  QUALITYCHANGE -> PLAYING [ label = "TIMECHANGED"];
 }
