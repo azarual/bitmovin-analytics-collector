@@ -30,7 +30,8 @@ var Fsm = {
   QUALITYCHANGE: 'QUALITYCHANGE',
   PAUSED_SEEKING: 'PAUSED_SEEKING',
   PLAY_SEEKING: 'PLAY_SEEKING',
-  QUALITYCHANGE_PAUSE: 'QUALITYCHANGE_PAUSE'
+  QUALITYCHANGE_PAUSE: 'QUALITYCHANGE_PAUSE',
+  END: 'END'
 };
 
 var pad = function (str, length) {
@@ -92,6 +93,9 @@ var AnalyticsStateMachine = StateMachine.create({
     { name: Events.END_BUFFERING, from: Fsm.PLAY_SEEKING, to: Fsm.PLAY_SEEKING },
     { name: Events.SEEKED, from: Fsm.PLAY_SEEKING, to: Fsm.PLAYING },
     { name: Events.PLAY, from: Fsm.PLAY_SEEKING, to: Fsm.PLAY_SEEKING },
+
+    { name: Events.END, from: Fsm.PLAYING, to: Fsm.END },
+    { name: Events.END, from: Fsm.PAUSE, to: Fsm.END }
 
   ],
   callbacks: {
