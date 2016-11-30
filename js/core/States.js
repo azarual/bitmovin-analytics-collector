@@ -24,6 +24,7 @@ var States = {
   var pausedTimestamp = null;
   var endSeekTimeout;
   var PAUSE_SEEK_DELAY = 20;
+  var onEnterStateTimestamp = 0;
 
   var Fsm = {
     SETUP: 'SETUP',
@@ -169,7 +170,7 @@ var States = {
       onleavestate : function(event, from, to, timestamp) {
         var stateDuration = timestamp - onEnterStateTimestamp;
 
-        console.log('State ', from, 'was ', stateDuration);
+        console.log('State', from, 'was', stateDuration);
       }
     }
   });
