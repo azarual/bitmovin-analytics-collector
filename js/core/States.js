@@ -28,7 +28,7 @@ var Fsm = {
   REBUFFERING: 'REBUFFERING',
   PAUSE: 'PAUSE',
   QUALITYCHANGE: 'QUALITYCHANGE',
-  SEEKING: 'SEEKING',
+  PAUSED_SEEKING: 'PAUSED_SEEKING',
   PLAY_SEEKING: 'PLAY_SEEKING',
   QUALITYCHANGE_PAUSE: 'QUALITYCHANGE_PAUSE'
 };
@@ -39,6 +39,7 @@ var pad = function (str, length) {
 };
 
 var pausedTimestamp = null;
+var PAUSE_SEEK_DELAY = 20;
 var AnalyticsStateMachine = StateMachine.create({
   initial: Fsm.SETUP,
   events: [
@@ -71,17 +72,17 @@ var AnalyticsStateMachine = StateMachine.create({
     { name: Events.AUDIO_CHANGE, from: Fsm.QUALITYCHANGE_PAUSE, to: Fsm.QUALITYCHANGE_PAUSE },
     { name: 'FINISH_QUALITYCHANGE_PAUSE', from: Fsm.QUALITYCHANGE_PAUSE, to: Fsm.PAUSE },
 
-    { name: Events.SEEK, from: Fsm.PAUSE, to: Fsm.SEEKING },
-    { name: Events.SEEK, from: Fsm.SEEKING, to: Fsm.SEEKING },
-    { name: Events.AUDIO_CHANGE, from: Fsm.SEEKING, to: Fsm.SEEKING },
-    { name: Events.VIDEO_CHANGE, from: Fsm.SEEKING, to: Fsm.SEEKING },
-    { name: Events.START_BUFFERING, from: Fsm.SEEKING, to: Fsm.SEEKING },
-    { name: Events.END_BUFFERING, from: Fsm.SEEKING, to: Fsm.SEEKING },
-    { name: Events.SEEKED, from: Fsm.SEEKING, to: Fsm.PAUSE },
-    { name: Events.PLAY, from: Fsm.SEEKING, to: Fsm.SEEKING },
+    { name: Events.SEEK, from: Fsm.PAUSE, to: Fsm.PAUSED_SEEKING },
+    { name: Events.SEEK, from: Fsm.PAUSED_SEEKING, to: Fsm.PAUSED_SEEKING },
+    { name: Events.AUDIO_CHANGE, from: Fsm.PAUSED_SEEKING, to: Fsm.PAUSED_SEEKING },
+    { name: Events.VIDEO_CHANGE, from: Fsm.PAUSED_SEEKING, to: Fsm.PAUSED_SEEKING },
+    { name: Events.START_BUFFERING, from: Fsm.PAUSED_SEEKING, to: Fsm.PAUSED_SEEKING },
+    { name: Events.END_BUFFERING, from: Fsm.PAUSED_SEEKING, to: Fsm.PAUSED_SEEKING },
+    { name: Events.SEEKED, from: Fsm.PAUSED_SEEKING, to: Fsm.PAUSE },
+    { name: Events.PLAY, from: Fsm.PAUSED_SEEKING, to: Fsm.PAUSED_SEEKING },
 
     { name: 'PLAY_SEEK', from: Fsm.PAUSE, to: Fsm.PLAY_SEEKING },
-    { name: 'PLAY_SEEK', from: Fsm.SEEKING, to: Fsm.PLAY_SEEKING },
+    { name: 'PLAY_SEEK', from: Fsm.PAUSED_SEEKING, to: Fsm.PLAY_SEEKING },
     { name: 'PLAY_SEEK', from: Fsm.PLAY_SEEKING, to: Fsm.PLAY_SEEKING },
     //{ name: Events.SEEK, from: Fsm.PAUSE, to: Fsm.PLAY_SEEKING },
     { name: Events.SEEK, from: Fsm.PLAY_SEEKING, to: Fsm.PLAY_SEEKING },
@@ -102,8 +103,7 @@ var AnalyticsStateMachine = StateMachine.create({
     },
     onbeforeevent: function (event, from, to, timestamp) {
       if (event === Events.SEEK && from === Fsm.PAUSE) {
-        console.log(timestamp, pausedTimestamp, timestamp - pausedTimestamp, timestamp - pausedTimestamp < 20);
-        if (timestamp - pausedTimestamp < 20) {
+        if (timestamp - pausedTimestamp < PAUSE_SEEK_DELAY) {
           AnalyticsStateMachine.PLAY_SEEK(timestamp);
           return false;
         }
