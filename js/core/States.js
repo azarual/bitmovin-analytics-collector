@@ -30,6 +30,7 @@ var Fsm = {
   QUALITYCHANGE: 'QUALITYCHANGE',
   PAUSED_SEEKING: 'PAUSED_SEEKING',
   PLAY_SEEKING: 'PLAY_SEEKING',
+  END_PLAY_SEEKING: 'END_PLAY_SEEKING',
   QUALITYCHANGE_PAUSE: 'QUALITYCHANGE_PAUSE',
   END: 'END',
   ERROR: 'ERROR'
@@ -41,6 +42,7 @@ var pad = function (str, length) {
 };
 
 var pausedTimestamp = null;
+var endSeekTimeout;
 var PAUSE_SEEK_DELAY = 20;
 var AnalyticsStateMachine = StateMachine.create({
   initial: Fsm.SETUP,
@@ -66,7 +68,7 @@ var AnalyticsStateMachine = StateMachine.create({
     { name: Events.AUDIO_CHANGE, from: Fsm.PLAYING, to: Fsm.QUALITYCHANGE },
     { name: Events.VIDEO_CHANGE, from: Fsm.QUALITYCHANGE, to: Fsm.QUALITYCHANGE },
     { name: Events.AUDIO_CHANGE, from: Fsm.QUALITYCHANGE, to: Fsm.QUALITYCHANGE },
-    { name: Events.TIMECHANGED, from: Fsm.QUALITYCHANGE, to: Fsm.PLAYING },
+    { name: 'FINISH_QUALITYCHANGE', from: Fsm.QUALITYCHANGE, to: Fsm.PLAYING },
 
     { name: Events.VIDEO_CHANGE, from: Fsm.PAUSE, to: Fsm.QUALITYCHANGE_PAUSE },
     { name: Events.AUDIO_CHANGE, from: Fsm.PAUSE, to: Fsm.QUALITYCHANGE_PAUSE },
@@ -81,7 +83,7 @@ var AnalyticsStateMachine = StateMachine.create({
     { name: Events.START_BUFFERING, from: Fsm.PAUSED_SEEKING, to: Fsm.PAUSED_SEEKING },
     { name: Events.END_BUFFERING, from: Fsm.PAUSED_SEEKING, to: Fsm.PAUSED_SEEKING },
     { name: Events.SEEKED, from: Fsm.PAUSED_SEEKING, to: Fsm.PAUSE },
-    { name: Events.PLAY, from: Fsm.PAUSED_SEEKING, to: Fsm.PAUSED_SEEKING },
+    { name: Events.PLAY, from: Fsm.PAUSED_SEEKING, to: Fsm.PLAYING },
 
     { name: 'PLAY_SEEK', from: Fsm.PAUSE, to: Fsm.PLAY_SEEKING },
     { name: 'PLAY_SEEK', from: Fsm.PAUSED_SEEKING, to: Fsm.PLAY_SEEKING },
@@ -91,14 +93,17 @@ var AnalyticsStateMachine = StateMachine.create({
     { name: Events.VIDEO_CHANGE, from: Fsm.PLAY_SEEKING, to: Fsm.PLAY_SEEKING },
     { name: Events.START_BUFFERING, from: Fsm.PLAY_SEEKING, to: Fsm.PLAY_SEEKING },
     { name: Events.END_BUFFERING, from: Fsm.PLAY_SEEKING, to: Fsm.PLAY_SEEKING },
-    { name: Events.SEEKED, from: Fsm.PLAY_SEEKING, to: Fsm.PLAYING },
+
+    // We are ending the seek
+    { name: Events.SEEKED, from: Fsm.PLAY_SEEKING, to: Fsm.END_PLAY_SEEKING },
+
     { name: Events.PLAY, from: Fsm.PLAY_SEEKING, to: Fsm.PLAY_SEEKING },
 
     { name: Events.END, from: Fsm.PLAY_SEEKING, to: Fsm.END },
     { name: Events.END, from: Fsm.PAUSED_SEEKING, to: Fsm.END },
     { name: Events.END, from: Fsm.PLAYING, to: Fsm.END },
     { name: Events.END, from: Fsm.PAUSE, to: Fsm.END },
-	  { name: Events.SEEK, from: Fsm.END, to: Fsm.END },
+    { name: Events.SEEK, from: Fsm.END, to: Fsm.END },
     { name: Events.SEEKED, from: Fsm.END, to: Fsm.END },
     { name: Events.TIMECHANGED, from: Fsm.END, to: Fsm.END },
     { name: Events.END_BUFFERING, from: Fsm.END, to: Fsm.END },
@@ -119,7 +124,10 @@ var AnalyticsStateMachine = StateMachine.create({
       Fsm.QUALITYCHANGE_PAUSE,
       Fsm.END,
       Fsm.ERROR], to          : Fsm.ERROR
-    }
+    },
+
+    { name: Events.SEEK, from: Fsm.END_PLAY_SEEKING, to: Fsm.PLAY_SEEKING },
+    { name: 'FINISH_PLAY_SEEKING', from: Fsm.END_PLAY_SEEKING, to: Fsm.PLAYING }
   ],
   callbacks: {
     onpause: function (event, from, to, timestamp) {
@@ -134,11 +142,23 @@ var AnalyticsStateMachine = StateMachine.create({
           return false;
         }
       }
+      if (event === Events.SEEK) {
+        window.clearTimeout(endSeekTimeout);
+      }
+      if (event === Events.SEEKED && from === Fsm.PLAY_SEEKING) {
+        window.clearTimeout(endSeekTimeout);
+        endSeekTimeout = window.setTimeout(function () {
+          AnalyticsStateMachine.FINISH_PLAY_SEEKING(timestamp);
+        }, PAUSE_SEEK_DELAY);
+      }
     },
     onafterevent: function (event, from, to, timestamp) {
       console.log(pad(timestamp, 20) + 'EVENT: ', pad(event, 20), ' from ', pad(from, 14), '->', pad(to, 14));
       if (to === Fsm.QUALITYCHANGE_PAUSE) {
         AnalyticsStateMachine.FINISH_QUALITYCHANGE_PAUSE(timestamp);
+      }
+      if (to === Fsm.QUALITYCHANGE) {
+        AnalyticsStateMachine.FINISH_QUALITYCHANGE(timestamp);
       }
     }
   }
