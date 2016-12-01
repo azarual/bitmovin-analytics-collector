@@ -7,7 +7,7 @@ var Events = {
   SOURCE_LOADED    : 'sourceLoaded',
   PLAY             : 'play',
   PAUSE            : 'pause',
-  TIMECHANGED      : 'timechange',
+  TIMECHANGED      : 'timechanged',
   SEEK             : 'seek',
   SEEKED           : 'seeked',
   START_CAST       : 'startCasting',
@@ -23,5 +23,6 @@ var Events = {
   ERROR            : 'error',
   PLAYBACK_FINISHED: 'end',
   SCREEN_RESIZE    : 'resize',
-  UNLOAD           : 'unload'
+  UNLOAD           : 'unload',
+  END              : 'end'
 };
