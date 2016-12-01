@@ -146,20 +146,16 @@ function BitAnalytics(containerId) {
     sendAnalyticsRequestAndClearValues();
   };
 
-  this.startSeeking = function(event) {
-    this.setVideoTimeStartFromEvent(event);
-  };
+  this['play_seeking'] = utils.noOp;
 
-  this['play_seeking'] = function(time, state, event) {
-    setDuration(time);
+  this['end_play_seeking'] = function(time, state, event) {
     setState(state);
+    setDuration(time);
 
     sample.seeked = time;
 
     sendAnalyticsRequestAndClearValues();
   };
-
-  this['end_play_seeking'] = utils.noOp;
 
   this.rebuffering = function(time, state, event) {
     setDuration(time);

@@ -22,8 +22,11 @@ var States = {
 };
 (function () {
   var pausedTimestamp = null;
-  var endSeekTimeout;
+  var seekTimestamp = 0;
+  var seekedTimestamp = 0;
+  var seekedTimeout = 0;
   var PAUSE_SEEK_DELAY = 60;
+  var SEEKED_PAUSE_DELAY = 120;
   var onEnterStateTimestamp = 0;
 
   var Fsm = {
@@ -87,6 +90,7 @@ var States = {
       { name: Events.END_BUFFERING, from: Fsm.PAUSED_SEEKING, to: Fsm.PAUSED_SEEKING },
       { name: Events.SEEKED, from: Fsm.PAUSED_SEEKING, to: Fsm.PAUSE },
       { name: Events.PLAY, from: Fsm.PAUSED_SEEKING, to: Fsm.PLAYING },
+      { name: Events.PAUSE, from: Fsm.PAUSED_SEEKING, to: Fsm.PAUSE },
 
       { name: 'PLAY_SEEK', from: Fsm.PAUSE, to: Fsm.PLAY_SEEKING },
       { name: 'PLAY_SEEK', from: Fsm.PAUSED_SEEKING, to: Fsm.PLAY_SEEKING },
@@ -96,11 +100,15 @@ var States = {
       { name: Events.VIDEO_CHANGE, from: Fsm.PLAY_SEEKING, to: Fsm.PLAY_SEEKING },
       { name: Events.START_BUFFERING, from: Fsm.PLAY_SEEKING, to: Fsm.PLAY_SEEKING },
       { name: Events.END_BUFFERING, from: Fsm.PLAY_SEEKING, to: Fsm.PLAY_SEEKING },
+      { name: Events.SEEKED, from: Fsm.PLAY_SEEKING, to: Fsm.PLAY_SEEKING },
 
       // We are ending the seek
-      { name: Events.SEEKED, from: Fsm.PLAY_SEEKING, to: Fsm.END_PLAY_SEEKING },
+      { name: Events.PLAY, from: Fsm.PLAY_SEEKING, to: Fsm.END_PLAY_SEEKING },
 
-      { name: Events.PLAY, from: Fsm.PLAY_SEEKING, to: Fsm.PLAY_SEEKING },
+      { name: Events.START_BUFFERING, from: Fsm.END_PLAY_SEEKING, to: Fsm.END_PLAY_SEEKING },
+      { name: Events.END_BUFFERING, from: Fsm.END_PLAY_SEEKING, to: Fsm.END_PLAY_SEEKING },
+      { name: Events.SEEKED, from: Fsm.END_PLAY_SEEKING, to: Fsm.END_PLAY_SEEKING },
+      { name: Events.TIMECHANGED, from: Fsm.END_PLAY_SEEKING, to: Fsm.PLAYING },
 
       { name: Events.END, from: Fsm.PLAY_SEEKING, to: Fsm.END },
       { name: Events.END, from: Fsm.PAUSED_SEEKING, to: Fsm.END },
@@ -138,7 +146,7 @@ var States = {
           pausedTimestamp = timestamp;
         }
       },
-      onbeforeevent: function(event, from, to, timestamp) {
+      onbeforeevent: function(event, from, to, timestamp, eventObject) {
         if (event === Events.SEEK && from === Fsm.PAUSE) {
           if (timestamp - pausedTimestamp < PAUSE_SEEK_DELAY) {
             AnalyticsStateMachine.PLAY_SEEK(timestamp);
@@ -146,13 +154,14 @@ var States = {
           }
         }
         if (event === Events.SEEK) {
-          window.clearTimeout(endSeekTimeout);
+          window.clearTimeout(seekedTimeout);
         }
-        if (event === Events.SEEKED && from === Fsm.PLAY_SEEKING) {
-          window.clearTimeout(endSeekTimeout);
-          endSeekTimeout = window.setTimeout(function() {
-            AnalyticsStateMachine.FINISH_PLAY_SEEKING(timestamp);
-          }, PAUSE_SEEK_DELAY);
+
+        if (event === Events.SEEKED && from === Fsm.PAUSED_SEEKING) {
+          seekedTimeout = window.setTimeout(function() {
+            AnalyticsStateMachine.pause(timestamp, eventObject);
+          }, SEEKED_PAUSE_DELAY);
+          return false;
         }
       },
       onafterevent : function(event, from, to, timestamp) {
@@ -185,7 +194,12 @@ var States = {
         }
 
         var fnName = from.toLowerCase();
-        analytics[fnName](stateDuration, fnName, eventObject);
+        if (from === Fsm.END_PLAY_SEEKING) {
+          var seekDuration = seekedTimestamp - seekTimestamp;
+          analytics[fnName](seekDuration, fnName, eventObject);
+        } else {
+          analytics[fnName](stateDuration, fnName, eventObject);
+        }
 
         if (eventObject) {
           analytics.setVideoTimeStartFromEvent(eventObject);
@@ -195,19 +209,24 @@ var States = {
           analytics.videoChange(eventObject);
         } else if (event === Events.AUDIO_CHANGE) {
           analytics.audioChange(eventObject);
-        } else if (event === Fsm.PAUSED_SEEKING) {
-          analytics.startSeeking(eventObject);
         }
+      },
+      onseek: function(event, from, to, timestamp) {
+        seekTimestamp = timestamp;
+      },
+      onseeked: function(event, from, to, timestamp) {
+        seekedTimestamp = timestamp;
       },
       ontimechanged: function(event, from, to, timestamp, eventObject) {
         var stateDuration = timestamp - onEnterStateTimestamp;
 
         if (stateDuration > 59700) {
-          this.setVideoTimeEndFromEvent(eventObject);
+          analytics.setVideoTimeEndFromEvent(eventObject);
 
           analytics.heartbeat(stateDuration, from, eventObject);
+          onEnterStateTimestamp = timestamp;
 
-          this.setVideoTimeStartFromEvent(eventObject);
+          analytics.setVideoTimeStartFromEvent(eventObject);
         }
       }
     }
