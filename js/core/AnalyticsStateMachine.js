@@ -205,7 +205,7 @@ function AnalyticsStateMachine(logger, bitanalytics) {
           bitanalytics.setVideoTimeEndFromEvent(eventObject);
 
           logger.log('Sending heartbeat');
-          bitanalytics.heartbeat(stateDuration, from, eventObject);
+          bitanalytics.heartbeat(stateDuration, from.toLowerCase(), eventObject);
           onEnterStateTimestamp = timestamp;
 
           bitanalytics.setVideoTimeStartFromEvent(eventObject);
