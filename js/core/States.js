@@ -164,8 +164,13 @@ var States = {
           AnalyticsStateMachine.FINISH_QUALITYCHANGE(timestamp);
         }
       },
-      onenterstate : function(event, from, to, timestamp) {
+      onenterstate : function(event, from, to, timestamp, eventObject) {
         onEnterStateTimestamp = timestamp || new Date().getTime();
+
+        console.log('Entering State', to, 'with', event, from, eventObject);
+        if (eventObject) {
+          analytics.setVideoTimeStartFromEvent(eventObject);
+        }
       },
       onleavestate : function(event, from, to, timestamp, eventObject) {
         if (!timestamp) {
@@ -175,8 +180,16 @@ var States = {
         var stateDuration = timestamp - onEnterStateTimestamp;
         console.log('State', from, 'was', stateDuration, event, to, eventObject);
 
+        if (eventObject) {
+          analytics.setVideoTimeEndFromEvent(eventObject);
+        }
+
         var fnName = from.toLowerCase();
         analytics[fnName](stateDuration, fnName, eventObject);
+
+        if (eventObject) {
+          analytics.setVideoTimeStartFromEvent(eventObject);
+        }
 
         if (event === Events.VIDEO_CHANGE) {
           analytics.videoChange(eventObject);

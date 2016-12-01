@@ -74,12 +74,7 @@ function BitAnalytics(videoId) {
     sendAnalyticsRequestAndClearValues();
   };
 
-  this.ready = function(time, state) {
-    setDuration(time);
-    setState(state);
-
-    sendAnalyticsRequestAndClearValues();
-  };
+  this.ready = utils.noOp;
 
   this.startup = function(time, state) {
     setDuration(time);
@@ -118,10 +113,14 @@ function BitAnalytics(videoId) {
   };
 
   this.videoChange = function(event) {
+    this.setVideoTimeEndFromEvent(event);
+    this.setVideoTimeStartFromEvent(event);
     setPlaybackVideoPropertiesFromEvent(event);
   };
 
   this.audioChange = function(event) {
+    this.setVideoTimeEndFromEvent(event);
+    this.setVideoTimeStartFromEvent(event);
     sample.audioBitrate = event.bitrate;
   };
 
@@ -142,14 +141,14 @@ function BitAnalytics(videoId) {
   };
 
   this.startSeeking = function(event) {
-    setVideoTimeStartFromEvent(event);
+    this.setVideoTimeStartFromEvent(event);
   };
 
   this['play_seeking'] = function(time, state, event) {
     setDuration(time);
     setState(state);
 
-    setVideoTimeEndFromEvent(event);
+    this.setVideoTimeEndFromEvent(event);
   };
 
   this['end_play_seeking'] = utils.noOp;
@@ -169,17 +168,17 @@ function BitAnalytics(videoId) {
     sample.state = state;
   }
 
-  function setVideoTimeEndFromEvent(event) {
+  this.setVideoTimeEndFromEvent = function(event) {
     if (utils.validNumber(event.currentTime)) {
       sample.videoTimeEnd = utils.calculateTime(event.currentTime);
     }
-  }
+  };
 
-  function setVideoTimeStartFromEvent(event) {
+  this.setVideoTimeStartFromEvent = function(event) {
     if (utils.validNumber(event.currentTime)) {
       sample.videoTimeStart = utils.calculateTime(event.currentTime);
     }
-  }
+  };
 
   function setPlaybackVideoPropertiesFromEvent(event) {
     if (utils.validNumber(event.width)) {
@@ -352,9 +351,6 @@ function BitAnalytics(videoId) {
 
     sample.duration      = 0;
     sample.droppedFrames = 0;
-
-    sample.videoTimeEnd   = 0;
-    sample.videoTimeStart = 0;
   }
 
   function getDroppedFrames(frames) {
