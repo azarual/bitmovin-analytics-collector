@@ -176,7 +176,7 @@ var States = {
       onenterstate : function(event, from, to, timestamp, eventObject) {
         onEnterStateTimestamp = timestamp || new Date().getTime();
 
-        console.log('Entering State', to, 'with', event, from, eventObject);
+        console.log('Entering State ' + to + ' with ' + event);
         if (eventObject) {
           analytics.setVideoTimeStartFromEvent(eventObject);
         }
@@ -187,7 +187,7 @@ var States = {
         }
 
         var stateDuration = timestamp - onEnterStateTimestamp;
-        console.log('State', from, 'was', stateDuration, event, to, eventObject);
+        console.log('State ' + from + ' was ' + stateDuration + 'ms event:' + event);
 
         if (eventObject) {
           analytics.setVideoTimeEndFromEvent(eventObject);
@@ -223,6 +223,7 @@ var States = {
         if (stateDuration > 59700) {
           analytics.setVideoTimeEndFromEvent(eventObject);
 
+          console.log('Sending heartbeat');
           analytics.heartbeat(stateDuration, from, eventObject);
           onEnterStateTimestamp = timestamp;
 

@@ -9,6 +9,7 @@ function BitAnalytics(containerId) {
   var licenseCall   = new LicenseCall();
   var analyticsCall = new AnalyticsCall();
   var utils         = new Utils();
+  var logger        = new Logger();
 
   this.players      = Players;
   this.events       = Events;
@@ -28,6 +29,8 @@ function BitAnalytics(containerId) {
       console.error('Invalid analytics license key provided');
       return;
     }
+
+    logger.setLogging(config.debug || false);
 
     checkLicensing(config.key);
 
@@ -302,7 +305,7 @@ function BitAnalytics(containerId) {
     } else if (licensing === 'waiting') {
       sample.time = utils.getCurrentTimestamp();
 
-      console.log('waiting...');
+      logger.log('Licensing callback still pending, waiting...');
 
       var copySample = {};
       clone(sample, copySample);
