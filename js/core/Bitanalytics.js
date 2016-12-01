@@ -18,8 +18,6 @@ function BitAnalytics(containerId) {
 
   var granted = false;
 
-  var lastSampleTimestamp;
-
   var sample;
 
   setupSample();
@@ -94,8 +92,14 @@ function BitAnalytics(containerId) {
     sendAnalyticsRequestAndClearValues();
   };
 
-  this.timechanged = function(eventObject) {
-    sendHeartBeatIfRequired(eventObject);
+  this.heartbeat = function(time, state, event) {
+    setDroppedFrames(event);
+    setState(state);
+    setDuration(time);
+
+    sample.played   = sample.duration;
+
+    sendAnalyticsRequestAndClearValues();
   };
 
   this.qualitychange = function(time, state) {
@@ -148,7 +152,9 @@ function BitAnalytics(containerId) {
     setDuration(time);
     setState(state);
 
-    this.setVideoTimeEndFromEvent(event);
+    sample.seeked = time;
+
+    sendAnalyticsRequestAndClearValues();
   };
 
   this['end_play_seeking'] = utils.noOp;
@@ -279,32 +285,11 @@ function BitAnalytics(containerId) {
     }
   }
 
-  function sendHeartBeatIfRequired(event) {
-    var timeSinceLastSample = getTimeSinceLastSample();
-    if (timeSinceLastSample > 59700) {
-      setVideoTimeEndFromEvent(event);
-      setDroppedFrames(event);
-
-      sample.duration = timeSinceLastSample;
-      sample.played   = sample.duration;
-
-      sendAnalyticsRequest();
-      clearValues();
-
-      setVideoTimeStartFromEvent(event);
-    }
-  }
-
-  function getTimeSinceLastSample() {
-    return utils.getDurationFromTimestampToNow(lastSampleTimestamp);
-  }
-
   function getAnalyticsVersion() {
     return '0.3.1';
   }
 
   function sendAnalyticsRequest() {
-    lastSampleTimestamp = utils.getCurrentTimestamp();
     if (!granted) {
       return;
     }
@@ -313,12 +298,7 @@ function BitAnalytics(containerId) {
   }
 
   function sendAnalyticsRequestAndClearValues() {
-    if (!granted) {
-      return;
-    }
-
-    analyticsCall.sendRequest(sample, utils.noOp);
-
+    sendAnalyticsRequest();
     clearValues();
   }
 

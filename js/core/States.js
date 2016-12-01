@@ -23,7 +23,7 @@ var States = {
 (function () {
   var pausedTimestamp = null;
   var endSeekTimeout;
-  var PAUSE_SEEK_DELAY = 20;
+  var PAUSE_SEEK_DELAY = 60;
   var onEnterStateTimestamp = 0;
 
   var Fsm = {
@@ -200,7 +200,15 @@ var States = {
         }
       },
       ontimechanged: function(event, from, to, timestamp, eventObject) {
-        analytics.timechanged(eventObject);
+        var stateDuration = timestamp - onEnterStateTimestamp;
+
+        if (stateDuration > 59700) {
+          this.setVideoTimeEndFromEvent(eventObject);
+
+          analytics.heartbeat(stateDuration, from, eventObject);
+
+          this.setVideoTimeStartFromEvent(eventObject);
+        }
       }
     }
   });
