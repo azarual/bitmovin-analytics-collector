@@ -4,7 +4,7 @@
  * Bitmovin analytics
  */
 
-function BitAnalytics(videoId) {
+function BitAnalytics(containerId) {
 
   var licenseCall   = new LicenseCall();
   var analyticsCall = new AnalyticsCall();
@@ -199,6 +199,9 @@ function BitAnalytics(videoId) {
   }
 
   function setPlaybackSettingsFromLoadedEvent(loadedEvent) {
+    sample.videoWindowWidth  = document.getElementById(containerId).offsetWidth;
+    sample.videoWindowHeight = document.getElementById(containerId).offsetHeight;
+
     if (utils.validBoolean(loadedEvent.isLive)) {
       sample.isLive = loadedEvent.isLive;
     }
