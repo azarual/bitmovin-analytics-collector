@@ -185,6 +185,9 @@ var States = {
         } else if (event === Fsm.PAUSED_SEEKING) {
           analytics.startSeeking(eventObject);
         }
+      },
+      ontimechanged: function(event, from, to, timestamp, eventObject) {
+        analytics.timechanged(eventObject);
       }
     }
   });

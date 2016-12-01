@@ -10,31 +10,13 @@ function BitAnalytics(videoId) {
   var analyticsCall = new AnalyticsCall();
   var utils         = new Utils();
 
-  var initTime    = utils.getCurrentTimestamp();
-  var containerId = videoId;
-
   this.players      = Players;
   this.events       = Events;
   this.cdnProviders = CDNProviders;
 
-  var firstSample             = true;
-  var bufferedAfterFirstSample = true;
-  var skipVideoPlaybackChange = true;
-  var skipAudioPlaybackChange = true;
-
   var droppedSampleFrames = 0;
 
-  var initAdTime   = 0;
-  var initPlayTime = 0;
-  var initSeekTime = 0;
-
-  var state = States.SETUP;
-  var stateWas;
-
-  var wasSeeking = false;
-
   var granted = false;
-  var debug   = true;
 
   var lastSampleTimestamp;
 
@@ -49,8 +31,6 @@ function BitAnalytics(videoId) {
     }
 
     checkLicensing(config.key);
-
-    initTime = new Date().getTime();
 
     sample.key         = config.key;
     sample.playerKey   = config.playerKey;
@@ -115,10 +95,12 @@ function BitAnalytics(videoId) {
     sample.played = time;
 
     setDroppedFrames(event);
-    setVideoTimeEndFromEvent(event);
-    sample.videoTimeStart = sample.videoTimeEnd - time;
 
     sendAnalyticsRequestAndClearValues();
+  };
+
+  this.timechanged = function(eventObject) {
+    sendHeartBeatIfRequired(eventObject);
   };
 
   this.qualitychange = function(time, state) {
@@ -156,8 +138,6 @@ function BitAnalytics(videoId) {
     setDuration(time);
     setState(state);
 
-    setVideoTimeEndFromEvent(event);
-
     sendAnalyticsRequestAndClearValues();
   };
 
@@ -173,6 +153,13 @@ function BitAnalytics(videoId) {
   };
 
   this['end_play_seeking'] = utils.noOp;
+
+  this.rebuffering = function(time, state, event) {
+    setDuration(time);
+    setState(state);
+
+    sendAnalyticsRequestAndClearValues();
+  };
 
   function setDuration(duration) {
     sample.duration = duration;
@@ -291,7 +278,7 @@ function BitAnalytics(videoId) {
   }
 
   function sendHeartBeatIfRequired(event) {
-    var timeSinceLastSample = getTimeSinceLastSampleTimestamp();
+    var timeSinceLastSample = getTimeSinceLastSample();
     if (timeSinceLastSample > 59700) {
       setVideoTimeEndFromEvent(event);
       setDroppedFrames(event);
@@ -299,11 +286,15 @@ function BitAnalytics(videoId) {
       sample.duration = timeSinceLastSample;
       sample.played   = sample.duration;
 
-      sendAnalyticsRequest('heartbeat');
+      sendAnalyticsRequest();
       clearValues();
 
       setVideoTimeStartFromEvent(event);
     }
+  }
+
+  function getTimeSinceLastSample() {
+    return utils.getDurationFromTimestampToNow(lastSampleTimestamp);
   }
 
   function getAnalyticsVersion() {
@@ -311,6 +302,7 @@ function BitAnalytics(videoId) {
   }
 
   function sendAnalyticsRequest() {
+    lastSampleTimestamp = utils.getCurrentTimestamp();
     if (!granted) {
       return;
     }

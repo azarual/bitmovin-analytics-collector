@@ -7,7 +7,7 @@ var Events = {
   SOURCE_LOADED    : 'sourceLoaded',
   PLAY             : 'play',
   PAUSE            : 'pause',
-  TIMECHANGED      : 'timechange',
+  TIMECHANGED      : 'timechanged',
   SEEK             : 'seek',
   SEEKED           : 'seeked',
   START_CAST       : 'startCasting',
