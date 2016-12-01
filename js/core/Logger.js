@@ -16,4 +16,12 @@ function Logger() {
 
     console.log(msg);
   };
+
+  this.error = function(msg) {
+    if (!showLogs) {
+      return;
+    }
+
+    console.error(msg);
+  };
 }

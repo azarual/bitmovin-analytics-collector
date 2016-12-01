@@ -1,26 +1,7 @@
 /**
  * Created by lkroepfl on 22.11.16.
  */
-
-var States = {
-  SETUP     : 'setup',
-  LOADED    : 'loaded',
-  READY     : 'ready',
-  PLAY      : 'play',
-  PLAYING   : 'playing',
-  PAUSED    : 'paused',
-  BUFFERING : 'buffering',
-  BUFFERED  : 'buffered',
-  SEEKING   : 'seeking',
-  SEEKED    : 'seeked',
-  ENDED     : 'ended',
-  FULLSCREEN: 'fullscreen',
-  WINDOW    : 'window',
-
-  STARTUP   : 'startup',
-  REBUFFERING: 'rebuffering'
-};
-(function () {
+function AnalyticsStateMachine(logger, bitanalytics) {
   var pausedTimestamp = null;
   var seekTimestamp = 0;
   var seekedTimestamp = 0;
@@ -165,7 +146,7 @@ var States = {
         }
       },
       onafterevent : function(event, from, to, timestamp) {
-        console.log(pad(timestamp, 20) + 'EVENT: ', pad(event, 20), ' from ', pad(from, 14), '->', pad(to, 14));
+        logger.log(pad(timestamp, 20) + 'EVENT: ' + pad(event, 20) + ' from ' + pad(from, 14) + '-> ' + pad(to, 14));
         if (to === Fsm.QUALITYCHANGE_PAUSE) {
           AnalyticsStateMachine.FINISH_QUALITYCHANGE_PAUSE(timestamp);
         }
@@ -176,9 +157,9 @@ var States = {
       onenterstate : function(event, from, to, timestamp, eventObject) {
         onEnterStateTimestamp = timestamp || new Date().getTime();
 
-        console.log('Entering State ' + to + ' with ' + event);
+        logger.log('Entering State ' + to + ' with ' + event);
         if (eventObject) {
-          analytics.setVideoTimeStartFromEvent(eventObject);
+          bitanalytics.setVideoTimeStartFromEvent(eventObject);
         }
       },
       onleavestate : function(event, from, to, timestamp, eventObject) {
@@ -187,28 +168,28 @@ var States = {
         }
 
         var stateDuration = timestamp - onEnterStateTimestamp;
-        console.log('State ' + from + ' was ' + stateDuration + 'ms event:' + event);
+        logger.log('State ' + from + ' was ' + stateDuration + ' ms event:' + event);
 
         if (eventObject) {
-          analytics.setVideoTimeEndFromEvent(eventObject);
+          bitanalytics.setVideoTimeEndFromEvent(eventObject);
         }
 
         var fnName = from.toLowerCase();
         if (from === Fsm.END_PLAY_SEEKING) {
           var seekDuration = seekedTimestamp - seekTimestamp;
-          analytics[fnName](seekDuration, fnName, eventObject);
+          bitanalytics[fnName](seekDuration, fnName, eventObject);
         } else {
-          analytics[fnName](stateDuration, fnName, eventObject);
+          bitanalytics[fnName](stateDuration, fnName, eventObject);
         }
 
         if (eventObject) {
-          analytics.setVideoTimeStartFromEvent(eventObject);
+          bitanalytics.setVideoTimeStartFromEvent(eventObject);
         }
 
         if (event === Events.VIDEO_CHANGE) {
-          analytics.videoChange(eventObject);
+          bitanalytics.videoChange(eventObject);
         } else if (event === Events.AUDIO_CHANGE) {
-          analytics.audioChange(eventObject);
+          bitanalytics.audioChange(eventObject);
         }
       },
       onseek: function(event, from, to, timestamp) {
@@ -221,17 +202,30 @@ var States = {
         var stateDuration = timestamp - onEnterStateTimestamp;
 
         if (stateDuration > 59700) {
-          analytics.setVideoTimeEndFromEvent(eventObject);
+          bitanalytics.setVideoTimeEndFromEvent(eventObject);
 
-          console.log('Sending heartbeat');
-          analytics.heartbeat(stateDuration, from, eventObject);
+          logger.log('Sending heartbeat');
+          bitanalytics.heartbeat(stateDuration, from, eventObject);
           onEnterStateTimestamp = timestamp;
 
-          analytics.setVideoTimeStartFromEvent(eventObject);
+          bitanalytics.setVideoTimeStartFromEvent(eventObject);
         }
       }
     }
   });
-  window.AnalyticsStateMachine = AnalyticsStateMachine;
 
-}());
+  this.callEvent = function(eventType, eventObject, timestamp) {
+    var exec = AnalyticsStateMachine[eventType];
+
+    try {
+      if (exec) {
+        exec.call(AnalyticsStateMachine, timestamp, eventObject);
+      } else {
+        logger.log('Ignored Event: ' + eventType);
+      }
+    } catch (e) {
+      logger.error(e);
+    }
+  };
+}
+

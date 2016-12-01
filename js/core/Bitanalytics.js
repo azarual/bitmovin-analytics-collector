@@ -11,6 +11,8 @@ function BitAnalytics(containerId) {
   var utils         = new Utils();
   var logger        = new Logger();
 
+  var analyticsStateMachine = new AnalyticsStateMachine(logger, this);
+
   this.players      = Players;
   this.events       = Events;
   this.cdnProviders = CDNProviders;
@@ -52,17 +54,7 @@ function BitAnalytics(containerId) {
   this.record = function(eventType, eventObject) {
     eventObject = eventObject || {};
 
-    var exec = AnalyticsStateMachine[eventType];
-
-    try {
-      if (exec) {
-        exec.call(AnalyticsStateMachine, utils.getCurrentTimestamp(), eventObject, this);
-      } else {
-        console.log('Ignored Event: ', eventType);
-      }
-    } catch (e) {
-      console.error(e);
-    }
+    analyticsStateMachine.callEvent(eventType, eventObject, utils.getCurrentTimestamp());
   };
 
   this.setup = function(time, state, event) {
