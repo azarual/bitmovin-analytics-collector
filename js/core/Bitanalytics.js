@@ -157,6 +157,8 @@ function BitAnalytics(containerId) {
     setDuration(time);
     setState(state);
 
+    sample.buffered = time;
+
     sendAnalyticsRequestAndClearValues();
   };
 
