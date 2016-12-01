@@ -16,7 +16,8 @@ function BitAnalytics(containerId) {
 
   var droppedSampleFrames = 0;
 
-  var granted = false;
+  var licensing = 'waiting';
+  var LICENSE_CALL_PENDING_TIMEOUT = 200;
 
   var sample;
 
@@ -253,6 +254,7 @@ function BitAnalytics(containerId) {
       isCasting          : false,
       videoDuration      : 0,
       size               : 'WINDOW',
+      time               : 0,
       videoWindowWidth   : 0,
       videoWindowHeight  : 0,
       droppedFrames      : 0,
@@ -279,25 +281,49 @@ function BitAnalytics(containerId) {
 
   function handleLicensingResponse(licensingResponse) {
     if (licensingResponse.status === 'granted') {
-      granted = true;
+      licensing = 'granted';
+    } else {
+      licensing = 'denied';
     }
   }
 
   function getAnalyticsVersion() {
-    return '0.3.1';
+    return '0.4.0';
   }
 
   function sendAnalyticsRequest() {
-    if (!granted) {
+    if (licensing === 'denied') {
       return;
     }
 
-    analyticsCall.sendRequest(sample, utils.noOp);
+    if (licensing === 'granted') {
+      sample.time = utils.getCurrentTimestamp();
+      analyticsCall.sendRequest(sample, utils.noOp);
+    } else if (licensing === 'waiting') {
+      sample.time = utils.getCurrentTimestamp();
+
+      console.log('waiting...');
+
+      var copySample = {};
+      clone(sample, copySample);
+
+      window.setTimeout(function() {
+        analyticsCall.sendRequest(copySample, utils.noOp);
+      }, LICENSE_CALL_PENDING_TIMEOUT);
+    }
   }
 
   function sendAnalyticsRequestAndClearValues() {
     sendAnalyticsRequest();
     clearValues();
+  }
+
+  function clone(firstObject, secondObject) {
+    for (var prop in firstObject) {
+      if (firstObject.hasOwnProperty(prop)) {
+        secondObject[prop] = firstObject[prop];
+      }
+    }
   }
 
   function sendUnloadRequest() {
@@ -313,7 +339,7 @@ function BitAnalytics(containerId) {
   }
 
   function sendAnalyticsRequestSynchronous() {
-    if (!granted) {
+    if (!licensing) {
       return;
     }
 
