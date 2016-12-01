@@ -55,5 +55,15 @@ digraph finite_state_machine {
 
   PLAYING -> END [ label = "END" ]
   PAUSE -> END [ label = "END" ]
+
+  SETUP -> ERROR [ label = "Error" ]
+  READY -> ERROR [ label = "Error" ]
+  STARTUP -> ERROR [ label = "Error" ]
+  PLAYING -> ERROR [ label = "Error" ]
+  REBUFFERING -> ERROR [ label = "Error" ]
+  QUALITYCHANGE -> ERROR [ label = "Error" ]
+  QUALITYCHANGE_PAUSE -> ERROR [ label = "Error" ]
+  PAUSED_SEEKING -> ERROR [ label = "Error" ]
+  SETUP -> ERROR [ label = "Error" ]
 }
 @enduml
