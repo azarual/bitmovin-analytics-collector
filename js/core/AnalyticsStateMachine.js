@@ -119,7 +119,9 @@ function AnalyticsStateMachine(logger, bitanalytics) {
       },
 
       { name: Events.SEEK, from: Fsm.END_PLAY_SEEKING, to: Fsm.PLAY_SEEKING },
-      { name: 'FINISH_PLAY_SEEKING', from: Fsm.END_PLAY_SEEKING, to: Fsm.PLAYING }
+      { name: 'FINISH_PLAY_SEEKING', from: Fsm.END_PLAY_SEEKING, to: Fsm.PLAYING },
+
+      { name: Events.UNLOAD, from: Fsm.PLAYING, to: Fsm.END }
     ],
     callbacks: {
       onpause      : function(event, from, to, timestamp) {
@@ -178,6 +180,8 @@ function AnalyticsStateMachine(logger, bitanalytics) {
         if (from === Fsm.END_PLAY_SEEKING) {
           var seekDuration = seekedTimestamp - seekTimestamp;
           bitanalytics[fnName](seekDuration, fnName, eventObject);
+        } else if (event === Events.UNLOAD) {
+          bitanalytics.playingAndBye(stateDuration, fnName, eventObject);
         } else {
           bitanalytics[fnName](stateDuration, fnName, eventObject);
         }

@@ -23,6 +23,7 @@ function BitAnalytics(containerId) {
   var LICENSE_CALL_PENDING_TIMEOUT = 200;
 
   var sample;
+  var startupTime = 0;
 
   setupSample();
 
@@ -62,6 +63,7 @@ function BitAnalytics(containerId) {
     setDuration(time);
     setState(state);
     sample.playerStartupTime = time;
+    startupTime = time;
 
     setPlaybackSettingsFromLoadedEvent(event);
 
@@ -75,6 +77,9 @@ function BitAnalytics(containerId) {
     sample.videoStartupTime = time;
     setState(state);
 
+    startupTime += time;
+    sample.startupTime = startupTime;
+
     sendAnalyticsRequestAndClearValues();
   };
 
@@ -86,6 +91,16 @@ function BitAnalytics(containerId) {
     setDroppedFrames(event);
 
     sendAnalyticsRequestAndClearValues();
+  };
+
+  this.playingAndBye = function(time, state, event) {
+    setDuration(time);
+    setState(state);
+    sample.played = time;
+
+    setDroppedFrames(event);
+
+    sendUnloadRequest();
   };
 
   this.heartbeat = function(time, state, event) {
@@ -268,6 +283,7 @@ function BitAnalytics(containerId) {
       videoTimeEnd       : 0,
       videoStartupTime   : 0,
       duration           : 0,
+      startupTime        : 0,
       analyticsVersion   : getAnalyticsVersion()
     };
   }
@@ -285,7 +301,7 @@ function BitAnalytics(containerId) {
   }
 
   function getAnalyticsVersion() {
-    return '0.4.0';
+    return '0.5.0';
   }
 
   function sendAnalyticsRequest() {
@@ -324,11 +340,15 @@ function BitAnalytics(containerId) {
   }
 
   function sendUnloadRequest() {
+    if (licensing === 'denied') {
+      return;
+    }
+
     if (typeof navigator.sendBeacon === 'undefined') {
       sendAnalyticsRequestSynchronous();
     }
     else {
-      var success = navigator.sendBeacon(analyticsBackend + '/analytics', JSON.stringify(sample));
+      var success = navigator.sendBeacon(analyticsCall.getAnalyticsServerUrl() + '/analytics', JSON.stringify(sample));
       if (!success) {
         sendAnalyticsRequestSynchronous();
       }
@@ -336,7 +356,7 @@ function BitAnalytics(containerId) {
   }
 
   function sendAnalyticsRequestSynchronous() {
-    if (!licensing) {
+    if (licensing === 'denied') {
       return;
     }
 
@@ -352,6 +372,7 @@ function BitAnalytics(containerId) {
 
     sample.playerStartupTime = 0;
     sample.videoStartupTime  = 0;
+    sample.startupTime       = 0;
 
     sample.duration      = 0;
     sample.droppedFrames = 0;

@@ -13,6 +13,10 @@ function AnalyticsCall() {
     sendSampleRequest(false, sample, callback);
   };
 
+  this.getAnalyticsServerUrl = function() {
+    return analyticsServerUrl;
+  };
+
   function sendSampleRequest(async, sample, callback) {
     var xhttp = new XMLHttpRequest();
 
