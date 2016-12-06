@@ -177,6 +177,16 @@ function BitAnalytics(containerId) {
     sendAnalyticsRequestAndClearValues();
   };
 
+  this.error = function(event) {
+    this.setVideoTimeEndFromEvent(event);
+    this.setVideoTimeStartFromEvent(event);
+
+    sample.errorCode = event.code;
+    sample.errorMessage = event.message;
+
+    sendAnalyticsRequestAndClearValues();
+  };
+
   function setDuration(duration) {
     sample.duration = duration;
   }
@@ -301,7 +311,7 @@ function BitAnalytics(containerId) {
   }
 
   function getAnalyticsVersion() {
-    return '0.5.0';
+    return '0.5.1';
   }
 
   function sendAnalyticsRequest() {

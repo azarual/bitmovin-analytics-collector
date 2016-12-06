@@ -104,7 +104,8 @@ function AnalyticsStateMachine(logger, bitanalytics) {
 
       { name: Events.PLAY, from: Fsm.END, to: Fsm.PLAYING },
 
-      { name: Events.ERROR, from: [Fsm.SETUP, Fsm.SETUP,
+      { name: Events.ERROR, from: [
+        Fsm.SETUP,
         Fsm.STARTUP,
         Fsm.READY,
         Fsm.PLAYING,
@@ -113,9 +114,13 @@ function AnalyticsStateMachine(logger, bitanalytics) {
         Fsm.QUALITYCHANGE,
         Fsm.PAUSED_SEEKING,
         Fsm.PLAY_SEEKING,
+        Fsm.END_PLAY_SEEKING,
         Fsm.QUALITYCHANGE_PAUSE,
-        Fsm.END,
-        Fsm.ERROR], to          : Fsm.ERROR
+        'FINISH_PLAY_SEEKING',
+        'PLAY_SEEK',
+        'FINISH_QUALITYCHANGE_PAUSE',
+        'FINISH_QUALITYCHANGE',
+        Fsm.END], to          : Fsm.ERROR
       },
 
       { name: Events.SEEK, from: Fsm.END_PLAY_SEEKING, to: Fsm.PLAY_SEEKING },
@@ -214,6 +219,9 @@ function AnalyticsStateMachine(logger, bitanalytics) {
 
           bitanalytics.setVideoTimeStartFromEvent(eventObject);
         }
+      },
+      onplayerError: function(event, from, to, timestamp, eventObject) {
+        bitanalytics.error(eventObject);
       }
     }
   });
@@ -221,14 +229,10 @@ function AnalyticsStateMachine(logger, bitanalytics) {
   this.callEvent = function(eventType, eventObject, timestamp) {
     var exec = AnalyticsStateMachine[eventType];
 
-    try {
-      if (exec) {
-        exec.call(AnalyticsStateMachine, timestamp, eventObject);
-      } else {
-        logger.log('Ignored Event: ' + eventType);
-      }
-    } catch (e) {
-      logger.error(e);
+    if (exec) {
+      exec.call(AnalyticsStateMachine, timestamp, eventObject);
+    } else {
+      logger.log('Ignored Event: ' + eventType);
     }
   };
 }

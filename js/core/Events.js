@@ -20,7 +20,7 @@ var Events = {
   END_FULLSCREEN   : 'endFullscreen',
   START_AD         : 'adStart',
   END_AD           : 'adEnd',
-  ERROR            : 'error',
+  ERROR            : 'playerError',
   PLAYBACK_FINISHED: 'end',
   SCREEN_RESIZE    : 'resize',
   UNLOAD           : 'unload',
