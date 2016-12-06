@@ -5,6 +5,7 @@
 var CDNProviders = {
   BITMOVIN  : 'bitmovin',
   AKAMAI    : 'akamai',
+  FASTLY    : 'fastly',
   MAXCDN    : 'maxcdn',
   CLOUDFRONT: 'cloudfront',
   CHINACACHE: 'chinacache',
