@@ -87,11 +87,13 @@ function BitAnalytics(containerId) {
     sample.playerStartupTime = time;
     sample.pageLoadType = pageLoadType;
 
-    if (window.performance && window.performance.timing) {
-      var loadTime = window.performance.timing.domComplete - window.performance.timing.navigationStart;
-      sample.pageLoadTime = loadTime;
-      logger.log(loadTime);
-    }
+    // TODO: Disabled due to the fact that our player loads before domComplete at times.
+    // This needs to be fixed (eg. wait with sending the first sample
+    //if (window.performance && window.performance.timing) {
+    //  var loadTime = window.performance.timing.domComplete - window.performance.timing.navigationStart;
+    //  sample.pageLoadTime = loadTime;
+    //  logger.log(loadTime);
+    //}
 
     startupTime = time;
 
