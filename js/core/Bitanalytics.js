@@ -185,6 +185,9 @@ function BitAnalytics(containerId) {
     sample.errorMessage = event.message;
 
     sendAnalyticsRequestAndClearValues();
+
+    delete sample.errorCode;
+    delete sample.errorMessage;
   };
 
   function setDuration(duration) {
