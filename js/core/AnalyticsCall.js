@@ -3,7 +3,7 @@
  */
 
 function AnalyticsCall() {
-  var analyticsServerUrl = 'https://bitmovin-bitanalytics.appspot.com/analytics';
+  var analyticsServerUrl = '//bitmovin-bitanalytics.appspot.com/analytics';
 
   this.sendRequest = function(sample, callback) {
     sendSampleRequest(true, sample, callback);
@@ -18,9 +18,16 @@ function AnalyticsCall() {
   };
 
   function sendSampleRequest(async, sample, callback) {
-    var xhttp = new XMLHttpRequest();
+    var xhttp;
+    var legacyMode = false;
+    if (window.XDomainRequest) { legacyMode = true; }
 
-    xhttp.onreadystatechange = function() {
+    if (legacyMode) {
+      xhttp = new window.XDomainRequest();
+    } else {
+      xhttp = new XMLHttpRequest();
+    }
+    var responseCallback = function() {
       if (xhttp.readyState == XMLHttpRequest.DONE) {
         if (xhttp.responseText <= 0) {
           return;
@@ -32,8 +39,17 @@ function AnalyticsCall() {
       }
     };
 
+    if (legacyMode) {
+      xhttp.onload = responseCallback;
+    } else {
+      xhttp.onreadystatechange = responseCallback;
+    }
+
+
     xhttp.open('POST', analyticsServerUrl, async);
-    xhttp.setRequestHeader('Content-Type', 'application/json');
+    if (!legacyMode) {
+      xhttp.setRequestHeader('Content-Type', 'application/json');
+    }
     xhttp.send(JSON.stringify(sample));
   }
 }
