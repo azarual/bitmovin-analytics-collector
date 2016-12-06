@@ -10,6 +10,10 @@ function BitAnalytics(containerId) {
   var analyticsCall = new AnalyticsCall();
   var utils         = new Utils();
   var logger        = new Logger();
+  var PageLoadType = {
+    FOREGROUND: 1,
+    BACKGROUND: 2
+  };
 
   var analyticsStateMachine = new AnalyticsStateMachine(logger, this);
 
@@ -24,6 +28,24 @@ function BitAnalytics(containerId) {
 
   var sample;
   var startupTime = 0;
+  var pageLoadType = PageLoadType.FOREGROUND;
+
+  function getHiddenProp(){
+    var prefixes = ['webkit','moz','ms','o'];
+    if ('hidden' in document) { return 'hidden'; }
+    for (var i = 0; i < prefixes.length; i++){
+      if ((prefixes[i] + 'Hidden') in document) {
+        return prefixes[i] + 'Hidden';
+      }
+    }
+    return null;
+  }
+
+  window.setTimeout(function () {
+    if (document[getHiddenProp()] === true) {
+      pageLoadType = PageLoadType.BACKGROUND;
+    }
+  }, 200);
 
   setupSample();
 
@@ -63,6 +85,7 @@ function BitAnalytics(containerId) {
     setDuration(time);
     setState(state);
     sample.playerStartupTime = time;
+    sample.pageLoadType = pageLoadType;
     startupTime = time;
 
     setPlaybackSettingsFromLoadedEvent(event);
@@ -389,6 +412,7 @@ function BitAnalytics(containerId) {
 
     sample.duration      = 0;
     sample.droppedFrames = 0;
+    sample.pageLoadType  = 0;
   }
 
   function getDroppedFrames(frames) {
