@@ -344,7 +344,7 @@ function BitAnalytics(containerId) {
   }
 
   function getAnalyticsVersion() {
-    return '0.5.1';
+    return '0.6.0';
   }
 
   function sendAnalyticsRequest() {
