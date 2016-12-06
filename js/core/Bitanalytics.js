@@ -86,6 +86,13 @@ function BitAnalytics(containerId) {
     setState(state);
     sample.playerStartupTime = time;
     sample.pageLoadType = pageLoadType;
+
+    if (window.performance && window.performance.timing) {
+      var loadTime = window.performance.timing.domComplete - window.performance.timing.navigationStart;
+      sample.pageLoadTime = loadTime;
+      logger.log(loadTime);
+    }
+
     startupTime = time;
 
     setPlaybackSettingsFromLoadedEvent(event);
