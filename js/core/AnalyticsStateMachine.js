@@ -236,4 +236,3 @@ function AnalyticsStateMachine(logger, bitanalytics) {
     }
   };
 }
-
