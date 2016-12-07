@@ -4,22 +4,19 @@
  * Bitmovin analytics
  */
 
-function BitAnalytics(containerId) {
+function BitAnalytics(config) {
 
   var licenseCall   = new LicenseCall();
   var analyticsCall = new AnalyticsCall();
   var utils         = new Utils();
   var logger        = new Logger();
+  var analyticsStateMachine = new AnalyticsStateMachine(logger, this);
+  var adapter = new Adapter(record);
+
   var PageLoadType = {
     FOREGROUND: 1,
     BACKGROUND: 2
   };
-
-  var analyticsStateMachine = new AnalyticsStateMachine(logger, this);
-
-  this.players      = Players;
-  this.events       = Events;
-  this.cdnProviders = CDNProviders;
 
   var droppedSampleFrames = 0;
 
@@ -37,8 +34,9 @@ function BitAnalytics(containerId) {
   }, 200);
 
   setupSample();
+  init();
 
-  this.init = function(config) {
+  function init() {
     if (config.key == '' || !utils.validString(config.key)) {
       console.error('Invalid analytics license key provided');
       return;
@@ -61,13 +59,17 @@ function BitAnalytics(containerId) {
     else {
       sample.userId = userId;
     }
+  }
+
+  this.register = function(player) {
+    adapter.register(player);
   };
 
-  this.record = function(eventType, eventObject) {
+  function record(eventType, eventObject) {
     eventObject = eventObject || {};
 
     analyticsStateMachine.callEvent(eventType, eventObject, utils.getCurrentTimestamp());
-  };
+  }
 
   this.setup = function(time, state, event) {
     sample.impressionId = utils.generateUUID();
@@ -248,9 +250,6 @@ function BitAnalytics(containerId) {
   }
 
   function setPlaybackSettingsFromLoadedEvent(loadedEvent) {
-    sample.videoWindowWidth  = document.getElementById(containerId).offsetWidth;
-    sample.videoWindowHeight = document.getElementById(containerId).offsetHeight;
-
     if (utils.validBoolean(loadedEvent.isLive)) {
       sample.isLive = loadedEvent.isLive;
     }
@@ -280,6 +279,10 @@ function BitAnalytics(containerId) {
     }
     if (utils.validString(loadedEvent.progUrl)) {
       sample.progUrl = loadedEvent.progUrl;
+    }
+    if (loadedEvent.figure) {
+      sample.videoWindowWidth  = loadedEvent.figure.offsetWidth;
+      sample.videoWindowHeight = loadedEvent.figure.offsetHeight;
     }
   }
 

@@ -10,17 +10,14 @@
 <div id="player" style="width: 400px"></div>
   <script type="text/javascript">
 
-    var analytics = new BitAnalytics("player");
-    // init bitdash analytics reporting
     var config = {
       key: "e3cf8a50-3cd2-4fba-95aa-917b18b6b6ee", //Your bitmovin analytics key
       playerKey: "a6e31908-550a-4f75-b4bc-a9d89880a733", //Your player key (bitmovin, jw, ..) (optional)
-      player: analytics.players.BITMOVIN,
-      cdnProvider: analytics.cdnProviders.AKAMAI,
+      player: Players.BITMOVIN,
+      cdnProvider: CDNProviders.AKAMAI,
       debug: true
     };
-
-    analytics.init(config);
+    var analytics = new BitAnalytics(config);
 
     // init bitdash player instance
     var conf = {
@@ -37,9 +34,9 @@
       }
     };
     var player = bitmovin.player('player');
-
     player.setup(conf);
-    registerEvents(player);
+
+    analytics.register(player);
 
   </script>
 	<a href="bitmovin.html">Click</a>
