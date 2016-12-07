@@ -89,6 +89,8 @@ function BitAnalytics(config) {
     setPlaybackSettingsFromLoadedEvent(event);
 
     sendAnalyticsRequestAndClearValues();
+
+    sample.pageLoadType = pageLoadType;
   };
 
   this.ready = utils.noOp;
