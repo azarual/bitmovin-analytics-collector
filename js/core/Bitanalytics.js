@@ -30,19 +30,8 @@ function BitAnalytics(containerId) {
   var startupTime = 0;
   var pageLoadType = PageLoadType.FOREGROUND;
 
-  function getHiddenProp(){
-    var prefixes = ['webkit','moz','ms','o'];
-    if ('hidden' in document) { return 'hidden'; }
-    for (var i = 0; i < prefixes.length; i++){
-      if ((prefixes[i] + 'Hidden') in document) {
-        return prefixes[i] + 'Hidden';
-      }
-    }
-    return null;
-  }
-
   window.setTimeout(function () {
-    if (document[getHiddenProp()] === true) {
+    if (document[utils.getHiddenProp()] === true) {
       pageLoadType = PageLoadType.BACKGROUND;
     }
   }, 200);
