@@ -2,7 +2,7 @@
  * Created by lkroepfl on 01.12.16.
  */
 
-bitmovin.analytics.Logger = function() {
+var Logger = function() {
   var showLogs = false;
 
   this.setLogging = function(logging) {

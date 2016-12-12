@@ -2,7 +2,7 @@
  * Created by lkroepfl on 11.11.16.
  */
 
-bitmovin.analytics.Utils = function() {
+var Utils = function() {
   this.validString = function(string) {
     return (string != undefined && typeof string == 'string');
   };

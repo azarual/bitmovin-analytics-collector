@@ -2,7 +2,7 @@
  * Created by lkroepfl on 11.11.16.
  */
 
-bitmovin.analytics.AnalyticsCall = function() {
+var AnalyticsCall = function() {
   var analyticsServerUrl = '//bitmovin-bitanalytics.appspot.com/analytics';
 
   this.sendRequest = function(sample, callback) {

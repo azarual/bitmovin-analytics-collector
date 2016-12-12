@@ -2,7 +2,7 @@
  * Created by lkroepfl on 22.11.16.
  */
 
-bitmovin.analytics.AnalyticsStateMachine = function(logger, bitanalytics) {
+var AnalyticsStateMachine = function(logger, bitanalytics) {
   var pausedTimestamp = null;
   var seekTimestamp = 0;
   var seekedTimestamp = 0;
@@ -32,80 +32,80 @@ bitmovin.analytics.AnalyticsStateMachine = function(logger, bitanalytics) {
     return (str + padStr).slice(0, length);
   };
 
-  var AnalyticsStateMachine = StateMachine.create({
+  var stateMachine = StateMachine.create({
     initial: Fsm.SETUP,
     events: [
-      { name: bitmovin.analytics.events.READY, from: Fsm.SETUP, to: Fsm.READY },
-      { name: bitmovin.analytics.events.PLAY, from: Fsm.READY, to: Fsm.STARTUP },
+      { name: bitmovin.analytics.Events.READY, from: Fsm.SETUP, to: Fsm.READY },
+      { name: bitmovin.analytics.Events.PLAY, from: Fsm.READY, to: Fsm.STARTUP },
 
-      { name: bitmovin.analytics.events.START_BUFFERING, from: Fsm.STARTUP, to: Fsm.STARTUP},
-      { name: bitmovin.analytics.events.END_BUFFERING, from: Fsm.STARTUP, to: Fsm.STARTUP},
-      { name: bitmovin.analytics.events.TIMECHANGED, from: Fsm.STARTUP, to: Fsm.PLAYING},
+      { name: bitmovin.analytics.Events.START_BUFFERING, from: Fsm.STARTUP, to: Fsm.STARTUP},
+      { name: bitmovin.analytics.Events.END_BUFFERING, from: Fsm.STARTUP, to: Fsm.STARTUP},
+      { name: bitmovin.analytics.Events.TIMECHANGED, from: Fsm.STARTUP, to: Fsm.PLAYING},
 
-      { name: bitmovin.analytics.events.TIMECHANGED, from: Fsm.PLAYING, to: Fsm.PLAYING },
-      { name: bitmovin.analytics.events.END_BUFFERING, from: Fsm.PLAYING, to: Fsm.PLAYING },
-      { name: bitmovin.analytics.events.START_BUFFERING, from: Fsm.PLAYING, to: Fsm.REBUFFERING },
-      { name: bitmovin.analytics.events.END_BUFFERING, from: Fsm.REBUFFERING, to: Fsm.PLAYING },
-      { name: bitmovin.analytics.events.TIMECHANGED, from: Fsm.REBUFFERING, to: Fsm.REBUFFERING },
+      { name: bitmovin.analytics.Events.TIMECHANGED, from: Fsm.PLAYING, to: Fsm.PLAYING },
+      { name: bitmovin.analytics.Events.END_BUFFERING, from: Fsm.PLAYING, to: Fsm.PLAYING },
+      { name: bitmovin.analytics.Events.START_BUFFERING, from: Fsm.PLAYING, to: Fsm.REBUFFERING },
+      { name: bitmovin.analytics.Events.END_BUFFERING, from: Fsm.REBUFFERING, to: Fsm.PLAYING },
+      { name: bitmovin.analytics.Events.TIMECHANGED, from: Fsm.REBUFFERING, to: Fsm.REBUFFERING },
 
-      { name: bitmovin.analytics.events.PAUSE, from: Fsm.PLAYING, to: Fsm.PAUSE },
-      { name: bitmovin.analytics.events.PAUSE, from: Fsm.REBUFFERING, to: Fsm.PAUSE },
-      { name: bitmovin.analytics.events.PLAY, from: Fsm.PAUSE, to: Fsm.PLAYING },
+      { name: bitmovin.analytics.Events.PAUSE, from: Fsm.PLAYING, to: Fsm.PAUSE },
+      { name: bitmovin.analytics.Events.PAUSE, from: Fsm.REBUFFERING, to: Fsm.PAUSE },
+      { name: bitmovin.analytics.Events.PLAY, from: Fsm.PAUSE, to: Fsm.PLAYING },
 
-      { name: bitmovin.analytics.events.VIDEO_CHANGE, from: Fsm.PLAYING, to: Fsm.QUALITYCHANGE },
-      { name: bitmovin.analytics.events.AUDIO_CHANGE, from: Fsm.PLAYING, to: Fsm.QUALITYCHANGE },
-      { name: bitmovin.analytics.events.VIDEO_CHANGE, from: Fsm.QUALITYCHANGE, to: Fsm.QUALITYCHANGE },
-      { name: bitmovin.analytics.events.AUDIO_CHANGE, from: Fsm.QUALITYCHANGE, to: Fsm.QUALITYCHANGE },
+      { name: bitmovin.analytics.Events.VIDEO_CHANGE, from: Fsm.PLAYING, to: Fsm.QUALITYCHANGE },
+      { name: bitmovin.analytics.Events.AUDIO_CHANGE, from: Fsm.PLAYING, to: Fsm.QUALITYCHANGE },
+      { name: bitmovin.analytics.Events.VIDEO_CHANGE, from: Fsm.QUALITYCHANGE, to: Fsm.QUALITYCHANGE },
+      { name: bitmovin.analytics.Events.AUDIO_CHANGE, from: Fsm.QUALITYCHANGE, to: Fsm.QUALITYCHANGE },
       { name: 'FINISH_QUALITYCHANGE', from: Fsm.QUALITYCHANGE, to: Fsm.PLAYING },
 
-      { name: bitmovin.analytics.events.VIDEO_CHANGE, from: Fsm.PAUSE, to: Fsm.QUALITYCHANGE_PAUSE },
-      { name: bitmovin.analytics.events.AUDIO_CHANGE, from: Fsm.PAUSE, to: Fsm.QUALITYCHANGE_PAUSE },
-      { name: bitmovin.analytics.events.VIDEO_CHANGE, from: Fsm.QUALITYCHANGE_PAUSE, to: Fsm.QUALITYCHANGE_PAUSE },
-      { name: bitmovin.analytics.events.AUDIO_CHANGE, from: Fsm.QUALITYCHANGE_PAUSE, to: Fsm.QUALITYCHANGE_PAUSE },
+      { name: bitmovin.analytics.Events.VIDEO_CHANGE, from: Fsm.PAUSE, to: Fsm.QUALITYCHANGE_PAUSE },
+      { name: bitmovin.analytics.Events.AUDIO_CHANGE, from: Fsm.PAUSE, to: Fsm.QUALITYCHANGE_PAUSE },
+      { name: bitmovin.analytics.Events.VIDEO_CHANGE, from: Fsm.QUALITYCHANGE_PAUSE, to: Fsm.QUALITYCHANGE_PAUSE },
+      { name: bitmovin.analytics.Events.AUDIO_CHANGE, from: Fsm.QUALITYCHANGE_PAUSE, to: Fsm.QUALITYCHANGE_PAUSE },
       { name: 'FINISH_QUALITYCHANGE_PAUSE', from: Fsm.QUALITYCHANGE_PAUSE, to: Fsm.PAUSE },
 
-      { name: bitmovin.analytics.events.SEEK, from: Fsm.PAUSE, to: Fsm.PAUSED_SEEKING },
-      { name: bitmovin.analytics.events.SEEK, from: Fsm.PAUSED_SEEKING, to: Fsm.PAUSED_SEEKING },
-      { name: bitmovin.analytics.events.AUDIO_CHANGE, from: Fsm.PAUSED_SEEKING, to: Fsm.PAUSED_SEEKING },
-      { name: bitmovin.analytics.events.VIDEO_CHANGE, from: Fsm.PAUSED_SEEKING, to: Fsm.PAUSED_SEEKING },
-      { name: bitmovin.analytics.events.START_BUFFERING, from: Fsm.PAUSED_SEEKING, to: Fsm.PAUSED_SEEKING },
-      { name: bitmovin.analytics.events.END_BUFFERING, from: Fsm.PAUSED_SEEKING, to: Fsm.PAUSED_SEEKING },
-      { name: bitmovin.analytics.events.SEEKED, from: Fsm.PAUSED_SEEKING, to: Fsm.PAUSE },
-      { name: bitmovin.analytics.events.PLAY, from: Fsm.PAUSED_SEEKING, to: Fsm.PLAYING },
-      { name: bitmovin.analytics.events.PAUSE, from: Fsm.PAUSED_SEEKING, to: Fsm.PAUSE },
+      { name: bitmovin.analytics.Events.SEEK, from: Fsm.PAUSE, to: Fsm.PAUSED_SEEKING },
+      { name: bitmovin.analytics.Events.SEEK, from: Fsm.PAUSED_SEEKING, to: Fsm.PAUSED_SEEKING },
+      { name: bitmovin.analytics.Events.AUDIO_CHANGE, from: Fsm.PAUSED_SEEKING, to: Fsm.PAUSED_SEEKING },
+      { name: bitmovin.analytics.Events.VIDEO_CHANGE, from: Fsm.PAUSED_SEEKING, to: Fsm.PAUSED_SEEKING },
+      { name: bitmovin.analytics.Events.START_BUFFERING, from: Fsm.PAUSED_SEEKING, to: Fsm.PAUSED_SEEKING },
+      { name: bitmovin.analytics.Events.END_BUFFERING, from: Fsm.PAUSED_SEEKING, to: Fsm.PAUSED_SEEKING },
+      { name: bitmovin.analytics.Events.SEEKED, from: Fsm.PAUSED_SEEKING, to: Fsm.PAUSE },
+      { name: bitmovin.analytics.Events.PLAY, from: Fsm.PAUSED_SEEKING, to: Fsm.PLAYING },
+      { name: bitmovin.analytics.Events.PAUSE, from: Fsm.PAUSED_SEEKING, to: Fsm.PAUSE },
 
       { name: 'PLAY_SEEK', from: Fsm.PAUSE, to: Fsm.PLAY_SEEKING },
       { name: 'PLAY_SEEK', from: Fsm.PAUSED_SEEKING, to: Fsm.PLAY_SEEKING },
       { name: 'PLAY_SEEK', from: Fsm.PLAY_SEEKING, to: Fsm.PLAY_SEEKING },
-      { name: bitmovin.analytics.events.SEEK, from: Fsm.PLAY_SEEKING, to: Fsm.PLAY_SEEKING },
-      { name: bitmovin.analytics.events.AUDIO_CHANGE, from: Fsm.PLAY_SEEKING, to: Fsm.PLAY_SEEKING },
-      { name: bitmovin.analytics.events.VIDEO_CHANGE, from: Fsm.PLAY_SEEKING, to: Fsm.PLAY_SEEKING },
-      { name: bitmovin.analytics.events.START_BUFFERING, from: Fsm.PLAY_SEEKING, to: Fsm.PLAY_SEEKING },
-      { name: bitmovin.analytics.events.END_BUFFERING, from: Fsm.PLAY_SEEKING, to: Fsm.PLAY_SEEKING },
-      { name: bitmovin.analytics.events.SEEKED, from: Fsm.PLAY_SEEKING, to: Fsm.PLAY_SEEKING },
+      { name: bitmovin.analytics.Events.SEEK, from: Fsm.PLAY_SEEKING, to: Fsm.PLAY_SEEKING },
+      { name: bitmovin.analytics.Events.AUDIO_CHANGE, from: Fsm.PLAY_SEEKING, to: Fsm.PLAY_SEEKING },
+      { name: bitmovin.analytics.Events.VIDEO_CHANGE, from: Fsm.PLAY_SEEKING, to: Fsm.PLAY_SEEKING },
+      { name: bitmovin.analytics.Events.START_BUFFERING, from: Fsm.PLAY_SEEKING, to: Fsm.PLAY_SEEKING },
+      { name: bitmovin.analytics.Events.END_BUFFERING, from: Fsm.PLAY_SEEKING, to: Fsm.PLAY_SEEKING },
+      { name: bitmovin.analytics.Events.SEEKED, from: Fsm.PLAY_SEEKING, to: Fsm.PLAY_SEEKING },
 
       // We are ending the seek
-      { name: bitmovin.analytics.events.PLAY, from: Fsm.PLAY_SEEKING, to: Fsm.END_PLAY_SEEKING },
+      { name: bitmovin.analytics.Events.PLAY, from: Fsm.PLAY_SEEKING, to: Fsm.END_PLAY_SEEKING },
 
-      { name: bitmovin.analytics.events.START_BUFFERING, from: Fsm.END_PLAY_SEEKING, to: Fsm.END_PLAY_SEEKING },
-      { name: bitmovin.analytics.events.END_BUFFERING, from: Fsm.END_PLAY_SEEKING, to: Fsm.END_PLAY_SEEKING },
-      { name: bitmovin.analytics.events.SEEKED, from: Fsm.END_PLAY_SEEKING, to: Fsm.END_PLAY_SEEKING },
-      { name: bitmovin.analytics.events.TIMECHANGED, from: Fsm.END_PLAY_SEEKING, to: Fsm.PLAYING },
+      { name: bitmovin.analytics.Events.START_BUFFERING, from: Fsm.END_PLAY_SEEKING, to: Fsm.END_PLAY_SEEKING },
+      { name: bitmovin.analytics.Events.END_BUFFERING, from: Fsm.END_PLAY_SEEKING, to: Fsm.END_PLAY_SEEKING },
+      { name: bitmovin.analytics.Events.SEEKED, from: Fsm.END_PLAY_SEEKING, to: Fsm.END_PLAY_SEEKING },
+      { name: bitmovin.analytics.Events.TIMECHANGED, from: Fsm.END_PLAY_SEEKING, to: Fsm.PLAYING },
 
-      { name: bitmovin.analytics.events.END, from: Fsm.PLAY_SEEKING, to: Fsm.END },
-      { name: bitmovin.analytics.events.END, from: Fsm.PAUSED_SEEKING, to: Fsm.END },
-      { name: bitmovin.analytics.events.END, from: Fsm.PLAYING, to: Fsm.END },
-      { name: bitmovin.analytics.events.END, from: Fsm.PAUSE, to: Fsm.END },
-      { name: bitmovin.analytics.events.SEEK, from: Fsm.END, to: Fsm.END },
-      { name: bitmovin.analytics.events.SEEKED, from: Fsm.END, to: Fsm.END },
-      { name: bitmovin.analytics.events.TIMECHANGED, from: Fsm.END, to: Fsm.END },
-      { name: bitmovin.analytics.events.END_BUFFERING, from: Fsm.END, to: Fsm.END },
-      { name: bitmovin.analytics.events.START_BUFFERING, from: Fsm.END, to: Fsm.END },
-      { name: bitmovin.analytics.events.END, from: Fsm.END, to: Fsm.END },
+      { name: bitmovin.analytics.Events.END, from: Fsm.PLAY_SEEKING, to: Fsm.END },
+      { name: bitmovin.analytics.Events.END, from: Fsm.PAUSED_SEEKING, to: Fsm.END },
+      { name: bitmovin.analytics.Events.END, from: Fsm.PLAYING, to: Fsm.END },
+      { name: bitmovin.analytics.Events.END, from: Fsm.PAUSE, to: Fsm.END },
+      { name: bitmovin.analytics.Events.SEEK, from: Fsm.END, to: Fsm.END },
+      { name: bitmovin.analytics.Events.SEEKED, from: Fsm.END, to: Fsm.END },
+      { name: bitmovin.analytics.Events.TIMECHANGED, from: Fsm.END, to: Fsm.END },
+      { name: bitmovin.analytics.Events.END_BUFFERING, from: Fsm.END, to: Fsm.END },
+      { name: bitmovin.analytics.Events.START_BUFFERING, from: Fsm.END, to: Fsm.END },
+      { name: bitmovin.analytics.Events.END, from: Fsm.END, to: Fsm.END },
 
-      { name: bitmovin.analytics.events.PLAY, from: Fsm.END, to: Fsm.PLAYING },
+      { name: bitmovin.analytics.Events.PLAY, from: Fsm.END, to: Fsm.PLAYING },
 
-      { name: bitmovin.analytics.events.ERROR, from: [
+      { name: bitmovin.analytics.Events.ERROR, from: [
         Fsm.SETUP,
         Fsm.STARTUP,
         Fsm.READY,
@@ -124,10 +124,10 @@ bitmovin.analytics.AnalyticsStateMachine = function(logger, bitanalytics) {
         Fsm.END], to          : Fsm.ERROR
       },
 
-      { name: bitmovin.analytics.events.SEEK, from: Fsm.END_PLAY_SEEKING, to: Fsm.PLAY_SEEKING },
+      { name: bitmovin.analytics.Events.SEEK, from: Fsm.END_PLAY_SEEKING, to: Fsm.PLAY_SEEKING },
       { name: 'FINISH_PLAY_SEEKING', from: Fsm.END_PLAY_SEEKING, to: Fsm.PLAYING },
 
-      { name: bitmovin.analytics.events.UNLOAD, from: Fsm.PLAYING, to: Fsm.END }
+      { name: bitmovin.analytics.Events.UNLOAD, from: Fsm.PLAYING, to: Fsm.END }
     ],
     callbacks: {
       onpause      : function(event, from, to, timestamp) {
@@ -136,19 +136,19 @@ bitmovin.analytics.AnalyticsStateMachine = function(logger, bitanalytics) {
         }
       },
       onbeforeevent: function(event, from, to, timestamp, eventObject) {
-        if (event === bitmovin.analytics.events.SEEK && from === Fsm.PAUSE) {
+        if (event === bitmovin.analytics.Events.SEEK && from === Fsm.PAUSE) {
           if (timestamp - pausedTimestamp < PAUSE_SEEK_DELAY) {
-            AnalyticsStateMachine.PLAY_SEEK(timestamp);
+            stateMachine.PLAY_SEEK(timestamp);
             return false;
           }
         }
-        if (event === bitmovin.analytics.events.SEEK) {
+        if (event === bitmovin.analytics.Events.SEEK) {
           window.clearTimeout(seekedTimeout);
         }
 
-        if (event === bitmovin.analytics.events.SEEKED && from === Fsm.PAUSED_SEEKING) {
+        if (event === bitmovin.analytics.Events.SEEKED && from === Fsm.PAUSED_SEEKING) {
           seekedTimeout = window.setTimeout(function() {
-            AnalyticsStateMachine.pause(timestamp, eventObject);
+            stateMachine.pause(timestamp, eventObject);
           }, SEEKED_PAUSE_DELAY);
           return false;
         }
@@ -156,10 +156,10 @@ bitmovin.analytics.AnalyticsStateMachine = function(logger, bitanalytics) {
       onafterevent : function(event, from, to, timestamp) {
         logger.log(pad(timestamp, 20) + 'EVENT: ' + pad(event, 20) + ' from ' + pad(from, 14) + '-> ' + pad(to, 14));
         if (to === Fsm.QUALITYCHANGE_PAUSE) {
-          AnalyticsStateMachine.FINISH_QUALITYCHANGE_PAUSE(timestamp);
+          stateMachine.FINISH_QUALITYCHANGE_PAUSE(timestamp);
         }
         if (to === Fsm.QUALITYCHANGE) {
-          AnalyticsStateMachine.FINISH_QUALITYCHANGE(timestamp);
+          stateMachine.FINISH_QUALITYCHANGE(timestamp);
         }
       },
       onenterstate : function(event, from, to, timestamp, eventObject) {
@@ -186,7 +186,7 @@ bitmovin.analytics.AnalyticsStateMachine = function(logger, bitanalytics) {
         if (from === Fsm.END_PLAY_SEEKING) {
           var seekDuration = seekedTimestamp - seekTimestamp;
           bitanalytics[fnName](seekDuration, fnName, eventObject);
-        } else if (event === bitmovin.analytics.events.UNLOAD) {
+        } else if (event === bitmovin.analytics.Events.UNLOAD) {
           bitanalytics.playingAndBye(stateDuration, fnName, eventObject);
         } else {
           bitanalytics[fnName](stateDuration, fnName, eventObject);
@@ -196,9 +196,9 @@ bitmovin.analytics.AnalyticsStateMachine = function(logger, bitanalytics) {
           bitanalytics.setVideoTimeStartFromEvent(eventObject);
         }
 
-        if (event === bitmovin.analytics.events.VIDEO_CHANGE) {
+        if (event === bitmovin.analytics.Events.VIDEO_CHANGE) {
           bitanalytics.videoChange(eventObject);
-        } else if (event === bitmovin.analytics.events.AUDIO_CHANGE) {
+        } else if (event === bitmovin.analytics.Events.AUDIO_CHANGE) {
           bitanalytics.audioChange(eventObject);
         }
       },
@@ -228,10 +228,10 @@ bitmovin.analytics.AnalyticsStateMachine = function(logger, bitanalytics) {
   });
 
   this.callEvent = function(eventType, eventObject, timestamp) {
-    var exec = AnalyticsStateMachine[eventType];
+    var exec = stateMachine[eventType];
 
     if (exec) {
-      exec.call(AnalyticsStateMachine, timestamp, eventObject);
+      exec.call(stateMachine, timestamp, eventObject);
     } else {
       logger.log('Ignored Event: ' + eventType);
     }

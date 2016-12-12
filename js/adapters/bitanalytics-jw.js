@@ -1,7 +1,7 @@
 /**
  * Created by Bitmovin on 19.09.2016.
  */
-bitmovin.analytics.Adapter = function(record) {
+var Adapter = function(record) {
   var skipInitResize = true;
   var levelsChanged  = false;
   var firstSample    = true;

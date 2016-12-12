@@ -13,11 +13,11 @@
     var config = {
       key: "e3cf8a50-3cd2-4fba-95aa-917b18b6b6ee", //Your bitmovin analytics key
       playerKey: "a6e31908-550a-4f75-b4bc-a9d89880a733", //Your player key (bitmovin, jw, ..) (optional)
-      player: bitmovin.analytics.players.BITMOVIN,
-      cdnProvider: bitmovin.analytics.cdnProviders.AKAMAI,
+      player: bitmovin.analytics.Players.BITMOVIN,
+      cdnProvider: bitmovin.analytics.CdnProviders.AKAMAI,
       debug: true
     };
-    var analytics = new BitAnalytics(config);
+    var analytics = bitmovin.analytics(config);
 
     var conf = {
       key: "a6e31908-550a-4f75-b4bc-a9d89880a733",

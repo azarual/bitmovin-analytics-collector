@@ -1,7 +1,7 @@
 /**
  * Created by Bitmovin on 23.09.2016.
  */
-bitmovin.analytics.registerEvents = function(record) {
+var Adapter = function(record) {
   var skipInitSeek = true;
   var lastQuality = null;
 
