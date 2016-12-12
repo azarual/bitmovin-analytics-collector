@@ -1,25 +1,19 @@
 /**
- * Created by Bitmovin on 19.09.2016.
- *
- * Bitmovin analytics
+ * Created by lkroepfl on 13.09.2016.
  */
 
-function BitAnalytics(containerId) {
-
+global.bitmovin.analytics = function(config) {
   var licenseCall   = new LicenseCall();
   var analyticsCall = new AnalyticsCall();
   var utils         = new Utils();
   var logger        = new Logger();
+  var adapter       = new Adapter(record);
+  var analyticsStateMachine;
+
   var PageLoadType = {
     FOREGROUND: 1,
     BACKGROUND: 2
   };
-
-  var analyticsStateMachine = new AnalyticsStateMachine(logger, this);
-
-  this.players      = Players;
-  this.events       = Events;
-  this.cdnProviders = CDNProviders;
 
   var droppedSampleFrames = 0;
 
@@ -30,26 +24,16 @@ function BitAnalytics(containerId) {
   var startupTime = 0;
   var pageLoadType = PageLoadType.FOREGROUND;
 
-  function getHiddenProp(){
-    var prefixes = ['webkit','moz','ms','o'];
-    if ('hidden' in document) { return 'hidden'; }
-    for (var i = 0; i < prefixes.length; i++){
-      if ((prefixes[i] + 'Hidden') in document) {
-        return prefixes[i] + 'Hidden';
-      }
-    }
-    return null;
-  }
-
   window.setTimeout(function () {
-    if (document[getHiddenProp()] === true) {
+    if (document[utils.getHiddenProp()] === true) {
       pageLoadType = PageLoadType.BACKGROUND;
     }
   }, 200);
 
   setupSample();
+  init();
 
-  this.init = function(config) {
+  function init() {
     if (config.key == '' || !utils.validString(config.key)) {
       console.error('Invalid analytics license key provided');
       return;
@@ -72,155 +56,175 @@ function BitAnalytics(containerId) {
     else {
       sample.userId = userId;
     }
+  }
+
+  var register = function(player) {
+    adapter.register(player);
   };
 
-  this.record = function(eventType, eventObject) {
+  function record(eventType, eventObject) {
     eventObject = eventObject || {};
 
     analyticsStateMachine.callEvent(eventType, eventObject, utils.getCurrentTimestamp());
-  };
+  }
 
-  this.setup = function(time, state, event) {
-    sample.impressionId = utils.generateUUID();
-    setDuration(time);
-    setState(state);
-    sample.playerStartupTime = time;
-    sample.pageLoadType = pageLoadType;
+  var stateMachineCallbacks = {
+    setup: function(time, state, event) {
+      sample.impressionId = utils.generateUUID();
+      setDuration(time);
+      setState(state);
+      sample.playerStartupTime = time;
+      sample.pageLoadType      = pageLoadType;
 
-    if (window.performance && window.performance.timing) {
-      var loadTime = utils.getCurrentTimestamp() - window.performance.timing.navigationStart;
-      sample.pageLoadTime = loadTime;
-      logger.log('Page loaded in ' + loadTime);
+      if (window.performance && window.performance.timing) {
+        var loadTime        = utils.getCurrentTimestamp() - window.performance.timing.navigationStart;
+        sample.pageLoadTime = loadTime;
+        logger.log('Page loaded in ' + loadTime);
+      }
+
+      startupTime = time;
+
+      setPlaybackSettingsFromLoadedEvent(event);
+
+      sendAnalyticsRequestAndClearValues();
+
+      sample.pageLoadType = pageLoadType;
+    },
+
+    ready: utils.noOp,
+
+    startup: function(time, state) {
+      setDuration(time);
+      sample.videoStartupTime = time;
+      setState(state);
+
+      startupTime += time;
+      sample.startupTime = startupTime;
+
+      sendAnalyticsRequestAndClearValues();
+    },
+
+    playing: function(time, state, event) {
+      setDuration(time);
+      setState(state);
+      sample.played = time;
+
+      setDroppedFrames(event);
+
+      sendAnalyticsRequestAndClearValues();
+    },
+
+    playingAndBye: function(time, state, event) {
+      setDuration(time);
+      setState(state);
+      sample.played = time;
+
+      setDroppedFrames(event);
+
+      sendUnloadRequest();
+    },
+
+    heartbeat: function(time, state, event) {
+      setDroppedFrames(event);
+      setState(state);
+      setDuration(time);
+
+      sample.played = sample.duration;
+
+      sendAnalyticsRequestAndClearValues();
+    },
+
+    qualitychange: function(time, state) {
+      setDuration(time);
+      setState(state);
+
+      sendAnalyticsRequestAndClearValues();
+    },
+
+    'qualitychange_pause': function(time, state) {
+      setDuration(time);
+      setState(state);
+
+      sendAnalyticsRequestAndClearValues();
+    },
+
+    videoChange: function(event) {
+      this.setVideoTimeEndFromEvent(event);
+      this.setVideoTimeStartFromEvent(event);
+      setPlaybackVideoPropertiesFromEvent(event);
+    },
+
+    audioChange: function(event) {
+      this.setVideoTimeEndFromEvent(event);
+      this.setVideoTimeStartFromEvent(event);
+      sample.audioBitrate = event.bitrate;
+    },
+
+    pause: function(time, state, event) {
+      setDuration(time);
+      setState(state);
+
+      sample.paused = time;
+
+      sendAnalyticsRequestAndClearValues();
+    },
+
+    'paused_seeking': function(time, state, event) {
+      setDuration(time);
+      setState(state);
+
+      sample.seeked = time;
+
+      sendAnalyticsRequestAndClearValues();
+    },
+
+    'play_seeking': utils.noOp,
+
+    'end_play_seeking': function(time, state, event) {
+      setState(state);
+      setDuration(time);
+
+      sample.seeked = time;
+
+      sendAnalyticsRequestAndClearValues();
+    },
+
+    rebuffering: function(time, state, event) {
+      setDuration(time);
+      setState(state);
+
+      sample.buffered = time;
+
+      sendAnalyticsRequestAndClearValues();
+    },
+
+    error: function(event) {
+      this.setVideoTimeEndFromEvent(event);
+      this.setVideoTimeStartFromEvent(event);
+
+      sample.errorCode    = event.code;
+      sample.errorMessage = event.message;
+
+      sendAnalyticsRequestAndClearValues();
+
+      delete sample.errorCode;
+      delete sample.errorMessage;
+    },
+
+    setVideoTimeEndFromEvent: function(event) {
+      if (utils.validNumber(event.currentTime)) {
+        sample.videoTimeEnd = utils.calculateTime(event.currentTime);
+      }
+    },
+
+    setVideoTimeStartFromEvent: function(event) {
+      if (utils.validNumber(event.currentTime)) {
+        sample.videoTimeStart = utils.calculateTime(event.currentTime);
+      }
     }
-
-    startupTime = time;
-
-    setPlaybackSettingsFromLoadedEvent(event);
-
-    sendAnalyticsRequestAndClearValues();
-
-    sample.pageLoadType = pageLoadType;
   };
 
-  this.ready = utils.noOp;
-
-  this.startup = function(time, state) {
-    setDuration(time);
-    sample.videoStartupTime = time;
-    setState(state);
-
-    startupTime += time;
-    sample.startupTime = startupTime;
-
-    sendAnalyticsRequestAndClearValues();
-  };
-
-  this.playing = function(time, state, event) {
-    setDuration(time);
-    setState(state);
-    sample.played = time;
-
-    setDroppedFrames(event);
-
-    sendAnalyticsRequestAndClearValues();
-  };
-
-  this.playingAndBye = function(time, state, event) {
-    setDuration(time);
-    setState(state);
-    sample.played = time;
-
-    setDroppedFrames(event);
-
-    sendUnloadRequest();
-  };
-
-  this.heartbeat = function(time, state, event) {
-    setDroppedFrames(event);
-    setState(state);
-    setDuration(time);
-
-    sample.played   = sample.duration;
-
-    sendAnalyticsRequestAndClearValues();
-  };
-
-  this.qualitychange = function(time, state) {
-    setDuration(time);
-    setState(state);
-
-    sendAnalyticsRequestAndClearValues();
-  };
-
-  this['qualitychange_pause'] = function(time, state) {
-    setDuration(time);
-    setState(state);
-
-    sendAnalyticsRequestAndClearValues();
-  };
-
-  this.videoChange = function(event) {
-    this.setVideoTimeEndFromEvent(event);
-    this.setVideoTimeStartFromEvent(event);
-    setPlaybackVideoPropertiesFromEvent(event);
-  };
-
-  this.audioChange = function(event) {
-    this.setVideoTimeEndFromEvent(event);
-    this.setVideoTimeStartFromEvent(event);
-    sample.audioBitrate = event.bitrate;
-  };
-
-  this.pause = function(time, state, event) {
-    setDuration(time);
-    setState(state);
-
-    sample.paused = time;
-
-    sendAnalyticsRequestAndClearValues();
-  };
-
-  this['paused_seeking'] = function(time, state, event) {
-    setDuration(time);
-    setState(state);
-
-    sample.seeked = time;
-
-    sendAnalyticsRequestAndClearValues();
-  };
-
-  this['play_seeking'] = utils.noOp;
-
-  this['end_play_seeking'] = function(time, state, event) {
-    setState(state);
-    setDuration(time);
-
-    sample.seeked = time;
-
-    sendAnalyticsRequestAndClearValues();
-  };
-
-  this.rebuffering = function(time, state, event) {
-    setDuration(time);
-    setState(state);
-
-    sample.buffered = time;
-
-    sendAnalyticsRequestAndClearValues();
-  };
-
-  this.error = function(event) {
-    this.setVideoTimeEndFromEvent(event);
-    this.setVideoTimeStartFromEvent(event);
-
-    sample.errorCode = event.code;
-    sample.errorMessage = event.message;
-
-    sendAnalyticsRequestAndClearValues();
-
-    delete sample.errorCode;
-    delete sample.errorMessage;
-  };
+  analyticsStateMachine = new AnalyticsStateMachine(logger, stateMachineCallbacks);
 
   function setDuration(duration) {
     sample.duration = duration;
@@ -229,18 +233,6 @@ function BitAnalytics(containerId) {
   function setState(state) {
     sample.state = state;
   }
-
-  this.setVideoTimeEndFromEvent = function(event) {
-    if (utils.validNumber(event.currentTime)) {
-      sample.videoTimeEnd = utils.calculateTime(event.currentTime);
-    }
-  };
-
-  this.setVideoTimeStartFromEvent = function(event) {
-    if (utils.validNumber(event.currentTime)) {
-      sample.videoTimeStart = utils.calculateTime(event.currentTime);
-    }
-  };
 
   function setPlaybackVideoPropertiesFromEvent(event) {
     if (utils.validNumber(event.width)) {
@@ -261,9 +253,6 @@ function BitAnalytics(containerId) {
   }
 
   function setPlaybackSettingsFromLoadedEvent(loadedEvent) {
-    sample.videoWindowWidth  = document.getElementById(containerId).offsetWidth;
-    sample.videoWindowHeight = document.getElementById(containerId).offsetHeight;
-
     if (utils.validBoolean(loadedEvent.isLive)) {
       sample.isLive = loadedEvent.isLive;
     }
@@ -293,6 +282,10 @@ function BitAnalytics(containerId) {
     }
     if (utils.validString(loadedEvent.progUrl)) {
       sample.progUrl = loadedEvent.progUrl;
+    }
+    if (loadedEvent.figure) {
+      sample.videoWindowWidth  = loadedEvent.figure.offsetWidth;
+      sample.videoWindowHeight = loadedEvent.figure.offsetHeight;
     }
   }
 
@@ -329,7 +322,7 @@ function BitAnalytics(containerId) {
       videoStartupTime   : 0,
       duration           : 0,
       startupTime        : 0,
-      analyticsVersion   : getAnalyticsVersion()
+      analyticsVersion   : '{{VERSION}}'
     };
   }
 
@@ -343,10 +336,6 @@ function BitAnalytics(containerId) {
     } else {
       licensing = 'denied';
     }
-  }
-
-  function getAnalyticsVersion() {
-    return '0.6.2';
   }
 
   function sendAnalyticsRequest() {
@@ -434,4 +423,6 @@ function BitAnalytics(containerId) {
       return 0;
     }
   }
-}
+
+  return { register: register };
+};
