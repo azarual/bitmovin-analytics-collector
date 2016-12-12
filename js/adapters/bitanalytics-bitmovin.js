@@ -1,17 +1,16 @@
 /**
  * Created by Bitmovin on 13.09.2016.
  */
-
-function Adapter(record) {
+bitmovin.analytics.Adapter = function(record) {
   var onBeforeUnLoadEvent = false;
 
   this.register = function(player) {
     player.addEventHandler(bitmovin.player.EVENT.ON_SOURCE_LOADED, function() {
-      record(Events.SOURCE_LOADED);
+      record(bitmovin.analytics.events.SOURCE_LOADED);
     });
 
     player.addEventHandler(bitmovin.player.EVENT.ON_READY, function() {
-      record(Events.READY, {
+      record(bitmovin.analytics.events.READY, {
         isLive    : player.isLive(),
         version   : player.getVersion(),
         type      : player.getPlayerType(),
@@ -27,53 +26,53 @@ function Adapter(record) {
     });
 
     player.addEventHandler(bitmovin.player.EVENT.ON_CAST_START, function() {
-      record(Events.START_CAST);
+      record(bitmovin.analytics.events.START_CAST);
     });
 
     player.addEventHandler(bitmovin.player.EVENT.ON_CAST_STOP, function() {
-      record(Events.END_CAST);
+      record(bitmovin.analytics.events.END_CAST);
     });
 
     player.addEventHandler(bitmovin.player.EVENT.ON_PLAY, function() {
-      record(Events.PLAY, {
+      record(bitmovin.analytics.events.PLAY, {
         droppedFrames: player.getDroppedFrames()
       });
     });
 
     player.addEventHandler(bitmovin.player.EVENT.ON_PAUSE, function() {
-      record(Events.PAUSE, {
+      record(bitmovin.analytics.events.PAUSE, {
         currentTime  : player.getCurrentTime(),
         droppedFrames: player.getDroppedFrames()
       });
     });
 
     player.addEventHandler(bitmovin.player.EVENT.ON_TIME_CHANGED, function() {
-      record(Events.TIMECHANGED, {
+      record(bitmovin.analytics.events.TIMECHANGED, {
         currentTime  : player.getCurrentTime(),
         droppedFrames: player.getDroppedFrames()
       });
     });
 
     player.addEventHandler(bitmovin.player.EVENT.ON_SEEK, function() {
-      record(Events.SEEK, {
+      record(bitmovin.analytics.events.SEEK, {
         currentTime  : player.getCurrentTime(),
         droppedFrames: player.getDroppedFrames()
       });
     });
 
     player.addEventHandler(bitmovin.player.EVENT.ON_SEEKED, function() {
-      record(Events.SEEKED, {
+      record(bitmovin.analytics.events.SEEKED, {
         currentTime  : player.getCurrentTime(),
         droppedFrames: player.getDroppedFrames()
       });
     });
 
     player.addEventHandler(bitmovin.player.EVENT.ON_START_BUFFERING, function() {
-      record(Events.START_BUFFERING);
+      record(bitmovin.analytics.events.START_BUFFERING);
     });
 
     player.addEventHandler(bitmovin.player.EVENT.ON_STOP_BUFFERING, function() {
-      record(Events.END_BUFFERING, {
+      record(bitmovin.analytics.events.END_BUFFERING, {
         currentTime  : player.getCurrentTime(),
         droppedFrames: player.getDroppedFrames()
       });
@@ -82,7 +81,7 @@ function Adapter(record) {
     player.addEventHandler(bitmovin.player.EVENT.ON_AUDIO_PLAYBACK_QUALITY_CHANGE, function() {
       var quality = player.getPlaybackAudioData();
 
-      record(Events.AUDIO_CHANGE, {
+      record(bitmovin.analytics.events.AUDIO_CHANGE, {
         bitrate      : quality.bitrate,
         currentTime  : player.getCurrentTime(),
         droppedFrames: player.getDroppedFrames()
@@ -92,7 +91,7 @@ function Adapter(record) {
     player.addEventHandler(bitmovin.player.EVENT.ON_VIDEO_PLAYBACK_QUALITY_CHANGE, function() {
       var quality = player.getPlaybackVideoData();
 
-      record(Events.VIDEO_CHANGE, {
+      record(bitmovin.analytics.events.VIDEO_CHANGE, {
         width        : quality.width,
         height       : quality.height,
         bitrate      : quality.bitrate,
@@ -102,39 +101,39 @@ function Adapter(record) {
     });
 
     player.addEventHandler(bitmovin.player.EVENT.ON_FULLSCREEN_ENTER, function() {
-      record(Events.START_FULLSCREEN, {
+      record(bitmovin.analytics.events.START_FULLSCREEN, {
         currentTime  : player.getCurrentTime(),
         droppedFrames: player.getDroppedFrames()
       });
     });
 
     player.addEventHandler(bitmovin.player.EVENT.ON_FULLSCREEN_EXIT, function() {
-      record(Events.END_FULLSCREEN, {
+      record(bitmovin.analytics.events.END_FULLSCREEN, {
         currentTime  : player.getCurrentTime(),
         droppedFrames: player.getDroppedFrames()
       });
     });
 
     player.addEventHandler(bitmovin.player.EVENT.ON_AD_STARTED, function() {
-      record(Events.START_AD);
+      record(bitmovin.analytics.events.START_AD);
     });
 
     player.addEventHandler(bitmovin.player.EVENT.ON_AD_FINISHED, function() {
-      record(Events.END_AD, {
+      record(bitmovin.analytics.events.END_AD, {
         currentTime  : player.getCurrentTime(),
         droppedFrames: player.getDroppedFrames()
       });
     });
 
     player.addEventHandler(bitmovin.player.EVENT.ON_ERROR, function(event) {
-      record(Events.ERROR, {
+      record(bitmovin.analytics.events.ERROR, {
         code   : event.code,
         message: event.message
       });
     });
 
     player.addEventHandler(bitmovin.player.EVENT.ON_PLAYBACK_FINISHED, function() {
-      record(Events.PLAYBACK_FINISHED, {
+      record(bitmovin.analytics.events.PLAYBACK_FINISHED, {
         droppedFrames: player.getDroppedFrames()
       });
     });
@@ -142,11 +141,11 @@ function Adapter(record) {
     window.onunload = window.onbeforeunload = function() {
       if (!onBeforeUnLoadEvent) {
         onBeforeUnLoadEvent = true;
-        record(Events.UNLOAD, {
+        record(bitmovin.analytics.events.UNLOAD, {
           currentTime  : player.getCurrentTime(),
           droppedFrames: player.getDroppedFrames()
         });
       }
     };
   };
-}
+};

@@ -2,7 +2,7 @@
  * Created by lkroepfl on 11.11.16.
  */
 
-function Utils() {
+bitmovin.analytics.Utils = function() {
   this.validString = function(string) {
     return (string != undefined && typeof string == 'string');
   };
@@ -88,4 +88,4 @@ function Utils() {
     }
     return null;
   };
-}
+};

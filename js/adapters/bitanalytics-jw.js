@@ -1,8 +1,7 @@
 /**
  * Created by Bitmovin on 19.09.2016.
  */
-
-function Adapter(record) {
+bitmovin.analytics.Adapter = function(record) {
   var skipInitResize = true;
   var levelsChanged  = false;
   var firstSample    = true;
@@ -144,4 +143,4 @@ function Adapter(record) {
       });
     });
   };
-}
+};

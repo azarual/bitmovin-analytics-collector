@@ -6,12 +6,12 @@
 
 function BitAnalytics(config) {
 
-  var licenseCall   = new LicenseCall();
-  var analyticsCall = new AnalyticsCall();
-  var utils         = new Utils();
-  var logger        = new Logger();
-  var analyticsStateMachine = new AnalyticsStateMachine(logger, this);
-  var adapter = new Adapter(record);
+  var licenseCall   = new bitmovin.analytics.LicenseCall();
+  var analyticsCall = new bitmovin.analytics.AnalyticsCall();
+  var utils         = new bitmovin.analytics.Utils();
+  var logger        = new bitmovin.analytics.Logger();
+  var analyticsStateMachine = new bitmovin.analytics.AnalyticsStateMachine(logger, this);
+  var adapter = new bitmovin.analytics.Adapter(record);
 
   var PageLoadType = {
     FOREGROUND: 1,

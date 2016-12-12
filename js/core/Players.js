@@ -2,7 +2,7 @@
  * Created by lkroepfl on 11.11.16.
  */
 
-var Players = {
+bitmovin.analytics.players = {
   BITMOVIN: 'bitmovin',
   JW      : 'jw',
   RADIANT : 'radiant'

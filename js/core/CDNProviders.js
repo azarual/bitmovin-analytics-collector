@@ -2,7 +2,7 @@
  * Created by lkroepfl on 29.11.16.
  */
 
-var CDNProviders = {
+bitmovin.analytics.cdnProviders = {
   BITMOVIN  : 'bitmovin',
   AKAMAI    : 'akamai',
   FASTLY    : 'fastly',

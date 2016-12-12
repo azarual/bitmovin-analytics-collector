@@ -2,7 +2,7 @@
  * Created by lkroepfl on 11.11.16.
  */
 
-function LicenseCall() {
+bitmovin.analytics.LicenseCall = function() {
   var licenseServerUrl = '//bitmovin-bitanalytics.appspot.com/licensing';
 
   this.sendRequest = function(key, domain, version, callback) {
@@ -52,4 +52,4 @@ function LicenseCall() {
       xdr.send(JSON.stringify(licensingRequest));
     };
   }
-}
+};

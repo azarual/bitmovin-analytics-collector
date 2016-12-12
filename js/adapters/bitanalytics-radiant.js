@@ -1,8 +1,7 @@
 /**
  * Created by Bitmovin on 23.09.2016.
  */
-
-function registerEvents(record) {
+bitmovin.analytics.registerEvents = function(record) {
   var skipInitSeek = true;
   var lastQuality = null;
 
@@ -138,4 +137,4 @@ function registerEvents(record) {
   function toSeconds(time) {
     return time / 1000;
   }
-}
+};

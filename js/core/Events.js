@@ -2,7 +2,7 @@
  * Created by lkroepfl on 11.11.16.
  */
 
-var Events = {
+bitmovin.analytics.events = {
   READY            : 'ready',
   SOURCE_LOADED    : 'sourceLoaded',
   PLAY             : 'play',

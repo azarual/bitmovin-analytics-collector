@@ -2,7 +2,7 @@
  * Created by lkroepfl on 01.12.16.
  */
 
-function Logger() {
+bitmovin.analytics.Logger = function() {
   var showLogs = false;
 
   this.setLogging = function(logging) {
@@ -24,4 +24,4 @@ function Logger() {
 
     console.error(msg);
   };
-}
+};

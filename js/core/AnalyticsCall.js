@@ -2,7 +2,7 @@
  * Created by lkroepfl on 11.11.16.
  */
 
-function AnalyticsCall() {
+bitmovin.analytics.AnalyticsCall = function() {
   var analyticsServerUrl = '//bitmovin-bitanalytics.appspot.com/analytics';
 
   this.sendRequest = function(sample, callback) {
@@ -52,4 +52,4 @@ function AnalyticsCall() {
     }
     xhttp.send(JSON.stringify(sample));
   }
-}
+};
