@@ -338,7 +338,7 @@ function BitAnalytics(config) {
   }
 
   function getAnalyticsVersion() {
-    return '0.6.2';
+    return '0.7.0';
   }
 
   function sendAnalyticsRequest() {
