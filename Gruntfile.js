@@ -24,9 +24,9 @@ module.exports = function(grunt) {
       },
       build: {
         files: {
-          'build/<%= pkg.name %>-jw.min.js': ['build/*-jw.js'],
-          'build/<%= pkg.name %>-bitmovin.min.js': ['build/*-bitmovin.js'],
-          'build/<%= pkg.name %>-radiant.min.js': ['build/*-radiant.js']
+          'build/bitmovin/<%= pkg.name %>.min.js': ['build/bitmovin/*.js'],
+          'build/jw/<%= pkg.name %>.min.js': ['build/jw/*.js'],
+          'build/radiant/<%= pkg.name %>.min.js': ['build/radiant/*.js']
         }
       }
     },
@@ -38,7 +38,7 @@ module.exports = function(grunt) {
       },
       build: {
         files: {
-          'build/<%= pkg.name %>-bitmovin.js': [
+          'build/bitmovin/<%= pkg.name %>.js': [
             'node_modules/javascript-state-machine/state-machine.js',
             'js/core/AnalyticsCall.js',
             'js/core/AnalyticsStateMachine.js',
@@ -51,8 +51,32 @@ module.exports = function(grunt) {
             'js/core/Players.js',
             'js/core/CDNProviders.js'
           ],
-          'build/<%= pkg.name %>-jw.js': ['js/Prepend.js', 'node_modules/javascript-state-machine/state-machine.js', 'js/core/*.js', 'js/adapters/bitanalytics-jw.js'],
-          'build/<%= pkg.name %>-radiant.js': ['js/Prepend.js', 'node_modules/javascript-state-machine/state-machine.js', 'js/core/*.js', 'js/adapters/bitanalytics-radiant.js']
+          'build/jw/<%= pkg.name %>.js': [
+            'node_modules/javascript-state-machine/state-machine.js',
+            'js/core/AnalyticsCall.js',
+            'js/core/AnalyticsStateMachine.js',
+            'js/core/LicenseCall.js',
+            'js/core/Logger.js',
+            'js/core/Utils.js',
+            'js/adapters/bitanalytics-jw.js',
+            'js/core/Bitanalytics.js',
+            'js/core/Events.js',
+            'js/core/Players.js',
+            'js/core/CDNProviders.js'
+          ],
+          'build/radiant/<%= pkg.name %>.js': [
+            'node_modules/javascript-state-machine/state-machine.js',
+            'js/core/AnalyticsCall.js',
+            'js/core/AnalyticsStateMachine.js',
+            'js/core/LicenseCall.js',
+            'js/core/Logger.js',
+            'js/core/Utils.js',
+            'js/adapters/bitanalytics-radiant.js',
+            'js/core/Bitanalytics.js',
+            'js/core/Events.js',
+            'js/core/Players.js',
+            'js/core/CDNProviders.js'
+          ]
         }
       }
     },
@@ -72,8 +96,20 @@ module.exports = function(grunt) {
           {
             expand: true,
             flatten: true,
-            src: ['build/*.js'],
-            dest: 'build/'
+            src: ['build/bitmovin/*.js'],
+            dest: 'build/bitmovin'
+          },
+          {
+            expand: true,
+            flatten: true,
+            src: ['build/jw/*.js'],
+            dest: 'build/jw'
+          },
+          {
+            expand: true,
+            flatten: true,
+            src: ['build/radiant/*.js'],
+            dest: 'build/radiant'
           }
         ]
       }

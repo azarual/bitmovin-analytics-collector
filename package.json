@@ -1,8 +1,8 @@
 {
-  "name": "bitanalytics-js",
+  "name": "bitmovinanalytics",
   "version": "0.7.0",
   "description": "",
-  "main": "index.js",
+  "main": "Bitanalytics.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
