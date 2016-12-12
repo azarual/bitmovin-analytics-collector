@@ -1,4 +1,9 @@
 module.exports = function(grunt) {
+  var patterns = [{
+    match: /\{\{VERSION\}\}/g,
+    replacement: '<%= pkg.version %>'
+  }];
+  grunt.loadNpmTasks('grunt-replace');
   require('load-grunt-tasks')(grunt);
   grunt.initConfig({
     pkg: grunt.file.readJSON('package.json'),
@@ -33,13 +38,28 @@ module.exports = function(grunt) {
     },
     eslint: {
       target: ['Gruntfile.js', 'js/**/*.js']
+    },
+    replace: {
+      dist: {
+        options: {
+          patterns: patterns
+        },
+        files: [
+          {
+            expand: true,
+            flatten: true,
+            src: ['build/*.js'],
+            dest: 'build/'
+          }
+        ]
+      }
     }
   });
 
   grunt.loadNpmTasks('grunt-contrib-uglify');
   grunt.loadNpmTasks('grunt-contrib-watch');
   grunt.loadNpmTasks('grunt-contrib-concat');
-  grunt.registerTask('default', ['eslint', 'concat', 'uglify']);
-  grunt.registerTask('debug', ['eslint', 'concat']);
+  grunt.registerTask('default', ['eslint', 'concat', 'uglify', 'replace']);
+  grunt.registerTask('debug', ['eslint', 'concat', 'replace']);
   grunt.registerTask('lint', ['eslint']);
 };

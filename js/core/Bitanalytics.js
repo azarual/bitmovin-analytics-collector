@@ -321,7 +321,7 @@ function BitAnalytics(config) {
       videoStartupTime   : 0,
       duration           : 0,
       startupTime        : 0,
-      analyticsVersion   : getAnalyticsVersion()
+      analyticsVersion   : '{{VERSION}}'
     };
   }
 
@@ -335,10 +335,6 @@ function BitAnalytics(config) {
     } else {
       licensing = 'denied';
     }
-  }
-
-  function getAnalyticsVersion() {
-    return '0.7.0';
   }
 
   function sendAnalyticsRequest() {
