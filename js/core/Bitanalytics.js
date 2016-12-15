@@ -89,6 +89,7 @@ global.bitmovin.analytics = function(config) {
       sendAnalyticsRequestAndClearValues();
 
       sample.pageLoadType = pageLoadType;
+      sample.pageLoadTime = 0;
     },
 
     ready: utils.noOp,
