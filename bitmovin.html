@@ -15,7 +15,15 @@
       playerKey: "a6e31908-550a-4f75-b4bc-a9d89880a733", //Your player key (bitmovin, jw, ..) (optional)
       player: bitmovin.analytics.Players.BITMOVIN,
       cdnProvider: bitmovin.analytics.CdnProviders.AKAMAI,
-      debug: true
+      debug: true,
+      customData1: {
+        test: 1,
+        test2: '2'
+      },
+      customData2: 'hallo',
+      customData3: 31415,
+      customData4: 3.14159265358,
+      experimentName: 'experiment1'
     };
     var analytics = bitmovin.analytics(config);
 
