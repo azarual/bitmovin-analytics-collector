@@ -94,6 +94,8 @@ var Utils = function() {
       return JSON.stringify(customData);
     } else if (typeof customData === 'function') {
       return this.getCustomDataString(customData());
+    } else if (typeof customData === 'undefined') {
+      return customData;
     } else if (typeof customData !== 'string') {
       return String(customData);
     }
