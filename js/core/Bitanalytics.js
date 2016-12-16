@@ -48,6 +48,14 @@ global.bitmovin.analytics = function(config) {
     sample.player      = config.player;
     sample.cdnProvider = config.cdnProvider;
 
+    sample.customData1 = utils.getCustomDataString(config.customData1);
+    sample.customData2 = utils.getCustomDataString(config.customData2);
+    sample.customData3 = utils.getCustomDataString(config.customData3);
+    sample.customData4 = utils.getCustomDataString(config.customData4);
+    sample.customData5 = utils.getCustomDataString(config.customData5);
+
+    sample.experimentName = config.experimentName;
+
     var userId = utils.getCookie('bitmovin_analytics_uuid');
     if (userId == '') {
       document.cookie = 'bitmovin_analytics_uuid=' + utils.generateUUID();
