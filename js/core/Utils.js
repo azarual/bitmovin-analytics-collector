@@ -88,4 +88,14 @@ var Utils = function() {
     }
     return null;
   };
+
+  this.getCustomDataString = function(customData) {
+    if (typeof customData === 'object') {
+      return JSON.stringify(customData);
+    } else if (typeof customData !== 'string') {
+      return String(customData);
+    }
+
+    return customData;
+  };
 };
