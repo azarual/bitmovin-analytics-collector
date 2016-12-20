@@ -266,7 +266,7 @@ global.bitmovin.analytics = function(config) {
       sample.isLive = loadedEvent.isLive;
     }
     if (utils.validString(loadedEvent.version)) {
-      sample.version = loadedEvent.version;
+      sample.version = sample.player + '-' + loadedEvent.version;
     }
     if (utils.validString(loadedEvent.type)) {
       sample.playerTech = loadedEvent.type;
