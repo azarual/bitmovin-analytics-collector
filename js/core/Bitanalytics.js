@@ -19,6 +19,7 @@ global.bitmovin.analytics = function(config) {
 
   var licensing = 'waiting';
   var LICENSE_CALL_PENDING_TIMEOUT = 200;
+  var PAGE_LOAD_TYPE_TIMEOUT = 200;
 
   var sample;
   var startupTime = 0;
@@ -28,7 +29,7 @@ global.bitmovin.analytics = function(config) {
     if (document[utils.getHiddenProp()] === true) {
       pageLoadType = PageLoadType.BACKGROUND;
     }
-  }, 200);
+  }, PAGE_LOAD_TYPE_TIMEOUT);
 
   setupSample();
   init();
@@ -43,10 +44,12 @@ global.bitmovin.analytics = function(config) {
 
     checkLicensing(config.key);
 
-    sample.key         = config.key;
-    sample.playerKey   = config.playerKey;
-    sample.player      = config.player;
-    sample.cdnProvider = config.cdnProvider;
+    sample.key          = config.key;
+    sample.playerKey    = config.playerKey;
+    sample.player       = config.player;
+    sample.cdnProvider  = config.cdnProvider;
+    sample.videoId      = config.videoId;
+    sample.customUserId = config.userId;
 
     sample.customData1 = utils.getCustomDataString(config.customData1);
     sample.customData2 = utils.getCustomDataString(config.customData2);
@@ -276,12 +279,6 @@ global.bitmovin.analytics = function(config) {
     }
     if (utils.validString(loadedEvent.streamType)) {
       sample.streamFormat = loadedEvent.streamType;
-    }
-    if (utils.validString(loadedEvent.videoId)) {
-      sample.videoId = loadedEvent.videoId;
-    }
-    if (utils.validString(loadedEvent.userId)) {
-      sample.customUserId = loadedEvent.userId;
     }
     if (utils.validString(loadedEvent.mpdUrl)) {
       sample.mpdUrl = loadedEvent.mpdUrl;
