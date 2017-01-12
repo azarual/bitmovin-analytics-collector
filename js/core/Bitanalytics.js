@@ -3,11 +3,12 @@
  */
 
 global.bitmovin.analytics = function(config) {
-  var licenseCall   = new LicenseCall();
-  var analyticsCall = new AnalyticsCall();
-  var utils         = new Utils();
-  var logger        = new Logger();
-  var adapter       = new Adapter(record);
+  var licenseCall    = new LicenseCall();
+  var analyticsCall  = new AnalyticsCall();
+  var utils          = new Utils();
+  var logger         = new Logger();
+  var adapterFactory = new AdapterFactory();
+  var adapter;
   var analyticsStateMachine;
 
   var PageLoadType = {
@@ -17,15 +18,15 @@ global.bitmovin.analytics = function(config) {
 
   var droppedSampleFrames = 0;
 
-  var licensing = 'waiting';
+  var licensing                    = 'waiting';
   var LICENSE_CALL_PENDING_TIMEOUT = 200;
-  var PAGE_LOAD_TYPE_TIMEOUT = 200;
+  var PAGE_LOAD_TYPE_TIMEOUT       = 200;
 
   var sample;
-  var startupTime = 0;
+  var startupTime  = 0;
   var pageLoadType = PageLoadType.FOREGROUND;
 
-  window.setTimeout(function () {
+  window.setTimeout(function() {
     if (document[utils.getHiddenProp()] === true) {
       pageLoadType = PageLoadType.BACKGROUND;
     }
@@ -70,7 +71,8 @@ global.bitmovin.analytics = function(config) {
   }
 
   var register = function(player) {
-    adapter.register(player);
+    adapter = adapterFactory.getAdapter(player);
+    adapter.setEventCallback(record);
   };
 
   function record(eventType, eventObject) {
@@ -427,5 +429,5 @@ global.bitmovin.analytics = function(config) {
     }
   }
 
-  return { register: register };
+  return {register: register};
 };
