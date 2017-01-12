@@ -171,7 +171,7 @@ var BitmovinAnalyticsStateMachine = function(logger, bitanalytics) {
         onEnterStateTimestamp = timestamp || new Date().getTime();
 
         logger.log('Entering State ' + to + ' with ' + event);
-        if (eventObject) {
+        if (eventObject && to !== States.PAUSED_SEEKING) {
           bitanalytics.setVideoTimeStartFromEvent(eventObject);
         }
       },
@@ -183,7 +183,7 @@ var BitmovinAnalyticsStateMachine = function(logger, bitanalytics) {
         var stateDuration = timestamp - onEnterStateTimestamp;
         logger.log('State ' + from + ' was ' + stateDuration + ' ms event:' + event);
 
-        if (eventObject) {
+        if (eventObject && to !== States.PAUSED_SEEKING) {
           bitanalytics.setVideoTimeEndFromEvent(eventObject);
         }
 
@@ -194,11 +194,19 @@ var BitmovinAnalyticsStateMachine = function(logger, bitanalytics) {
           logger.log('Seek was ' + seekDuration + 'ms');
         } else if (event === bitmovin.analytics.Events.UNLOAD) {
           bitanalytics.playingAndBye(stateDuration, fnName, eventObject);
+        } else if (from === States.PAUSE && to !== States.PAUSED_SEEKING) {
+          bitanalytics.setVideoTimeStartFromEvent(event);
+          bitanalytics.pause(stateDuration, fnName, eventObject);
         } else {
-          bitanalytics[fnName](stateDuration, fnName, eventObject);
+          var callbackFunction = bitanalytics[fnName];
+          if (typeof callbackFunction === 'function') {
+            callbackFunction(stateDuration, fnName, eventObject);
+          } else {
+            logger.error('Could not find callback function for ' + fnName);
+          }
         }
 
-        if (eventObject) {
+        if (eventObject && to !== States.PAUSED_SEEKING) {
           bitanalytics.setVideoTimeStartFromEvent(eventObject);
         }
 
