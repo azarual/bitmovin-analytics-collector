@@ -24,7 +24,8 @@ var Bitmovin7AnalyticsStateMachine = function(logger, bitanalytics) {
     END_PLAY_SEEKING: 'END_PLAY_SEEKING',
     QUALITYCHANGE_PAUSE: 'QUALITYCHANGE_PAUSE',
     END: 'END',
-    ERROR: 'ERROR'
+    ERROR: 'ERROR',
+    AD: 'AD'
   };
 
   var pad = function (str, length) {
@@ -127,7 +128,10 @@ var Bitmovin7AnalyticsStateMachine = function(logger, bitanalytics) {
       { name: bitmovin.analytics.Events.SEEK, from: States.END_PLAY_SEEKING, to: States.PLAY_SEEKING },
       { name: 'FINISH_PLAY_SEEKING', from: States.END_PLAY_SEEKING, to: States.PLAYING },
 
-      { name: bitmovin.analytics.Events.UNLOAD, from: States.PLAYING, to: States.END }
+      { name: bitmovin.analytics.Events.UNLOAD, from: States.PLAYING, to: States.END },
+
+      { name: bitmovin.analytics.Events.START_AD, from: States.PLAYING, to: States.AD },
+      { name: bitmovin.analytics.Events.END_AD, from: States.AD, to: States.PLAYING }
     ],
     callbacks: {
       onpause      : function(event, from, to, timestamp) {
@@ -167,7 +171,7 @@ var Bitmovin7AnalyticsStateMachine = function(logger, bitanalytics) {
         onEnterStateTimestamp = timestamp || new Date().getTime();
 
         logger.log('Entering State ' + to + ' with ' + event);
-        if (eventObject) {
+        if (eventObject && to !== States.PAUSED_SEEKING) {
           bitanalytics.setVideoTimeStartFromEvent(eventObject);
         }
 
@@ -183,7 +187,7 @@ var Bitmovin7AnalyticsStateMachine = function(logger, bitanalytics) {
         var stateDuration = timestamp - onEnterStateTimestamp;
         logger.log('State ' + from + ' was ' + stateDuration + ' ms event:' + event);
 
-        if (eventObject) {
+        if (eventObject && to !== States.PAUSED_SEEKING) {
           bitanalytics.setVideoTimeEndFromEvent(eventObject);
         }
 
@@ -198,6 +202,9 @@ var Bitmovin7AnalyticsStateMachine = function(logger, bitanalytics) {
           logger.log('Seek was ' + seekDuration + 'ms');
         } else if (event === bitmovin.analytics.Events.UNLOAD) {
           bitanalytics.playingAndBye(stateDuration, fnName, eventObject);
+        } else if (from === States.PAUSE && to !== States.PAUSED_SEEKING) {
+          bitanalytics.setVideoTimeStartFromEvent(event);
+          bitanalytics.pause(stateDuration, fnName, eventObject);
         } else {
           var callbackFunction = bitanalytics[fnName];
           if (typeof callbackFunction === 'function') {
@@ -207,7 +214,7 @@ var Bitmovin7AnalyticsStateMachine = function(logger, bitanalytics) {
           }
         }
 
-        if (eventObject) {
+        if (eventObject && to !== States.PAUSED_SEEKING) {
           bitanalytics.setVideoTimeStartFromEvent(eventObject);
         }
 
