@@ -5,7 +5,7 @@ module.exports = function(grunt) {
   }];
   var header =
         '/****************************************************************************\n' +
-        ' * Copyright (C) 2016, Bitmovin, Inc., All Rights Reserved\n' +
+        ' * Copyright (C) 2017, Bitmovin, Inc., All Rights Reserved\n' +
         ' *\n' +
         ' * This source code and its use and distribution, is subject to the terms\n' +
         ' * and conditions of the applicable license agreement.\n' +
