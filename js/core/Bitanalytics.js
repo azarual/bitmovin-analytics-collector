@@ -72,7 +72,12 @@ global.bitmovin.analytics = function(config) {
 
   var register = function(player) {
     adapter = adapterFactory.getAdapter(player);
-    adapter.setEventCallback(record);
+
+    if (adapter) {
+      adapter.setEventCallback(record);
+    } else {
+      logger.error('Could not detect player.');
+    }
   };
 
   function record(eventType, eventObject) {
