@@ -6,7 +6,7 @@ var BitmovinAdapter = function(player) {
   var onBeforeUnLoadEvent = false;
   var eventCallback;
 
-  var register = function(player) {
+  var register = function() {
     player.addEventHandler(bitmovin.player.EVENT.ON_SOURCE_LOADED, function() {
       eventCallback(bitmovin.analytics.Events.SOURCE_LOADED);
     });

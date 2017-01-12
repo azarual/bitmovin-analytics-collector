@@ -7,7 +7,7 @@ var JWAdapter = function(player) {
   var firstSample    = true;
   var eventCallback;
 
-  var register = function(player) {
+  var register = function() {
     player.on('playlist', function() {
       eventCallback(analytics.events.SOURCE_LOADED);
     });

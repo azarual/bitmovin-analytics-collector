@@ -6,7 +6,7 @@ var RadiantAdapter = function(player) {
   var lastQuality = null;
   var eventCallback;
 
-  var register = function(player) {
+  var register = function() {
     player.addEventListener('loadstart', function() {
       eventCallback(analytics.events.SOURCE_LOADED);
     });
