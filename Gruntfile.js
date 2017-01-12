@@ -42,6 +42,7 @@ module.exports = function(grunt) {
             'js/core/AdapterFactory.js',
             'js/adapters/BitmovinAdapter.js',
             'js/adapters/Bitmovin7Adapter.js',
+            'js/utils/PlayerDetector.js',
             'js/utils/AnalyticsCall.js',
             'js/utils/LicenseCall.js',
             'js/utils/Logger.js',
