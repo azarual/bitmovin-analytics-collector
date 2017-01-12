@@ -2,11 +2,17 @@
  * Created by lkroepfl on 13.09.2016.
  */
 
+import LicenseCall from '../utils/LicenseCall';
+import AnalyticsCall from '../utils/AnalyticsCall';
+import Utils from '../utils/Utils';
+import Logger from '../utils/Logger';
+
 global.bitmovin.analytics = function(config) {
-  var licenseCall    = new LicenseCall();
-  var analyticsCall  = new AnalyticsCall();
-  var utils          = new Utils();
-  var logger         = new Logger();
+  const licenseCall    = new LicenseCall;
+  const analyticsCall  = new AnalyticsCall;
+  const utils          = new Utils;
+  const logger         = new Logger;
+
   var adapterFactory = new AdapterFactory();
   var adapter;
   var analyticsStateMachineFactory = new AnalyticsStateMachineFactory();

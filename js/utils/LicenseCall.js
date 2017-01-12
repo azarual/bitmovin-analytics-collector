@@ -2,54 +2,56 @@
  * Created by lkroepfl on 11.11.16.
  */
 
-var LicenseCall = function() {
-  var licenseServerUrl = '//bitmovin-bitanalytics.appspot.com/licensing';
+class LicenseCall {
+  static licenseServerUrl = '//bitmovin-bitanalytics.appspot.com/licensing';
 
-  this.sendRequest = function(key, domain, version, callback) {
-    var licensingRequest = {
+  sendRequest = function(key, domain, version, callback) {
+    const licensingRequest = {
       key: key,
       domain: domain,
       analyticsVersion: version
     };
 
-    var xhttp = new XMLHttpRequest();
+    this.sendLicensingRequest(true, licensingRequest, callback);
+  };
 
-    xhttp.onreadystatechange = function() {
+  sendLicensingRequest(async, licensingSample, callback) {
+    let xhttp;
+    let legacyMode = false;
+
+    if (window.XDomainRequest) { legacyMode = true; }
+
+    if (legacyMode) {
+      xhttp = new window.XDomainRequest();
+    } else {
+      xhttp = new XMLHttpRequest();
+    }
+
+    const responseCallback = function() {
       if (xhttp.readyState == XMLHttpRequest.DONE) {
-        if (xhttp.responseText.length <= 0) {
+        if (xhttp.responseText <= 0) {
           return;
         }
 
-        var licensingResponse = JSON.parse(xhttp.responseText);
-        callback(licensingResponse);
+        const sampleResponse = JSON.parse(xhttp.responseText);
+
+        callback(sampleResponse);
       }
     };
 
-    xhttp.open('POST', licenseServerUrl, true);
-    xhttp.setRequestHeader('Content-Type', 'application/json');
-    xhttp.send(JSON.stringify(licensingRequest));
-  };
-  if (window.XDomainRequest) {
-    this.sendRequest = function (key, domain, version, callback) {
+    if (legacyMode) {
+      xhttp.onload = responseCallback;
+    } else {
+      xhttp.onreadystatechange = responseCallback;
+    }
 
-      var licensingRequest = {
-        key: key,
-        domain: domain,
-        analyticsVersion: version
-      };
 
-      var xdr = new XDomainRequest();
-      xdr.onload = function () {
-        if (xdr.responseText.length <= 0) {
-          return;
-        }
-
-        var licensingResponse = JSON.parse(xdr.responseText);
-        callback(licensingResponse);
-      };
-
-      xdr.open('POST', licenseServerUrl, true);
-      xdr.send(JSON.stringify(licensingRequest));
-    };
+    xhttp.open('POST', this.licenseServerUrl, async);
+    if (!legacyMode) {
+      xhttp.setRequestHeader('Content-Type', 'application/json');
+    }
+    xhttp.send(JSON.stringify(licensingSample));
   }
-};
+}
+
+export default LicenseCall

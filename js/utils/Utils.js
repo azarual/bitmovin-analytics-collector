@@ -2,49 +2,49 @@
  * Created by lkroepfl on 11.11.16.
  */
 
-var Utils = function() {
-  this.validString = function(string) {
+class Utils {
+  validString = function(string) {
     return (string != undefined && typeof string == 'string');
   };
 
-  this.validBoolean = function(boolean) {
+  validBoolean = function(boolean) {
     return (boolean != undefined && typeof boolean == 'boolean');
   };
 
-  this.validNumber = function(number) {
+  validNumber = function(number) {
     return (number != undefined && typeof number == 'number');
   };
 
-  this.sanitizePath = function(path) {
+  sanitizePath = function(path) {
     return path.replace(/\/$/g, '');
   };
 
-  this.calculateTime = function(time) {
+  calculateTime = function(time) {
     time = time * 1000;
     return Math.round(time);
   };
 
-  this.getCurrentTimestamp = function() {
+  getCurrentTimestamp = function() {
     return new Date().getTime();
   };
 
-  this.getDurationFromTimestampToNow = function(timestamp) {
+  getDurationFromTimestampToNow = function(timestamp) {
     return this.getCurrentTimestamp() - timestamp;
   };
 
-  this.generateUUID = function() {
+  generateUUID = function() {
     return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-      var r = Math.random() * 16 | 0;
-      var v = c == 'x' ? r : (r & 0x3 | 0x8);
+      const r = Math.random() * 16 | 0;
+      const v = c == 'x' ? r : (r & 0x3 | 0x8);
       return v.toString(16);
     });
   };
 
-  this.getCookie = function(cname) {
-    var name = cname + '=';
-    var ca   = document.cookie.split(';');
-    for (var i = 0; i < ca.length; i++) {
-      var c = ca[i];
+  getCookie = function(cname) {
+    const name = cname + '=';
+    const ca   = document.cookie.split(';');
+    for (let i = 0; i < ca.length; i++) {
+      let c = ca[i];
       while (c.charAt(0) == ' ') {
         c = c.substring(1);
       }
@@ -56,14 +56,14 @@ var Utils = function() {
     return'';
   };
 
-  this.noOp = function() {
+  noOp = function() {
 
   };
 
-  this.times = function (fn, times) {
-    var that = this;
-    var count = 0;
-    var retVal;
+  times = function (fn, times) {
+    const that = this;
+    let count = 0;
+    let retVal;
     return function () {
       if (count >= times) {
         return retVal;
@@ -74,14 +74,14 @@ var Utils = function() {
     };
   };
 
-  this.once = function (fn) {
-    return this.times(fn, 1);
+  once = function (fn) {
+    return times(fn, 1);
   };
 
-  this.getHiddenProp = function() {
-    var prefixes = ['webkit','moz','ms','o'];
+  getHiddenProp = function() {
+    const prefixes = ['webkit','moz','ms','o'];
     if ('hidden' in document) { return 'hidden'; }
-    for (var i = 0; i < prefixes.length; i++){
+    for (let i = 0; i < prefixes.length; i++){
       if ((prefixes[i] + 'Hidden') in document) {
         return prefixes[i] + 'Hidden';
       }
@@ -89,11 +89,11 @@ var Utils = function() {
     return null;
   };
 
-  this.getCustomDataString = function(customData) {
+  getCustomDataString = function(customData) {
     if (typeof customData === 'object') {
       return JSON.stringify(customData);
     } else if (typeof customData === 'function') {
-      return this.getCustomDataString(customData());
+      return getCustomDataString(customData());
     } else if (typeof customData === 'undefined') {
       return customData;
     } else if (typeof customData !== 'string') {
@@ -102,4 +102,6 @@ var Utils = function() {
 
     return customData;
   };
-};
+}
+
+export default Utils

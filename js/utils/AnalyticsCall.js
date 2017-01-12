@@ -2,38 +2,42 @@
  * Created by lkroepfl on 11.11.16.
  */
 
-var AnalyticsCall = function() {
-  var analyticsServerUrl = '//bitmovin-bitanalytics.appspot.com/analytics';
+class AnalyticsCall {
+  static analyticsServerUrl = '//bitmovin-bitanalytics.appspot.com/analytics';
 
-  this.sendRequest = function(sample, callback) {
-    sendSampleRequest(true, sample, callback);
+  sendRequest = function(sample, callback) {
+    this.sendSampleRequest(true, sample, callback);
   };
 
-  this.sendRequestSynchronous = function(sample, callback) {
-    sendSampleRequest(false, sample, callback);
+  sendRequestSynchronous = function(sample, callback) {
+    this.sendSampleRequest(false, sample, callback);
   };
 
-  this.getAnalyticsServerUrl = function() {
-    return analyticsServerUrl;
+  getAnalyticsServerUrl = function() {
+    return this.analyticsServerUrl;
   };
 
-  function sendSampleRequest(async, sample, callback) {
-    var xhttp;
-    var legacyMode = false;
-    if (window.XDomainRequest) { legacyMode = true; }
+  sendSampleRequest(async, sample, callback) {
+    let xhttp;
+    let legacyMode = false;
+
+    if (window.XDomainRequest) {
+      legacyMode = true;
+    }
 
     if (legacyMode) {
       xhttp = new window.XDomainRequest();
     } else {
       xhttp = new XMLHttpRequest();
     }
-    var responseCallback = function() {
+
+    const responseCallback = function() {
       if (xhttp.readyState == XMLHttpRequest.DONE) {
         if (xhttp.responseText <= 0) {
           return;
         }
 
-        var sampleResponse = JSON.parse(xhttp.responseText);
+        const sampleResponse = JSON.parse(xhttp.responseText);
 
         callback(sampleResponse);
       }
@@ -46,10 +50,12 @@ var AnalyticsCall = function() {
     }
 
 
-    xhttp.open('POST', analyticsServerUrl, async);
+    xhttp.open('POST', this.analyticsServerUrl, async);
     if (!legacyMode) {
       xhttp.setRequestHeader('Content-Type', 'application/json');
     }
     xhttp.send(JSON.stringify(sample));
   }
-};
+}
+
+export default AnalyticsCall
