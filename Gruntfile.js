@@ -5,7 +5,7 @@ module.exports = function(grunt) {
   }];
   var header =
         '/****************************************************************************\n' +
-        ' * Copyright (C) 2016, Bitmovin, Inc., All Rights Reserved\n' +
+        ' * Copyright (C) ' + new Date().getFullYear() + ', Bitmovin, Inc., All Rights Reserved\n' +
         ' *\n' +
         ' * This source code and its use and distribution, is subject to the terms\n' +
         ' * and conditions of the applicable license agreement.\n' +
@@ -24,9 +24,7 @@ module.exports = function(grunt) {
       },
       build: {
         files: {
-          'build/bitmovin/<%= pkg.name %>.min.js': ['build/bitmovin/*.js'],
-          'build/jw/<%= pkg.name %>.min.js': ['build/jw/*.js'],
-          'build/radiant/<%= pkg.name %>.min.js': ['build/radiant/*.js']
+          'build/release/<%= pkg.name %>.js': ['build/debug/*.js']
         }
       }
     },
@@ -38,44 +36,23 @@ module.exports = function(grunt) {
       },
       build: {
         files: {
-          'build/bitmovin/<%= pkg.name %>.js': [
-            'node_modules/javascript-state-machine/state-machine.js',
-            'js/core/AnalyticsCall.js',
-            'js/core/AnalyticsStateMachine.js',
-            'js/core/LicenseCall.js',
-            'js/core/Logger.js',
-            'js/core/Utils.js',
-            'js/adapters/bitanalytics-bitmovin.js',
+          'build/debug/<%= pkg.name %>.js': [
             'js/core/Bitanalytics.js',
-            'js/core/Events.js',
-            'js/core/Players.js',
-            'js/core/CDNProviders.js'
-          ],
-          'build/jw/<%= pkg.name %>.js': [
-            'node_modules/javascript-state-machine/state-machine.js',
-            'js/core/AnalyticsCall.js',
-            'js/core/AnalyticsStateMachine.js',
-            'js/core/LicenseCall.js',
-            'js/core/Logger.js',
-            'js/core/Utils.js',
-            'js/adapters/bitanalytics-jw.js',
-            'js/core/Bitanalytics.js',
-            'js/core/Events.js',
-            'js/core/Players.js',
-            'js/core/CDNProviders.js'
-          ],
-          'build/radiant/<%= pkg.name %>.js': [
-            'node_modules/javascript-state-machine/state-machine.js',
-            'js/core/AnalyticsCall.js',
-            'js/core/AnalyticsStateMachine.js',
-            'js/core/LicenseCall.js',
-            'js/core/Logger.js',
-            'js/core/Utils.js',
-            'js/adapters/bitanalytics-radiant.js',
-            'js/core/Bitanalytics.js',
-            'js/core/Events.js',
-            'js/core/Players.js',
-            'js/core/CDNProviders.js'
+            'js/core/AnalyticsStateMachineFactory.js',
+            'js/analyticsStateMachines/BitmovinAnalyticsStateMachine.js',
+            'js/analyticsStateMachines/Bitmovin7AnalyticsStateMachine.js',
+            'js/core/AdapterFactory.js',
+            'js/adapters/BitmovinAdapter.js',
+            'js/adapters/Bitmovin7Adapter.js',
+            'js/utils/PlayerDetector.js',
+            'js/utils/AnalyticsCall.js',
+            'js/utils/LicenseCall.js',
+            'js/utils/Logger.js',
+            'js/utils/Utils.js',
+            'js/enums/Events.js',
+            'js/enums/Players.js',
+            'js/enums/CDNProviders.js',
+            'node_modules/javascript-state-machine/state-machine.js'
           ]
         }
       }
@@ -96,20 +73,8 @@ module.exports = function(grunt) {
           {
             expand: true,
             flatten: true,
-            src: ['build/bitmovin/*.js'],
-            dest: 'build/bitmovin'
-          },
-          {
-            expand: true,
-            flatten: true,
-            src: ['build/jw/*.js'],
-            dest: 'build/jw'
-          },
-          {
-            expand: true,
-            flatten: true,
-            src: ['build/radiant/*.js'],
-            dest: 'build/radiant'
+            src: ['build/debug/*.js'],
+            dest: 'build/debug'
           }
         ]
       }
@@ -119,7 +84,7 @@ module.exports = function(grunt) {
   grunt.loadNpmTasks('grunt-contrib-uglify');
   grunt.loadNpmTasks('grunt-contrib-watch');
   grunt.loadNpmTasks('grunt-contrib-concat');
-  grunt.registerTask('default', ['eslint', 'concat', 'uglify', 'replace']);
   grunt.registerTask('debug', ['eslint', 'concat', 'replace']);
+  grunt.registerTask('release', ['eslint', 'concat', 'replace', 'uglify']);
   grunt.registerTask('lint', ['eslint']);
 };

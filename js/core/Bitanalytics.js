@@ -3,11 +3,13 @@
  */
 
 global.bitmovin.analytics = function(config) {
-  var licenseCall   = new LicenseCall();
-  var analyticsCall = new AnalyticsCall();
-  var utils         = new Utils();
-  var logger        = new Logger();
-  var adapter       = new Adapter(record);
+  var licenseCall    = new LicenseCall();
+  var analyticsCall  = new AnalyticsCall();
+  var utils          = new Utils();
+  var logger         = new Logger();
+  var adapterFactory = new AdapterFactory();
+  var adapter;
+  var analyticsStateMachineFactory = new AnalyticsStateMachineFactory();
   var analyticsStateMachine;
 
   var PageLoadType = {
@@ -17,15 +19,15 @@ global.bitmovin.analytics = function(config) {
 
   var droppedSampleFrames = 0;
 
-  var licensing = 'waiting';
+  var licensing                    = 'waiting';
   var LICENSE_CALL_PENDING_TIMEOUT = 200;
-  var PAGE_LOAD_TYPE_TIMEOUT = 200;
+  var PAGE_LOAD_TYPE_TIMEOUT       = 200;
 
   var sample;
-  var startupTime = 0;
+  var startupTime  = 0;
   var pageLoadType = PageLoadType.FOREGROUND;
 
-  window.setTimeout(function () {
+  window.setTimeout(function() {
     if (document[utils.getHiddenProp()] === true) {
       pageLoadType = PageLoadType.BACKGROUND;
     }
@@ -67,16 +69,6 @@ global.bitmovin.analytics = function(config) {
     else {
       sample.userId = userId;
     }
-  }
-
-  var register = function(player) {
-    adapter.register(player);
-  };
-
-  function record(eventType, eventObject) {
-    eventObject = eventObject || {};
-
-    analyticsStateMachine.callEvent(eventType, eventObject, utils.getCurrentTimestamp());
   }
 
   var stateMachineCallbacks = {
@@ -223,6 +215,20 @@ global.bitmovin.analytics = function(config) {
       delete sample.errorMessage;
     },
 
+    end: function(time, state, event) {
+      sample.impressionId = utils.generateUUID();
+    },
+
+    ad: function(time, state, event) {
+      setDuration(time);
+      setState(state);
+      sample.ad = time;
+
+      setDroppedFrames(event);
+
+      sendAnalyticsRequestAndClearValues();
+    },
+
     setVideoTimeEndFromEvent: function(event) {
       if (utils.validNumber(event.currentTime)) {
         sample.videoTimeEnd = utils.calculateTime(event.currentTime);
@@ -236,7 +242,23 @@ global.bitmovin.analytics = function(config) {
     }
   };
 
-  analyticsStateMachine = new AnalyticsStateMachine(logger, stateMachineCallbacks);
+  var register = function(player) {
+    adapter = adapterFactory.getAdapter(player);
+    if (adapter) {
+      adapter.setEventCallback(record);
+    } else {
+      logger.error('Could not detect player.');
+      return;
+    }
+
+    analyticsStateMachine = analyticsStateMachineFactory.getAnalyticsStateMachine(player, logger, stateMachineCallbacks);
+  };
+
+  function record(eventType, eventObject) {
+    eventObject = eventObject || {};
+
+    analyticsStateMachine.callEvent(eventType, eventObject, utils.getCurrentTimestamp());
+  }
 
   function setDuration(duration) {
     sample.duration = duration;
@@ -289,9 +311,11 @@ global.bitmovin.analytics = function(config) {
     if (utils.validString(loadedEvent.progUrl)) {
       sample.progUrl = loadedEvent.progUrl;
     }
-    if (loadedEvent.figure) {
-      sample.videoWindowWidth  = loadedEvent.figure.offsetWidth;
-      sample.videoWindowHeight = loadedEvent.figure.offsetHeight;
+    if (utils.validNumber(loadedEvent.videoWindowWidth)) {
+      sample.videoWindowWidth = loadedEvent.videoWindowWidth;
+    }
+    if (utils.validNumber(loadedEvent.videoWindowHeight)) {
+      sample.videoWindowHeight = loadedEvent.videoWindowHeight;
     }
   }
 
@@ -427,5 +451,5 @@ global.bitmovin.analytics = function(config) {
     }
   }
 
-  return { register: register };
+  return {register: register};
 };
