@@ -24,7 +24,7 @@ module.exports = function(grunt) {
       },
       build: {
         files: {
-          'build/<%= pkg.name %>.min.js': ['build/*.js']
+          'build/release/<%= pkg.name %>.js': ['build/debug/*.js']
         }
       }
     },
@@ -36,7 +36,7 @@ module.exports = function(grunt) {
       },
       build: {
         files: {
-          'build/<%= pkg.name %>.js': [
+          'build/debug/<%= pkg.name %>.js': [
             'js/core/Bitanalytics.js',
             'js/core/AnalyticsStateMachine.js',
             'js/core/AdapterFactory.js',
@@ -70,8 +70,8 @@ module.exports = function(grunt) {
           {
             expand: true,
             flatten: true,
-            src: ['build/*.js'],
-            dest: 'build'
+            src: ['build/debug/*.js'],
+            dest: 'build/debug'
           }
         ]
       }
@@ -81,7 +81,7 @@ module.exports = function(grunt) {
   grunt.loadNpmTasks('grunt-contrib-uglify');
   grunt.loadNpmTasks('grunt-contrib-watch');
   grunt.loadNpmTasks('grunt-contrib-concat');
-  grunt.registerTask('default', ['eslint', 'concat', 'uglify', 'replace']);
   grunt.registerTask('debug', ['eslint', 'concat', 'replace']);
+  grunt.registerTask('release', ['eslint', 'concat', 'replace', 'uglify']);
   grunt.registerTask('lint', ['eslint']);
 };
