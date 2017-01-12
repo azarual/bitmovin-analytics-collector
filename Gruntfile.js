@@ -37,18 +37,18 @@ module.exports = function(grunt) {
       build: {
         files: {
           'build/<%= pkg.name %>.js': [
-            'js/core/AnalyticsCall.js',
+            'js/core/Bitanalytics.js',
             'js/core/AnalyticsStateMachine.js',
-            'js/core/LicenseCall.js',
-            'js/core/Logger.js',
-            'js/core/Utils.js',
             'js/core/AdapterFactory.js',
             'js/adapters/BitmovinAdapter.js',
             'js/adapters/Bitmovin7Adapter.js',
-            'js/core/Bitanalytics.js',
-            'js/core/Events.js',
-            'js/core/Players.js',
-            'js/core/CDNProviders.js',
+            'js/utils/AnalyticsCall.js',
+            'js/utils/LicenseCall.js',
+            'js/utils/Logger.js',
+            'js/utils/Utils.js',
+            'js/enums/Events.js',
+            'js/enums/Players.js',
+            'js/enums/CDNProviders.js',
             'node_modules/javascript-state-machine/state-machine.js'
           ]
         }
