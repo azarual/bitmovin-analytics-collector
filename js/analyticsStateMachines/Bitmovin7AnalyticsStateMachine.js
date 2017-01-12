@@ -1,8 +1,8 @@
 /**
- * Created by lkroepfl on 22.11.16.
+ * Created by lkroepfl on 12.01.17.
  */
 
-var AnalyticsStateMachine = function(logger, bitanalytics) {
+var Bitmovin7AnalyticsStateMachine = function(logger, bitanalytics) {
   var pausedTimestamp = null;
   var seekTimestamp = 0;
   var seekedTimestamp = 0;
@@ -223,6 +223,9 @@ var AnalyticsStateMachine = function(logger, bitanalytics) {
       },
       onplayerError: function(event, from, to, timestamp, eventObject) {
         bitanalytics.error(eventObject);
+      },
+      onend: function(event, from, to, timestamp, eventObject) {
+
       }
     }
   });

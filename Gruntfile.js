@@ -38,7 +38,9 @@ module.exports = function(grunt) {
         files: {
           'build/debug/<%= pkg.name %>.js': [
             'js/core/Bitanalytics.js',
-            'js/core/AnalyticsStateMachine.js',
+            'js/core/AnalyticsStateMachineFactory.js',
+            'js/analyticsStateMachines/BitmovinAnalyticsStateMachine.js',
+            'js/analyticsStateMachines/Bitmovin7AnalyticsStateMachine.js',
             'js/core/AdapterFactory.js',
             'js/adapters/BitmovinAdapter.js',
             'js/adapters/Bitmovin7Adapter.js',

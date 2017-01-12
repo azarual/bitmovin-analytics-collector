@@ -9,6 +9,7 @@ global.bitmovin.analytics = function(config) {
   var logger         = new Logger();
   var adapterFactory = new AdapterFactory();
   var adapter;
+  var analyticsStateMachineFactory = new AnalyticsStateMachineFactory();
   var analyticsStateMachine;
 
   var PageLoadType = {
@@ -68,22 +69,6 @@ global.bitmovin.analytics = function(config) {
     else {
       sample.userId = userId;
     }
-  }
-
-  var register = function(player) {
-    adapter = adapterFactory.getAdapter(player);
-
-    if (adapter) {
-      adapter.setEventCallback(record);
-    } else {
-      logger.error('Could not detect player.');
-    }
-  };
-
-  function record(eventType, eventObject) {
-    eventObject = eventObject || {};
-
-    analyticsStateMachine.callEvent(eventType, eventObject, utils.getCurrentTimestamp());
   }
 
   var stateMachineCallbacks = {
@@ -243,7 +228,23 @@ global.bitmovin.analytics = function(config) {
     }
   };
 
-  analyticsStateMachine = new AnalyticsStateMachine(logger, stateMachineCallbacks);
+  var register = function(player) {
+    adapter = adapterFactory.getAdapter(player);
+    if (adapter) {
+      adapter.setEventCallback(record);
+    } else {
+      logger.error('Could not detect player.');
+      return;
+    }
+
+    analyticsStateMachine = analyticsStateMachineFactory.getAnalyticsStateMachine(player, logger, stateMachineCallbacks);
+  };
+
+  function record(eventType, eventObject) {
+    eventObject = eventObject || {};
+
+    analyticsStateMachine.callEvent(eventType, eventObject, utils.getCurrentTimestamp());
+  }
 
   function setDuration(duration) {
     sample.duration = duration;
