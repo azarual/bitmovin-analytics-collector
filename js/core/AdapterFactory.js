@@ -2,18 +2,18 @@
  * Created by lkroepfl on 12.01.17.
  */
 
-var AdapterFactory = function() {
-  var playerDetector = new PlayerDetector();
+import PlayerDetector from '../utils/PlayerDetector'
 
-  var getAdapter = function(player) {
-    if (playerDetector.isBitmovinVersionPre7(player)) {
+class AdapterFactory {
+  static playerDetector = new PlayerDetector;
+
+  getAdapter = function(player) {
+    if (this.playerDetector.isBitmovinVersionPre7(player)) {
       return new BitmovinAdapter(player);
-    } else if (playerDetector.isBitmovinVersion7Plus(player)) {
+    } else if (this.playerDetector.isBitmovinVersion7Plus(player)) {
       return new Bitmovin7Adapter(player);
     }
   };
+}
 
-  return {
-    getAdapter: getAdapter
-  };
-};
+export default AdapterFactory
