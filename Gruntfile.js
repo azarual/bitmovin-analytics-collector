@@ -5,7 +5,7 @@ module.exports = function(grunt) {
   }];
   var header =
         '/****************************************************************************\n' +
-        ' * Copyright (C) 2017, Bitmovin, Inc., All Rights Reserved\n' +
+        ' * Copyright (C) ' + new Date().getFullYear() + ', Bitmovin, Inc., All Rights Reserved\n' +
         ' *\n' +
         ' * This source code and its use and distribution, is subject to the terms\n' +
         ' * and conditions of the applicable license agreement.\n' +
@@ -37,7 +37,6 @@ module.exports = function(grunt) {
       build: {
         files: {
           'build/<%= pkg.name %>.js': [
-            'node_modules/javascript-state-machine/state-machine.js',
             'js/core/AnalyticsCall.js',
             'js/core/AnalyticsStateMachine.js',
             'js/core/LicenseCall.js',
@@ -49,7 +48,8 @@ module.exports = function(grunt) {
             'js/core/Bitanalytics.js',
             'js/core/Events.js',
             'js/core/Players.js',
-            'js/core/CDNProviders.js'
+            'js/core/CDNProviders.js',
+            'node_modules/javascript-state-machine/state-machine.js'
           ]
         }
       }
