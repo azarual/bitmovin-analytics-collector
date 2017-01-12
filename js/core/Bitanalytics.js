@@ -215,6 +215,10 @@ global.bitmovin.analytics = function(config) {
       delete sample.errorMessage;
     },
 
+    end: function(time, state, event) {
+      sample.impressionId = utils.generateUUID();
+    },
+
     setVideoTimeEndFromEvent: function(event) {
       if (utils.validNumber(event.currentTime)) {
         sample.videoTimeEnd = utils.calculateTime(event.currentTime);
