@@ -223,9 +223,6 @@ var Bitmovin7AnalyticsStateMachine = function(logger, bitanalytics) {
       },
       onplayerError: function(event, from, to, timestamp, eventObject) {
         bitanalytics.error(eventObject);
-      },
-      onend: function(event, from, to, timestamp, eventObject) {
-
       }
     }
   });
