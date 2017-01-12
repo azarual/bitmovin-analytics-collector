@@ -219,6 +219,16 @@ global.bitmovin.analytics = function(config) {
       sample.impressionId = utils.generateUUID();
     },
 
+    ad: function(time, state, event) {
+      setDuration(time);
+      setState(state);
+      sample.ad = time;
+
+      setDroppedFrames(event);
+
+      sendAnalyticsRequestAndClearValues();
+    },
+
     setVideoTimeEndFromEvent: function(event) {
       if (utils.validNumber(event.currentTime)) {
         sample.videoTimeEnd = utils.calculateTime(event.currentTime);
