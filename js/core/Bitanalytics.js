@@ -296,9 +296,11 @@ global.bitmovin.analytics = function(config) {
     if (utils.validString(loadedEvent.progUrl)) {
       sample.progUrl = loadedEvent.progUrl;
     }
-    if (loadedEvent.figure) {
-      sample.videoWindowWidth  = loadedEvent.figure.offsetWidth;
-      sample.videoWindowHeight = loadedEvent.figure.offsetHeight;
+    if (utils.validNumber(loadedEvent.videoWindowWidth)) {
+      sample.videoWindowWidth = loadedEvent.videoWindowWidth;
+    }
+    if (utils.validNumber(loadedEvent.videoWindowHeight)) {
+      sample.videoWindowHeight = loadedEvent.videoWindowHeight;
     }
   }
 

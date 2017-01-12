@@ -13,17 +13,18 @@ var Bitmovin7Adapter = function(player) {
 
     player.addEventHandler(bitmovin.player.EVENT.ON_READY, function() {
       eventCallback(bitmovin.analytics.Events.READY, {
-        isLive    : player.isLive(),
-        version   : player.version,
-        type      : player.getPlayerType(),
-        duration  : player.getDuration(),
-        streamType: player.getStreamType(),
-        videoId   : player.getConfig().source.videoId,
-        userId    : player.getConfig().source.userId,
-        mpdUrl    : player.getConfig().source.dash,
-        m3u8Url   : player.getConfig().source.hls,
-        progUrl   : player.getConfig().source.progressive,
-        figure    : player.getFigure()
+        isLive           : player.isLive(),
+        version          : player.version,
+        type             : player.getPlayerType(),
+        duration         : player.getDuration(),
+        streamType       : player.getStreamType(),
+        videoId          : player.getConfig().source.videoId,
+        userId           : player.getConfig().source.userId,
+        mpdUrl           : player.getConfig().source.dash,
+        m3u8Url          : player.getConfig().source.hls,
+        progUrl          : player.getConfig().source.progressive,
+        videoWindowWidth : player.getFigure().offsetWidth,
+        videoWindowHeight: player.getFigure().offsetHeight
       });
     });
 
