@@ -1,17 +1,18 @@
 /**
  * Created by Bitmovin on 23.09.2016.
  */
-var Adapter = function(record) {
+var RadiantAdapter = function(player) {
   var skipInitSeek = true;
   var lastQuality = null;
+  var eventCallback;
 
-  this.register = function(player) {
+  var register = function(player) {
     player.addEventListener('loadstart', function() {
-      record(analytics.events.SOURCE_LOADED);
+      eventCallback(analytics.events.SOURCE_LOADED);
     });
 
     player.addEventListener('ready', function() {
-      record(analytics.events.READY, {
+      eventCallback(analytics.events.READY, {
         type      : player.getPlayerMode(),
         version   : player.getPlayerVersion(),
         streamType: player.getStreamType()
@@ -22,13 +23,13 @@ var Adapter = function(record) {
     });
 
     player.addEventListener('durationchange', function() {
-      record(analytics.events.READY, {
+      eventCallback(analytics.events.READY, {
         duration: toSeconds(player.getDuration())
       });
     });
 
     player.addEventListener('play', function() {
-      record(analytics.events.PLAY);
+      eventCallback(analytics.events.PLAY);
     });
 
     player.addEventListener('timeupdate', function() {
@@ -38,7 +39,7 @@ var Adapter = function(record) {
        */
       var quality = player.getBitrates()[player.getCurrentBitrateIndex()];
       if (JSON.stringify(quality) != JSON.stringify(lastQuality)) {
-        record(analytics.events.VIDEO_CHANGE, {
+        eventCallback(analytics.events.VIDEO_CHANGE, {
           width      : quality.width,
           height     : quality.height,
           bitrate    : quality.bitrate,
@@ -47,7 +48,7 @@ var Adapter = function(record) {
         lastQuality = quality;
       }
 
-      record(analytics.events.TIMECHANGED, {
+      eventCallback(analytics.events.TIMECHANGED, {
         currentTime: toSeconds(player.getCurrentTime())
       });
     });
@@ -58,7 +59,7 @@ var Adapter = function(record) {
        * prevent player to raise pause event during playback finish
        */
       if (player.getCurrentTime() < player.getDuration()) {
-        record(analytics.events.PAUSE, {
+        eventCallback(analytics.events.PAUSE, {
           currentTime: toSeconds(player.getCurrentTime())
         });
       }
@@ -66,21 +67,21 @@ var Adapter = function(record) {
 
     player.addEventListener('seeking', function() {
       if (!skipInitSeek) {
-        record(analytics.events.SEEK, {
+        eventCallback(analytics.events.SEEK, {
           currentTime: toSeconds(player.getCurrentTime())
         });
       }
     });
 
     player.addEventListener('waiting', function() {
-      record(analytics.events.START_BUFFERING, {
+      eventCallback(analytics.events.START_BUFFERING, {
         currentTime: toSeconds(player.getCurrentTime())
       });
     });
 
     player.addEventListener('seeked', function() {
       if (!skipInitSeek) {
-        record(analytics.events.END_BUFFERING, {
+        eventCallback(analytics.events.END_BUFFERING, {
           currentTime: toSeconds(player.getCurrentTime())
         });
       }
@@ -91,26 +92,26 @@ var Adapter = function(record) {
     });
 
     player.addEventListener('enterfullscreen', function() {
-      record(analytics.events.START_FULLSCREEN, {
+      eventCallback(analytics.events.START_FULLSCREEN, {
         currentTime: toSeconds(player.getCurrentTime())
       });
     });
 
     player.addEventListener('exitfullscreen', function() {
-      record(analytics.events.END_FULLSCREEN, {
+      eventCallback(analytics.events.END_FULLSCREEN, {
         currentTime: toSeconds(player.getCurrentTime())
       });
     });
 
     player.addEventListener('error', function() {
-      record(analytics.events.ERROR, {
+      eventCallback(analytics.events.ERROR, {
         message    : 'Radiant error occurs',
         currentTime: player.getCurrentTime()
       });
     });
 
     rmpplayer.addEventListener('ended', function() {
-      record(analytics.events.PLAYBACK_FINISHED);
+      eventCallback(analytics.events.PLAYBACK_FINISHED);
     });
 
     player.addEventListener('qualitychangestarted', function() {
@@ -118,17 +119,17 @@ var Adapter = function(record) {
     });
 
     player.addEventListener('adloaded', function() {
-      record(analytics.events.START_AD);
+      eventCallback(analytics.events.START_AD);
     });
 
     player.addEventListener('adcomplete', function() {
-      record(analytics.events.END_AD, {
+      eventCallback(analytics.events.END_AD, {
         currentTime: toSeconds(player.getCurrentTime())
       });
     });
 
     window.addEventListener('unload', function() {
-      record(analytics.events.UNLOAD, {
+      eventCallback(analytics.events.UNLOAD, {
         currentTime: toSeconds(player.getCurrentTime())
       });
     });
@@ -137,4 +138,14 @@ var Adapter = function(record) {
   function toSeconds(time) {
     return time / 1000;
   }
+
+  var setEventCallback = function(callback) {
+    eventCallback = callback;
+  };
+
+  register();
+
+  return {
+    setEventCallback: setEventCallback
+  };
 };

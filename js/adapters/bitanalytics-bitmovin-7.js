@@ -1,12 +1,12 @@
 /**
- * Created by lkroepfl on 13.09.2016.
+ * Created by lkroepfl on 12.01.2017.
  */
 
-var BitmovinAdapter = function(player) {
+var Bitmovin7Adapter = function(player) {
   var onBeforeUnLoadEvent = false;
   var eventCallback;
 
-  var register = function(player) {
+  var register = function() {
     player.addEventHandler(bitmovin.player.EVENT.ON_SOURCE_LOADED, function() {
       eventCallback(bitmovin.analytics.Events.SOURCE_LOADED);
     });
@@ -14,7 +14,7 @@ var BitmovinAdapter = function(player) {
     player.addEventHandler(bitmovin.player.EVENT.ON_READY, function() {
       eventCallback(bitmovin.analytics.Events.READY, {
         isLive    : player.isLive(),
-        version   : player.getVersion(),
+        version   : player.version,
         type      : player.getPlayerType(),
         duration  : player.getDuration(),
         streamType: player.getStreamType(),
@@ -31,7 +31,7 @@ var BitmovinAdapter = function(player) {
       eventCallback(bitmovin.analytics.Events.START_CAST);
     });
 
-    player.addEventHandler(bitmovin.player.EVENT.ON_CAST_STOP, function() {
+    player.addEventHandler(bitmovin.player.EVENT.ON_CAST_STOPPE, function() {
       eventCallback(bitmovin.analytics.Events.END_CAST);
     });
 
@@ -41,7 +41,7 @@ var BitmovinAdapter = function(player) {
       });
     });
 
-    player.addEventHandler(bitmovin.player.EVENT.ON_PAUSE, function() {
+    player.addEventHandler(bitmovin.player.EVENT.ON_PAUSED, function() {
       eventCallback(bitmovin.analytics.Events.PAUSE, {
         currentTime  : player.getCurrentTime(),
         droppedFrames: player.getDroppedFrames()
@@ -69,18 +69,18 @@ var BitmovinAdapter = function(player) {
       });
     });
 
-    player.addEventHandler(bitmovin.player.EVENT.ON_START_BUFFERING, function() {
+    player.addEventHandler(bitmovin.player.EVENT.ON_STALL_STARTED, function() {
       eventCallback(bitmovin.analytics.Events.START_BUFFERING);
     });
 
-    player.addEventHandler(bitmovin.player.EVENT.ON_STOP_BUFFERING, function() {
+    player.addEventHandler(bitmovin.player.EVENT.ON_STALL_ENDED, function() {
       eventCallback(bitmovin.analytics.Events.END_BUFFERING, {
         currentTime  : player.getCurrentTime(),
         droppedFrames: player.getDroppedFrames()
       });
     });
 
-    player.addEventHandler(bitmovin.player.EVENT.ON_AUDIO_PLAYBACK_QUALITY_CHANGE, function() {
+    player.addEventHandler(bitmovin.player.EVENT.ON_AUDIO_PLAYBACK_QUALITY_CHANGED, function() {
       var quality = player.getPlaybackAudioData();
 
       eventCallback(bitmovin.analytics.Events.AUDIO_CHANGE, {
@@ -90,7 +90,7 @@ var BitmovinAdapter = function(player) {
       });
     });
 
-    player.addEventHandler(bitmovin.player.EVENT.ON_VIDEO_PLAYBACK_QUALITY_CHANGE, function() {
+    player.addEventHandler(bitmovin.player.EVENT.ON_VIDEO_PLAYBACK_QUALITY_CHANGED, function() {
       var quality = player.getPlaybackVideoData();
 
       eventCallback(bitmovin.analytics.Events.VIDEO_CHANGE, {
