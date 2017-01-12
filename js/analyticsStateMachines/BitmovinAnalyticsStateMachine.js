@@ -24,7 +24,8 @@ var BitmovinAnalyticsStateMachine = function(logger, bitanalytics) {
     END_PLAY_SEEKING: 'END_PLAY_SEEKING',
     QUALITYCHANGE_PAUSE: 'QUALITYCHANGE_PAUSE',
     END: 'END',
-    ERROR: 'ERROR'
+    ERROR: 'ERROR',
+    AD: 'AD'
   };
 
   var pad = function (str, length) {
@@ -127,7 +128,10 @@ var BitmovinAnalyticsStateMachine = function(logger, bitanalytics) {
       { name: bitmovin.analytics.Events.SEEK, from: States.END_PLAY_SEEKING, to: States.PLAY_SEEKING },
       { name: 'FINISH_PLAY_SEEKING', from: States.END_PLAY_SEEKING, to: States.PLAYING },
 
-      { name: bitmovin.analytics.Events.UNLOAD, from: States.PLAYING, to: States.END }
+      { name: bitmovin.analytics.Events.UNLOAD, from: States.PLAYING, to: States.END },
+
+      {name: bitmovin.analytics.Events.START_AD, from: States.PLAYING, to: States.AD},
+      {name: bitmovin.analytics.Events.END_AD, from: States.AD, to: States.PLAYING}
     ],
     callbacks: {
       onpause      : function(event, from, to, timestamp) {
