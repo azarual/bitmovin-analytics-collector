@@ -137,6 +137,7 @@ var BitmovinAdapter = function(player) {
 
     player.addEventHandler(bitmovin.player.EVENT.ON_PLAYBACK_FINISHED, function() {
       eventCallback(bitmovin.analytics.Events.PLAYBACK_FINISHED, {
+        currentTime  : player.getCurrentTime(),
         droppedFrames: player.getDroppedFrames()
       });
     });
