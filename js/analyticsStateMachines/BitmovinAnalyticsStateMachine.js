@@ -4,6 +4,7 @@
 
 import Logger from '../utils/Logger'
 import StateMachine from 'javascript-state-machine'
+import Events from '../enums/Events'
 
 class BitmovinAnalyticsStateMachine {
   static PAUSE_SEEK_DELAY = 60;
@@ -43,86 +44,86 @@ class BitmovinAnalyticsStateMachine {
     this.stateMachine = StateMachine.create({
       initial  : this.States.SETUP,
       events   : [
-        {name: bitmovin.analytics.Events.READY, from: this.States.SETUP, to: this.States.READY},
-        {name: bitmovin.analytics.Events.PLAY, from: this.States.READY, to: this.States.STARTUP},
+        {name: Events.READY, from: this.States.SETUP, to: this.States.READY},
+        {name: Events.PLAY, from: this.States.READY, to: this.States.STARTUP},
 
-        {name: bitmovin.analytics.Events.START_BUFFERING, from: this.States.STARTUP, to: this.States.STARTUP},
-        {name: bitmovin.analytics.Events.END_BUFFERING, from: this.States.STARTUP, to: this.States.STARTUP},
-        {name: bitmovin.analytics.Events.TIMECHANGED, from: this.States.STARTUP, to: this.States.PLAYING},
+        {name: Events.START_BUFFERING, from: this.States.STARTUP, to: this.States.STARTUP},
+        {name: Events.END_BUFFERING, from: this.States.STARTUP, to: this.States.STARTUP},
+        {name: Events.TIMECHANGED, from: this.States.STARTUP, to: this.States.PLAYING},
 
-        {name: bitmovin.analytics.Events.TIMECHANGED, from: this.States.PLAYING, to: this.States.PLAYING},
-        {name: bitmovin.analytics.Events.END_BUFFERING, from: this.States.PLAYING, to: this.States.PLAYING},
-        {name: bitmovin.analytics.Events.START_BUFFERING, from: this.States.PLAYING, to: this.States.REBUFFERING},
-        {name: bitmovin.analytics.Events.END_BUFFERING, from: this.States.REBUFFERING, to: this.States.PLAYING},
-        {name: bitmovin.analytics.Events.TIMECHANGED, from: this.States.REBUFFERING, to: this.States.REBUFFERING},
+        {name: Events.TIMECHANGED, from: this.States.PLAYING, to: this.States.PLAYING},
+        {name: Events.END_BUFFERING, from: this.States.PLAYING, to: this.States.PLAYING},
+        {name: Events.START_BUFFERING, from: this.States.PLAYING, to: this.States.REBUFFERING},
+        {name: Events.END_BUFFERING, from: this.States.REBUFFERING, to: this.States.PLAYING},
+        {name: Events.TIMECHANGED, from: this.States.REBUFFERING, to: this.States.REBUFFERING},
 
-        {name: bitmovin.analytics.Events.PAUSE, from: this.States.PLAYING, to: this.States.PAUSE},
-        {name: bitmovin.analytics.Events.PAUSE, from: this.States.REBUFFERING, to: this.States.PAUSE},
-        {name: bitmovin.analytics.Events.PLAY, from: this.States.PAUSE, to: this.States.PLAYING},
+        {name: Events.PAUSE, from: this.States.PLAYING, to: this.States.PAUSE},
+        {name: Events.PAUSE, from: this.States.REBUFFERING, to: this.States.PAUSE},
+        {name: Events.PLAY, from: this.States.PAUSE, to: this.States.PLAYING},
 
-        {name: bitmovin.analytics.Events.VIDEO_CHANGE, from: this.States.PLAYING, to: this.States.QUALITYCHANGE},
-        {name: bitmovin.analytics.Events.AUDIO_CHANGE, from: this.States.PLAYING, to: this.States.QUALITYCHANGE},
-        {name: bitmovin.analytics.Events.VIDEO_CHANGE, from: this.States.QUALITYCHANGE, to: this.States.QUALITYCHANGE},
-        {name: bitmovin.analytics.Events.AUDIO_CHANGE, from: this.States.QUALITYCHANGE, to: this.States.QUALITYCHANGE},
+        {name: Events.VIDEO_CHANGE, from: this.States.PLAYING, to: this.States.QUALITYCHANGE},
+        {name: Events.AUDIO_CHANGE, from: this.States.PLAYING, to: this.States.QUALITYCHANGE},
+        {name: Events.VIDEO_CHANGE, from: this.States.QUALITYCHANGE, to: this.States.QUALITYCHANGE},
+        {name: Events.AUDIO_CHANGE, from: this.States.QUALITYCHANGE, to: this.States.QUALITYCHANGE},
         {name: 'FINISH_QUALITYCHANGE', from: this.States.QUALITYCHANGE, to: this.States.PLAYING},
 
-        {name: bitmovin.analytics.Events.VIDEO_CHANGE, from: this.States.PAUSE, to: this.States.QUALITYCHANGE_PAUSE},
-        {name: bitmovin.analytics.Events.AUDIO_CHANGE, from: this.States.PAUSE, to: this.States.QUALITYCHANGE_PAUSE},
+        {name: Events.VIDEO_CHANGE, from: this.States.PAUSE, to: this.States.QUALITYCHANGE_PAUSE},
+        {name: Events.AUDIO_CHANGE, from: this.States.PAUSE, to: this.States.QUALITYCHANGE_PAUSE},
         {
-          name: bitmovin.analytics.Events.VIDEO_CHANGE,
+          name: Events.VIDEO_CHANGE,
           from: this.States.QUALITYCHANGE_PAUSE,
           to  : this.States.QUALITYCHANGE_PAUSE
         },
         {
-          name: bitmovin.analytics.Events.AUDIO_CHANGE,
+          name: Events.AUDIO_CHANGE,
           from: this.States.QUALITYCHANGE_PAUSE,
           to  : this.States.QUALITYCHANGE_PAUSE
         },
         {name: 'FINISH_QUALITYCHANGE_PAUSE', from: this.States.QUALITYCHANGE_PAUSE, to: this.States.PAUSE},
 
-        {name: bitmovin.analytics.Events.SEEK, from: this.States.PAUSE, to: this.States.PAUSED_SEEKING},
-        {name: bitmovin.analytics.Events.SEEK, from: this.States.PAUSED_SEEKING, to: this.States.PAUSED_SEEKING},
-        {name: bitmovin.analytics.Events.AUDIO_CHANGE, from: this.States.PAUSED_SEEKING, to: this.States.PAUSED_SEEKING},
-        {name: bitmovin.analytics.Events.VIDEO_CHANGE, from: this.States.PAUSED_SEEKING, to: this.States.PAUSED_SEEKING},
-        {name: bitmovin.analytics.Events.START_BUFFERING, from: this.States.PAUSED_SEEKING, to: this.States.PAUSED_SEEKING},
-        {name: bitmovin.analytics.Events.END_BUFFERING, from: this.States.PAUSED_SEEKING, to: this.States.PAUSED_SEEKING},
-        {name: bitmovin.analytics.Events.SEEKED, from: this.States.PAUSED_SEEKING, to: this.States.PAUSE},
-        {name: bitmovin.analytics.Events.PLAY, from: this.States.PAUSED_SEEKING, to: this.States.PLAYING},
-        {name: bitmovin.analytics.Events.PAUSE, from: this.States.PAUSED_SEEKING, to: this.States.PAUSE},
+        {name: Events.SEEK, from: this.States.PAUSE, to: this.States.PAUSED_SEEKING},
+        {name: Events.SEEK, from: this.States.PAUSED_SEEKING, to: this.States.PAUSED_SEEKING},
+        {name: Events.AUDIO_CHANGE, from: this.States.PAUSED_SEEKING, to: this.States.PAUSED_SEEKING},
+        {name: Events.VIDEO_CHANGE, from: this.States.PAUSED_SEEKING, to: this.States.PAUSED_SEEKING},
+        {name: Events.START_BUFFERING, from: this.States.PAUSED_SEEKING, to: this.States.PAUSED_SEEKING},
+        {name: Events.END_BUFFERING, from: this.States.PAUSED_SEEKING, to: this.States.PAUSED_SEEKING},
+        {name: Events.SEEKED, from: this.States.PAUSED_SEEKING, to: this.States.PAUSE},
+        {name: Events.PLAY, from: this.States.PAUSED_SEEKING, to: this.States.PLAYING},
+        {name: Events.PAUSE, from: this.States.PAUSED_SEEKING, to: this.States.PAUSE},
 
         {name: 'PLAY_SEEK', from: this.States.PAUSE, to: this.States.PLAY_SEEKING},
         {name: 'PLAY_SEEK', from: this.States.PAUSED_SEEKING, to: this.States.PLAY_SEEKING},
         {name: 'PLAY_SEEK', from: this.States.PLAY_SEEKING, to: this.States.PLAY_SEEKING},
-        {name: bitmovin.analytics.Events.SEEK, from: this.States.PLAY_SEEKING, to: this.States.PLAY_SEEKING},
-        {name: bitmovin.analytics.Events.AUDIO_CHANGE, from: this.States.PLAY_SEEKING, to: this.States.PLAY_SEEKING},
-        {name: bitmovin.analytics.Events.VIDEO_CHANGE, from: this.States.PLAY_SEEKING, to: this.States.PLAY_SEEKING},
-        {name: bitmovin.analytics.Events.START_BUFFERING, from: this.States.PLAY_SEEKING, to: this.States.PLAY_SEEKING},
-        {name: bitmovin.analytics.Events.END_BUFFERING, from: this.States.PLAY_SEEKING, to: this.States.PLAY_SEEKING},
-        {name: bitmovin.analytics.Events.SEEKED, from: this.States.PLAY_SEEKING, to: this.States.PLAY_SEEKING},
+        {name: Events.SEEK, from: this.States.PLAY_SEEKING, to: this.States.PLAY_SEEKING},
+        {name: Events.AUDIO_CHANGE, from: this.States.PLAY_SEEKING, to: this.States.PLAY_SEEKING},
+        {name: Events.VIDEO_CHANGE, from: this.States.PLAY_SEEKING, to: this.States.PLAY_SEEKING},
+        {name: Events.START_BUFFERING, from: this.States.PLAY_SEEKING, to: this.States.PLAY_SEEKING},
+        {name: Events.END_BUFFERING, from: this.States.PLAY_SEEKING, to: this.States.PLAY_SEEKING},
+        {name: Events.SEEKED, from: this.States.PLAY_SEEKING, to: this.States.PLAY_SEEKING},
 
         // We are ending the seek
-        {name: bitmovin.analytics.Events.PLAY, from: this.States.PLAY_SEEKING, to: this.States.END_PLAY_SEEKING},
+        {name: Events.PLAY, from: this.States.PLAY_SEEKING, to: this.States.END_PLAY_SEEKING},
 
-        {name: bitmovin.analytics.Events.START_BUFFERING, from: this.States.END_PLAY_SEEKING, to: this.States.END_PLAY_SEEKING},
-        {name: bitmovin.analytics.Events.END_BUFFERING, from: this.States.END_PLAY_SEEKING, to: this.States.END_PLAY_SEEKING},
-        {name: bitmovin.analytics.Events.SEEKED, from: this.States.END_PLAY_SEEKING, to: this.States.END_PLAY_SEEKING},
-        {name: bitmovin.analytics.Events.TIMECHANGED, from: this.States.END_PLAY_SEEKING, to: this.States.PLAYING},
+        {name: Events.START_BUFFERING, from: this.States.END_PLAY_SEEKING, to: this.States.END_PLAY_SEEKING},
+        {name: Events.END_BUFFERING, from: this.States.END_PLAY_SEEKING, to: this.States.END_PLAY_SEEKING},
+        {name: Events.SEEKED, from: this.States.END_PLAY_SEEKING, to: this.States.END_PLAY_SEEKING},
+        {name: Events.TIMECHANGED, from: this.States.END_PLAY_SEEKING, to: this.States.PLAYING},
 
-        {name: bitmovin.analytics.Events.END, from: this.States.PLAY_SEEKING, to: this.States.END},
-        {name: bitmovin.analytics.Events.END, from: this.States.PAUSED_SEEKING, to: this.States.END},
-        {name: bitmovin.analytics.Events.END, from: this.States.PLAYING, to: this.States.END},
-        {name: bitmovin.analytics.Events.END, from: this.States.PAUSE, to: this.States.END},
-        {name: bitmovin.analytics.Events.SEEK, from: this.States.END, to: this.States.END},
-        {name: bitmovin.analytics.Events.SEEKED, from: this.States.END, to: this.States.END},
-        {name: bitmovin.analytics.Events.TIMECHANGED, from: this.States.END, to: this.States.END},
-        {name: bitmovin.analytics.Events.END_BUFFERING, from: this.States.END, to: this.States.END},
-        {name: bitmovin.analytics.Events.START_BUFFERING, from: this.States.END, to: this.States.END},
-        {name: bitmovin.analytics.Events.END, from: this.States.END, to: this.States.END},
+        {name: Events.END, from: this.States.PLAY_SEEKING, to: this.States.END},
+        {name: Events.END, from: this.States.PAUSED_SEEKING, to: this.States.END},
+        {name: Events.END, from: this.States.PLAYING, to: this.States.END},
+        {name: Events.END, from: this.States.PAUSE, to: this.States.END},
+        {name: Events.SEEK, from: this.States.END, to: this.States.END},
+        {name: Events.SEEKED, from: this.States.END, to: this.States.END},
+        {name: Events.TIMECHANGED, from: this.States.END, to: this.States.END},
+        {name: Events.END_BUFFERING, from: this.States.END, to: this.States.END},
+        {name: Events.START_BUFFERING, from: this.States.END, to: this.States.END},
+        {name: Events.END, from: this.States.END, to: this.States.END},
 
-        {name: bitmovin.analytics.Events.PLAY, from: this.States.END, to: this.States.PLAYING},
+        {name: Events.PLAY, from: this.States.END, to: this.States.PLAYING},
 
         {
-          name           : bitmovin.analytics.Events.ERROR, from: [
+          name           : Events.ERROR, from: [
           this.States.SETUP,
           this.States.STARTUP,
           this.States.READY,
@@ -141,13 +142,13 @@ class BitmovinAnalyticsStateMachine {
           this.States.END], to: this.States.ERROR
         },
 
-        {name: bitmovin.analytics.Events.SEEK, from: this.States.END_PLAY_SEEKING, to: this.States.PLAY_SEEKING},
+        {name: Events.SEEK, from: this.States.END_PLAY_SEEKING, to: this.States.PLAY_SEEKING},
         {name: 'FINISH_PLAY_SEEKING', from: this.States.END_PLAY_SEEKING, to: this.States.PLAYING},
 
-        {name: bitmovin.analytics.Events.UNLOAD, from: this.States.PLAYING, to: this.States.END},
+        {name: Events.UNLOAD, from: this.States.PLAYING, to: this.States.END},
 
-        {name: bitmovin.analytics.Events.START_AD, from: this.States.PLAYING, to: this.States.AD},
-        {name: bitmovin.analytics.Events.END_AD, from: this.States.AD, to: this.States.PLAYING}
+        {name: Events.START_AD, from: this.States.PLAYING, to: this.States.AD},
+        {name: Events.END_AD, from: this.States.AD, to: this.States.PLAYING}
       ],
       callbacks: {
         onpause      : function(event, from, to, timestamp) {
@@ -156,17 +157,17 @@ class BitmovinAnalyticsStateMachine {
           }
         },
         onbeforeevent: function(event, from, to, timestamp, eventObject) {
-          if (event === bitmovin.analytics.Events.SEEK && from === this.States.PAUSE) {
+          if (event === Events.SEEK && from === this.States.PAUSE) {
             if (timestamp - this.pausedTimestamp < BitmovinAnalyticsStateMachine.PAUSE_SEEK_DELAY) {
               this.stateMachine.PLAY_SEEK(timestamp);
               return false;
             }
           }
-          if (event === bitmovin.analytics.Events.SEEK) {
+          if (event === Events.SEEK) {
             window.clearTimeout(seekedTimeout);
           }
 
-          if (event === bitmovin.analytics.Events.SEEKED && from === this.States.PAUSED_SEEKING) {
+          if (event === Events.SEEKED && from === this.States.PAUSED_SEEKING) {
             this.seekedTimestamp = timestamp;
             this.seekedTimeout   = window.setTimeout(function() {
               this.stateMachine.pause(timestamp, eventObject);
@@ -208,7 +209,7 @@ class BitmovinAnalyticsStateMachine {
             const seekDuration = this.seekedTimestamp - this.seekTimestamp;
             this.stateMachineCallbacks[fnName](seekDuration, fnName, eventObject);
             this.logger.log('Seek was ' + seekDuration + 'ms');
-          } else if (event === bitmovin.analytics.Events.UNLOAD) {
+          } else if (event === Events.UNLOAD) {
             this.stateMachineCallbacks.playingAndBye(stateDuration, fnName, eventObject);
           } else if (from === this.States.PAUSE && to !== this.States.PAUSED_SEEKING) {
             this.stateMachineCallbacks.setVideoTimeStartFromEvent(event);
@@ -226,9 +227,9 @@ class BitmovinAnalyticsStateMachine {
             this.stateMachineCallbacks.setVideoTimeStartFromEvent(eventObject);
           }
 
-          if (event === bitmovin.analytics.Events.VIDEO_CHANGE) {
+          if (event === Events.VIDEO_CHANGE) {
             this.stateMachineCallbacks.videoChange(eventObject);
-          } else if (event === bitmovin.analytics.Events.AUDIO_CHANGE) {
+          } else if (event === Events.AUDIO_CHANGE) {
             this.stateMachineCallbacks.audioChange(eventObject);
           }
         },
