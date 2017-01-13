@@ -3,15 +3,17 @@
  */
 
 import PlayerDetector from '../utils/PlayerDetector'
+import BitmovinAnalyticsStateMachine from '../analyticsStateMachines/BitmovinAnalyticsStateMachine'
+import Bitmovin7AnalyticsStateMachine from '../analyticsStateMachines/Bitmovin7AnalyticsStateMachine'
 
 class AnalyticsStateMachineFactory {
   static playerDetector = new PlayerDetector;
 
-  getAnalyticsStateMachine = function(player, logger, bitanalytics) {
+  getAnalyticsStateMachine(player, stateMachineCallbacks, isLogging) {
     if (this.playerDetector.isBitmovinVersionPre7(player)) {
-      return new BitmovinAnalyticsStateMachine(logger, bitanalytics);
+      return new BitmovinAnalyticsStateMachine(stateMachineCallbacks, isLogging);
     } else if (this.playerDetector.isBitmovinVersion7Plus(player)) {
-      return new Bitmovin7AnalyticsStateMachine(logger, bitanalytics);
+      return new Bitmovin7AnalyticsStateMachine(stateMachineCallbacks, isLogging);
     }
   };
 }
