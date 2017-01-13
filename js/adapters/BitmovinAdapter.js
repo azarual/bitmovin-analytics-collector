@@ -9,11 +9,11 @@ class BitmovinAdapter {
 
   constructor(player) {
     this.player = player;
-    this.register()
+    this.register();
   }
 
-  register = function() {
-    this.this.player.addEventHandler(bitmovin.player.EVENT.ON_SOURCE_LOADED, function() {
+  register() {
+    this.player.addEventHandler(bitmovin.player.EVENT.ON_SOURCE_LOADED, function() {
       this.eventCallback(bitmovin.analytics.Events.SOURCE_LOADED);
     });
 
@@ -163,7 +163,7 @@ class BitmovinAdapter {
     };
   };
 
-  setEventCallback = function(callback) {
+  setEventCallback(callback) {
     this.eventCallback = callback;
   };
 }
