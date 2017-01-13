@@ -2,7 +2,7 @@
  * Created by lkroepfl on 11.11.16.
  */
 
-global.bitmovin.analytics.Events = {
+const Events = {
   READY            : 'ready',
   SOURCE_LOADED    : 'sourceLoaded',
   PLAY             : 'play',
@@ -26,3 +26,5 @@ global.bitmovin.analytics.Events = {
   UNLOAD           : 'unload',
   END              : 'end'
 };
+
+export default Events

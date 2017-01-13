@@ -2,7 +2,7 @@
  * Created by lkroepfl on 29.11.16.
  */
 
-global.bitmovin.analytics.CdnProviders = {
+const CdnProviders = {
   BITMOVIN  : 'bitmovin',
   AKAMAI    : 'akamai',
   FASTLY    : 'fastly',
@@ -11,3 +11,5 @@ global.bitmovin.analytics.CdnProviders = {
   CHINACACHE: 'chinacache',
   BITGRAVITY: 'bitgravity'
 };
+
+export default CdnProviders
