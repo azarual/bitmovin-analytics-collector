@@ -6,32 +6,33 @@ import LicenseCall from '../utils/LicenseCall';
 import AnalyticsCall from '../utils/AnalyticsCall';
 import Utils from '../utils/Utils';
 import Logger from '../utils/Logger';
+import AdapterFactory from './AdapterFactory'
+import AnalyticsStateMachineFactory from './AnalyticsStateMachineFactory'
 
 global.bitmovin.analytics = function(config) {
-  const licenseCall    = new LicenseCall;
-  const analyticsCall  = new AnalyticsCall;
-  const utils          = new Utils;
-  const logger         = new Logger;
+  const licenseCall                  = new LicenseCall();
+  const analyticsCall                = new AnalyticsCall();
+  const utils                        = new Utils();
+  const logger                       = new Logger();
+  const adapterFactory               = new AdapterFactory();
+  const analyticsStateMachineFactory = new AnalyticsStateMachineFactory();
+  let adapter;
+  let analyticsStateMachine;
 
-  var adapterFactory = new AdapterFactory();
-  var adapter;
-  var analyticsStateMachineFactory = new AnalyticsStateMachineFactory();
-  var analyticsStateMachine;
-
-  var PageLoadType = {
+  const PageLoadType = {
     FOREGROUND: 1,
     BACKGROUND: 2
   };
 
-  var droppedSampleFrames = 0;
+  let droppedSampleFrames = 0;
 
-  var licensing                    = 'waiting';
-  var LICENSE_CALL_PENDING_TIMEOUT = 200;
-  var PAGE_LOAD_TYPE_TIMEOUT       = 200;
+  let licensing                      = 'waiting';
+  const LICENSE_CALL_PENDING_TIMEOUT = 200;
+  const PAGE_LOAD_TYPE_TIMEOUT       = 200;
 
-  var sample;
-  var startupTime  = 0;
-  var pageLoadType = PageLoadType.FOREGROUND;
+  let sample;
+  let startupTime  = 0;
+  let pageLoadType = PageLoadType.FOREGROUND;
 
   window.setTimeout(function() {
     if (document[utils.getHiddenProp()] === true) {
@@ -67,7 +68,7 @@ global.bitmovin.analytics = function(config) {
 
     sample.experimentName = config.experimentName;
 
-    var userId = utils.getCookie('bitmovin_analytics_uuid');
+    const userId = utils.getCookie('bitmovin_analytics_uuid');
     if (userId == '') {
       document.cookie = 'bitmovin_analytics_uuid=' + utils.generateUUID();
       sample.userId   = utils.getCookie('bitmovin_analytics_uuid');
@@ -77,7 +78,7 @@ global.bitmovin.analytics = function(config) {
     }
   }
 
-  var stateMachineCallbacks = {
+  const stateMachineCallbacks = {
     setup: function(time, state, event) {
       sample.impressionId = utils.generateUUID();
       setDuration(time);
@@ -86,7 +87,7 @@ global.bitmovin.analytics = function(config) {
       sample.pageLoadType      = pageLoadType;
 
       if (window.performance && window.performance.timing) {
-        var loadTime        = utils.getCurrentTimestamp() - window.performance.timing.navigationStart;
+        const loadTime      = utils.getCurrentTimestamp() - window.performance.timing.navigationStart;
         sample.pageLoadTime = loadTime;
         logger.log('Page loaded in ' + loadTime);
       }
@@ -248,7 +249,7 @@ global.bitmovin.analytics = function(config) {
     }
   };
 
-  var register = function(player) {
+  const register = function(player) {
     adapter = adapterFactory.getAdapter(player);
     if (adapter) {
       adapter.setEventCallback(record);
@@ -257,7 +258,8 @@ global.bitmovin.analytics = function(config) {
       return;
     }
 
-    analyticsStateMachine = analyticsStateMachineFactory.getAnalyticsStateMachine(player, logger, stateMachineCallbacks);
+    analyticsStateMachine = analyticsStateMachineFactory.getAnalyticsStateMachine(player, logger,
+      stateMachineCallbacks);
   };
 
   function record(eventType, eventObject) {
@@ -384,7 +386,7 @@ global.bitmovin.analytics = function(config) {
 
       logger.log('Licensing callback still pending, waiting...');
 
-      var copySample = {};
+      let copySample = {};
       clone(sample, copySample);
 
       window.setTimeout(function() {
@@ -399,7 +401,7 @@ global.bitmovin.analytics = function(config) {
   }
 
   function clone(firstObject, secondObject) {
-    for (var prop in firstObject) {
+    for (const prop in firstObject) {
       if (firstObject.hasOwnProperty(prop)) {
         secondObject[prop] = firstObject[prop];
       }
@@ -415,7 +417,8 @@ global.bitmovin.analytics = function(config) {
       sendAnalyticsRequestSynchronous();
     }
     else {
-      var success = navigator.sendBeacon(analyticsCall.getAnalyticsServerUrl() + '/analytics', JSON.stringify(sample));
+      const success = navigator.sendBeacon(analyticsCall.getAnalyticsServerUrl() + '/analytics',
+        JSON.stringify(sample));
       if (!success) {
         sendAnalyticsRequestSynchronous();
       }
@@ -448,7 +451,7 @@ global.bitmovin.analytics = function(config) {
 
   function getDroppedFrames(frames) {
     if (frames != undefined && frames != 0) {
-      var droppedFrames   = frames - droppedSampleFrames;
+      const droppedFrames = frames - droppedSampleFrames;
       droppedSampleFrames = frames;
       return droppedFrames;
     }
