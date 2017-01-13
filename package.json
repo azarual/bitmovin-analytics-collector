@@ -34,7 +34,7 @@
     "webpack": "^1.14.0"
   },
   "scripts": {
-    "build": "babel --presets es2015 js/core/Bitanalytics.js -o build/main.bundle.js"
+    "build": "webpack --config=webpack.config.js"
   },
   "babel": {
     "presets": [
