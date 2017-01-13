@@ -86,7 +86,7 @@ class Analytics {
 
   setupStateMachineCallbacks() {
     this.stateMachineCallbacks = {
-      setup: function(time, state, event) {
+      setup: (time, state, event) => {
         this.sample.impressionId = this.utils.generateUUID();
         this.setDuration(time);
         this.setState(state);
@@ -111,7 +111,7 @@ class Analytics {
 
       ready: this.utils.noOp,
 
-      startup: function(time, state) {
+      startup: (time, state) => {
         this.setDuration(time);
         this.sample.videoStartupTime = time;
         this.setState(state);
@@ -122,7 +122,7 @@ class Analytics {
         this.sendAnalyticsRequestAndClearValues();
       },
 
-      playing: function(time, state, event) {
+      playing: (time, state, event) => {
         this.setDuration(time);
         this.setState(state);
         this.sample.played = time;
@@ -132,7 +132,7 @@ class Analytics {
         this.sendAnalyticsRequestAndClearValues();
       },
 
-      playingAndBye: function(time, state, event) {
+      playingAndBye: (time, state, event) => {
         this.setDuration(time);
         this.setState(state);
         this.sample.played = time;
@@ -142,7 +142,7 @@ class Analytics {
         this.sendUnloadRequest();
       },
 
-      heartbeat: function(time, state, event) {
+      heartbeat: (time, state, event) => {
         this.setDroppedFrames(event);
         this.setState(state);
         this.setDuration(time);
@@ -152,33 +152,33 @@ class Analytics {
         this.sendAnalyticsRequestAndClearValues();
       },
 
-      qualitychange: function(time, state) {
+      qualitychange: (time, state) => {
         this.setDuration(time);
         this.setState(state);
 
         this.sendAnalyticsRequestAndClearValues();
       },
 
-      'qualitychange_pause': function(time, state) {
+      'qualitychange_pause': (time, state) => {
         this.setDuration(time);
         this.setState(state);
 
         this.sendAnalyticsRequestAndClearValues();
       },
 
-      videoChange: function(event) {
-        this.setVideoTimeEndFromEvent(event);
-        this.setVideoTimeStartFromEvent(event);
+      videoChange: (event) => {
+        this.stateMachineCallbacks.setVideoTimeEndFromEvent(event);
+        this.stateMachineCallbacks.setVideoTimeStartFromEvent(event);
         this.setPlaybackVideoPropertiesFromEvent(event);
       },
 
-      audioChange: function(event) {
-        this.setVideoTimeEndFromEvent(event);
-        this.setVideoTimeStartFromEvent(event);
+      audioChange: (event) => {
+        this.stateMachineCallbacks.setVideoTimeEndFromEvent(event);
+        this.stateMachineCallbacks.setVideoTimeStartFromEvent(event);
         this.sample.audioBitrate = event.bitrate;
       },
 
-      pause: function(time, state, event) {
+      pause: (time, state, event) => {
         this.setDuration(time);
         this.setState(state);
 
@@ -187,7 +187,7 @@ class Analytics {
         this.sendAnalyticsRequestAndClearValues();
       },
 
-      'paused_seeking': function(time, state, event) {
+      'paused_seeking': (time, state, event) => {
         this.setDuration(time);
         this.setState(state);
 
@@ -198,7 +198,7 @@ class Analytics {
 
       'play_seeking': this.utils.noOp,
 
-      'end_play_seeking': function(time, state, event) {
+      'end_play_seeking': (time, state, event) => {
         this.setState(state);
         this.setDuration(time);
 
@@ -207,7 +207,7 @@ class Analytics {
         this.sendAnalyticsRequestAndClearValues();
       },
 
-      rebuffering: function(time, state, event) {
+      rebuffering: (time, state, event) => {
         this.setDuration(time);
         this.setState(state);
 
@@ -216,7 +216,7 @@ class Analytics {
         this.sendAnalyticsRequestAndClearValues();
       },
 
-      error: function(event) {
+      error: (event) => {
         this.setVideoTimeEndFromEvent(event);
         this.setVideoTimeStartFromEvent(event);
 
@@ -229,11 +229,11 @@ class Analytics {
         delete this.sample.errorMessage;
       },
 
-      end: function(time, state, event) {
+      end: (time, state, event) => {
         this.sample.impressionId = this.utils.generateUUID();
       },
 
-      ad: function(time, state, event) {
+      ad: (time, state, event) => {
         this.setDuration(time);
         this.setState(state);
         this.sample.ad = time;
@@ -243,13 +243,13 @@ class Analytics {
         this.sendAnalyticsRequestAndClearValues();
       },
 
-      setVideoTimeEndFromEvent: function(event) {
+      setVideoTimeEndFromEvent: (event) => {
         if (this.utils.validNumber(event.currentTime)) {
           this.sample.videoTimeEnd = this.utils.calculateTime(event.currentTime);
         }
       },
 
-      setVideoTimeStartFromEvent: function(event) {
+      setVideoTimeStartFromEvent: (event) => {
         if (this.utils.validNumber(event.currentTime)) {
           this.sample.videoTimeStart = this.utils.calculateTime(event.currentTime);
         }
@@ -257,7 +257,7 @@ class Analytics {
     };
   }
 
-  register(player) {
+  register = (player) => {
     this.adapter = this.adapterFactory.getAdapter(player, this.record);
     if (!this.adapter) {
       this.logger.error('Could not detect player.');
@@ -267,11 +267,11 @@ class Analytics {
     this.analyticsStateMachine = this.analyticsStateMachineFactory.getAnalyticsStateMachine(player, this.stateMachineCallbacks, this.logger.isLogging());
   };
 
-  record(eventType, eventObject) {
+  record = (eventType, eventObject) => {
     eventObject = eventObject || {};
 
     this.analyticsStateMachine.callEvent(eventType, eventObject, this.utils.getCurrentTimestamp());
-  }
+  };
 
   setDuration(duration) {
     this.sample.duration = duration;
@@ -282,52 +282,52 @@ class Analytics {
   }
 
   setPlaybackVideoPropertiesFromEvent(event) {
-    if (utils.validNumber(event.width)) {
+    if (this.utils.validNumber(event.width)) {
       this.sample.videoPlaybackWidth = event.width;
     }
-    if (utils.validNumber(event.height)) {
+    if (this.utils.validNumber(event.height)) {
       this.sample.videoPlaybackHeight = event.height;
     }
-    if (utils.validNumber(event.bitrate)) {
+    if (this.utils.validNumber(event.bitrate)) {
       this.sample.videoBitrate = event.bitrate;
     }
   }
 
-  setDroppedFrames(event) {
-    if (utils.validNumber(event.droppedFrames)) {
+  setDroppedFrames = (event) => {
+    if (this.utils.validNumber(event.droppedFrames)) {
       this.sample.droppedFrames = this.getDroppedFrames(event.droppedFrames);
     }
-  }
+  };
 
   setPlaybackSettingsFromLoadedEvent(loadedEvent) {
-    if (utils.validBoolean(loadedEvent.isLive)) {
+    if (this.utils.validBoolean(loadedEvent.isLive)) {
       this.sample.isLive = loadedEvent.isLive;
     }
-    if (utils.validString(loadedEvent.version)) {
+    if (this.utils.validString(loadedEvent.version)) {
       this.sample.version = this.sample.player + '-' + loadedEvent.version;
     }
-    if (utils.validString(loadedEvent.type)) {
+    if (this.utils.validString(loadedEvent.type)) {
       this.sample.playerTech = loadedEvent.type;
     }
-    if (utils.validNumber(loadedEvent.duration)) {
+    if (this.utils.validNumber(loadedEvent.duration)) {
       this.sample.videoDuration = this.utils.calculateTime(loadedEvent.duration);
     }
-    if (utils.validString(loadedEvent.streamType)) {
+    if (this.utils.validString(loadedEvent.streamType)) {
       this.sample.streamFormat = loadedEvent.streamType;
     }
-    if (utils.validString(loadedEvent.mpdUrl)) {
+    if (this.utils.validString(loadedEvent.mpdUrl)) {
       this.sample.mpdUrl = loadedEvent.mpdUrl;
     }
-    if (utils.validString(loadedEvent.m3u8Url)) {
+    if (this.utils.validString(loadedEvent.m3u8Url)) {
       this.sample.m3u8Url = loadedEvent.m3u8Url;
     }
-    if (utils.validString(loadedEvent.progUrl)) {
+    if (this.utils.validString(loadedEvent.progUrl)) {
       this.sample.progUrl = loadedEvent.progUrl;
     }
-    if (utils.validNumber(loadedEvent.videoWindowWidth)) {
+    if (this.utils.validNumber(loadedEvent.videoWindowWidth)) {
       this.sample.videoWindowWidth = loadedEvent.videoWindowWidth;
     }
-    if (utils.validNumber(loadedEvent.videoWindowHeight)) {
+    if (this.utils.validNumber(loadedEvent.videoWindowHeight)) {
       this.sample.videoWindowHeight = loadedEvent.videoWindowHeight;
     }
   }
@@ -394,7 +394,7 @@ class Analytics {
 
       const copySample = {...this.sample};
 
-      window.setTimeout(function() {
+      window.setTimeout(() => {
         this.analyticsCall.sendRequest(copySample, this.utils.noOp);
       }, Analytics.LICENSE_CALL_PENDING_TIMEOUT);
     }
