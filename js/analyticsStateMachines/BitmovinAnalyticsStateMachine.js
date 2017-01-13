@@ -151,12 +151,12 @@ class BitmovinAnalyticsStateMachine {
         {name: Events.END_AD, from: this.States.AD, to: this.States.PLAYING}
       ],
       callbacks: {
-        onpause      : function(event, from, to, timestamp) {
+        onpause      : (event, from, to, timestamp) => {
           if (from === this.States.PLAYING) {
             this.pausedTimestamp = timestamp;
           }
         },
-        onbeforeevent: function(event, from, to, timestamp, eventObject) {
+        onbeforeevent: (event, from, to, timestamp, eventObject) => {
           if (event === Events.SEEK && from === this.States.PAUSE) {
             if (timestamp - this.pausedTimestamp < BitmovinAnalyticsStateMachine.PAUSE_SEEK_DELAY) {
               this.stateMachine.PLAY_SEEK(timestamp);
@@ -164,18 +164,18 @@ class BitmovinAnalyticsStateMachine {
             }
           }
           if (event === Events.SEEK) {
-            window.clearTimeout(seekedTimeout);
+            window.clearTimeout(this.seekedTimeout);
           }
 
           if (event === Events.SEEKED && from === this.States.PAUSED_SEEKING) {
             this.seekedTimestamp = timestamp;
-            this.seekedTimeout   = window.setTimeout(function() {
+            this.seekedTimeout   = window.setTimeout(() => {
               this.stateMachine.pause(timestamp, eventObject);
             }, BitmovinAnalyticsStateMachine.SEEKED_PAUSE_DELAY);
             return false;
           }
         },
-        onafterevent : function(event, from, to, timestamp) {
+        onafterevent : (event, from, to, timestamp)  => {
           this.logger.log(BitmovinAnalyticsStateMachine.pad(timestamp, 20) + 'EVENT: ' + BitmovinAnalyticsStateMachine.pad(event, 20) + ' from ' + BitmovinAnalyticsStateMachine.pad(from, 14) + '-> ' + BitmovinAnalyticsStateMachine.pad(to, 14));
           if (to === this.States.QUALITYCHANGE_PAUSE) {
             this.stateMachine.FINISH_QUALITYCHANGE_PAUSE(timestamp);
@@ -184,7 +184,7 @@ class BitmovinAnalyticsStateMachine {
             this.stateMachine.FINISH_QUALITYCHANGE(timestamp);
           }
         },
-        onenterstate : function(event, from, to, timestamp, eventObject) {
+        onenterstate : (event, from, to, timestamp, eventObject) => {
           this.onEnterStateTimestamp = timestamp || new Date().getTime();
 
           this.logger.log('Entering State ' + to + ' with ' + event);
@@ -192,12 +192,12 @@ class BitmovinAnalyticsStateMachine {
             this.stateMachineCallbacks.setVideoTimeStartFromEvent(eventObject);
           }
         },
-        onleavestate : function(event, from, to, timestamp, eventObject) {
+        onleavestate : (event, from, to, timestamp, eventObject)  => {
           if (!timestamp) {
             return;
           }
 
-          const stateDuration = timestamp - onEnterStateTimestamp;
+          const stateDuration = timestamp - this.onEnterStateTimestamp;
           this.logger.log('State ' + from + ' was ' + stateDuration + ' ms event:' + event);
 
           if (eventObject && to !== this.States.PAUSED_SEEKING) {
@@ -215,7 +215,7 @@ class BitmovinAnalyticsStateMachine {
             this.stateMachineCallbacks.setVideoTimeStartFromEvent(event);
             this.stateMachineCallbacks.pause(stateDuration, fnName, eventObject);
           } else {
-            const callbackFunction = bitanalytics[fnName];
+            const callbackFunction = this.stateMachineCallbacks[fnName];
             if (typeof callbackFunction === 'function') {
               callbackFunction(stateDuration, fnName, eventObject);
             } else {
@@ -233,13 +233,13 @@ class BitmovinAnalyticsStateMachine {
             this.stateMachineCallbacks.audioChange(eventObject);
           }
         },
-        onseek       : function(event, from, to, timestamp) {
+        onseek       : (event, from, to, timestamp) => {
           this.seekTimestamp = timestamp;
         },
-        onseeked     : function(event, from, to, timestamp) {
+        onseeked     : (event, from, to, timestamp) => {
           this.seekedTimestamp = timestamp;
         },
-        ontimechanged: function(event, from, to, timestamp, eventObject) {
+        ontimechanged: (event, from, to, timestamp, eventObject) => {
           const stateDuration = timestamp - this.onEnterStateTimestamp;
 
           if (stateDuration > 59700) {
@@ -252,7 +252,7 @@ class BitmovinAnalyticsStateMachine {
             this.stateMachineCallbacks.setVideoTimeStartFromEvent(eventObject);
           }
         },
-        onplayerError: function(event, from, to, timestamp, eventObject) {
+        onplayerError: (event, from, to, timestamp, eventObject) => {
           this.stateMachineCallbacks.error(eventObject);
         }
       }
