@@ -144,7 +144,7 @@ class Bitmovin7AnalyticsStateMachine {
         {name: Events.SEEK, from: this.States.END_PLAY_SEEKING, to: this.States.PLAY_SEEKING},
         {name: 'FINISH_PLAY_SEEKING', from: this.States.END_PLAY_SEEKING, to: this.States.PLAYING},
 
-        {name: Events.UNLOAD, from: this.States.PLAYING, to: this.States.END},
+        {name: Events.UNLOAD, from: [this.States.PLAYING, this.States.PAUSE], to: this.States.END},
 
         {name: Events.START_AD, from: this.States.PLAYING, to: this.States.AD},
         {name: Events.END_AD, from: this.States.AD, to: this.States.PLAYING}
@@ -213,7 +213,7 @@ class Bitmovin7AnalyticsStateMachine {
 
           const fnName = from.toLowerCase();
           if (from === this.States.END_PLAY_SEEKING || from === this.States.PAUSED_SEEKING) {
-            const seekDuration = seekedTimestamp - seekTimestamp;
+            const seekDuration = this.seekedTimestamp - this.seekTimestamp;
             this.stateMachineCallbacks[fnName](seekDuration, fnName, eventObject);
             this.logger.log('Seek was ' + seekDuration + 'ms');
           } else if (event === Events.UNLOAD) {
