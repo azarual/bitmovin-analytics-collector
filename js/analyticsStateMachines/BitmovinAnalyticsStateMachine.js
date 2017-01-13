@@ -268,7 +268,6 @@ class BitmovinAnalyticsStateMachine {
     }
   };
 
-
   static pad(str, length) {
     const padStr = new Array(length).join(' ');
     return (str + padStr).slice(0, length);
