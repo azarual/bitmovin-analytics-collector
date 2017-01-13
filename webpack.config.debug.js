@@ -4,7 +4,7 @@ const packageProperties = require('./package.json');
 module.exports = {
   entry: './js/core/BitmovinAnalyticsExport.js',
   output: {
-    path: './build/release',
+    path: './build/debug',
     filename: packageProperties.name + '.min.js',
     libraryTarget: 'umd'
   },
@@ -22,15 +22,5 @@ module.exports = {
       exclude: /node_modules/,
       loader: 'babel-loader'
     }]
-  },
-  plugins: [
-    new webpack.optimize.UglifyJsPlugin({
-      compress: {
-        warnings: false
-      },
-      output: {
-        comments: false
-      }
-    })
-  ]
+  }
 }

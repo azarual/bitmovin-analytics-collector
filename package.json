@@ -27,7 +27,8 @@
     "webpack": "^1.14.0"
   },
   "scripts": {
-    "build": "webpack --config=webpack.config.js"
+    "release": "webpack --config=webpack.config.js",
+    "debug": "webpack --config=webpack.config.debug.js"
   },
   "babel": {
     "presets": [
