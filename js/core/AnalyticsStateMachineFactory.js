@@ -7,7 +7,9 @@ import BitmovinAnalyticsStateMachine from '../analyticsStateMachines/BitmovinAna
 import Bitmovin7AnalyticsStateMachine from '../analyticsStateMachines/Bitmovin7AnalyticsStateMachine'
 
 class AnalyticsStateMachineFactory {
-  static playerDetector = new PlayerDetector;
+  constructor() {
+    this.playerDetector = new PlayerDetector;
+  }
 
   getAnalyticsStateMachine(player, stateMachineCallbacks, isLogging) {
     if (this.playerDetector.isBitmovinVersionPre7(player)) {

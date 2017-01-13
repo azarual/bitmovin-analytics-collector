@@ -7,7 +7,9 @@ import BitmovinAdapter from '../adapters/BitmovinAdapter'
 import Bitmovin7Adapter from '../adapters/Bitmovin7Adapter'
 
 class AdapterFactory {
-  static playerDetector = new PlayerDetector;
+  constructor() {
+    this.playerDetector = new PlayerDetector;
+  }
 
   getAdapter(player, eventCallback) {
     if (this.playerDetector.isBitmovinVersionPre7(player)) {
