@@ -13,7 +13,7 @@ class LicenseCall extends HttpCall {
       analyticsVersion: version
     };
 
-    this.post(this.licenseServerUrl, licensingRequest, callback);
+    this.post(LicenseCall.licenseServerUrl, licensingRequest, callback);
   };
 }
 

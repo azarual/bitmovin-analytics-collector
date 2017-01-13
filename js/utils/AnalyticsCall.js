@@ -7,15 +7,15 @@ class AnalyticsCall extends HttpCall{
   static analyticsServerUrl = '//bitmovin-bitanalytics.appspot.com/analytics';
 
   sendRequest = function(sample, callback) {
-    this.post(this.analyticsServerUrl, sample, callback);
+    this.post(AnalyticsCall.analyticsServerUrl, sample, callback);
   };
 
   sendRequestSynchronous = function(sample, callback) {
-    this.post(this.analyticsServerUrl, sample, callback, false);
+    this.post(AnalyticsCall.analyticsServerUrl, sample, callback, false);
   };
 
   getAnalyticsServerUrl = function() {
-    return this.analyticsServerUrl;
+    return AnalyticsCall.analyticsServerUrl;
   }
 }
 
