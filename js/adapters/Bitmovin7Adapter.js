@@ -3,12 +3,10 @@
  */
 
 class Bitmovin7Adapter {
-  static onBeforeUnLoadEvent = false;
-  static eventCallback;
-  static player;
-
-  constructor(player) {
+  constructor(player, eventCallback) {
+    this.onBeforeUnLoadEvent = false;
     this.player = player;
+    this.eventCallback = eventCallback;
     this.register();
   }
 
@@ -161,10 +159,6 @@ class Bitmovin7Adapter {
         });
       }
     };
-  };
-
-  setEventCallback(callback) {
-    this.eventCallback = callback;
   };
 }
 

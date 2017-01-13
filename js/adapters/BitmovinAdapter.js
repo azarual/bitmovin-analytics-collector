@@ -3,12 +3,10 @@
  */
 
 class BitmovinAdapter {
-  static onBeforeUnLoadEvent = false;
-  static eventCallback;
-  static player;
-
-  constructor(player) {
+  constructor(player, eventCallback) {
+    this.onBeforeUnLoadEvent = false;
     this.player = player;
+    this.eventCallback = eventCallback;
     this.register();
   }
 
@@ -116,6 +114,7 @@ class BitmovinAdapter {
         droppedFrames: this.player.getDroppedFrames()
       });
     });
+    this.onBeforeUnLoadEvent = false;
 
     this.player.addEventHandler(bitmovin.player.EVENT.ON_FULLSCREEN_EXIT, function() {
       this.eventCallback(bitmovin.analytics.Events.END_FULLSCREEN, {
@@ -161,10 +160,6 @@ class BitmovinAdapter {
         });
       }
     };
-  };
-
-  setEventCallback(callback) {
-    this.eventCallback = callback;
   };
 }
 
