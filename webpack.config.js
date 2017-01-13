@@ -5,7 +5,7 @@ module.exports = {
   entry: './js/core/BitmovinAnalyticsExport.js',
   output: {
     path: './build/',
-    filename: 'webpack.bundle.js',
+    filename: packageProperties.name + '.min.js',
     libraryTarget: 'umd'
   },
   module: {
@@ -24,5 +24,13 @@ module.exports = {
     }]
   },
   plugins: [
+    new webpack.optimize.UglifyJsPlugin({
+      compress: {
+        warnings: false
+      },
+      output: {
+        comments: false
+      }
+    })
   ]
 }
