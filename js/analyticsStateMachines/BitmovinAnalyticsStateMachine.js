@@ -2,252 +2,277 @@
  * Created by lkroepfl on 22.11.16.
  */
 
-var BitmovinAnalyticsStateMachine = function(logger, bitanalytics) {
-  var pausedTimestamp = null;
-  var seekTimestamp = 0;
-  var seekedTimestamp = 0;
-  var seekedTimeout = 0;
-  var PAUSE_SEEK_DELAY = 60;
-  var SEEKED_PAUSE_DELAY = 120;
-  var onEnterStateTimestamp = 0;
+import Logger from '../utils/Logger'
+import StateMachine from 'javascript-state-machine'
 
-  var States = {
-    SETUP: 'SETUP',
-    STARTUP : 'STARTUP',
-    READY: 'READY',
-    PLAYING: 'PLAYING',
-    REBUFFERING: 'REBUFFERING',
-    PAUSE: 'PAUSE',
-    QUALITYCHANGE: 'QUALITYCHANGE',
-    PAUSED_SEEKING: 'PAUSED_SEEKING',
-    PLAY_SEEKING: 'PLAY_SEEKING',
-    END_PLAY_SEEKING: 'END_PLAY_SEEKING',
-    QUALITYCHANGE_PAUSE: 'QUALITYCHANGE_PAUSE',
-    END: 'END',
-    ERROR: 'ERROR',
-    AD: 'AD'
-  };
+class BitmovinAnalyticsStateMachine {
+  static PAUSE_SEEK_DELAY = 60;
+  static SEEKED_PAUSE_DELAY = 120;
 
-  var pad = function (str, length) {
-    var padStr = Array(length).join(' ');
-    return (str + padStr).slice(0, length);
-  };
+  constructor(stateMachineCallbacks, isLogging = false) {
+    this.stateMachineCallbacks = stateMachineCallbacks;
+    this.logger = new Logger(isLogging);
 
-  var stateMachine = StateMachine.create({
-    initial: States.SETUP,
-    events: [
-      { name: bitmovin.analytics.Events.READY, from: States.SETUP, to: States.READY },
-      { name: bitmovin.analytics.Events.PLAY, from: States.READY, to: States.STARTUP },
+    this.pausedTimestamp = null;
+    this.seekTimestamp = 0;
+    this.seekedTimestamp = 0;
+    this.seekedTimeout = 0;
+    this.onEnterStateTimestamp = 0;
 
-      { name: bitmovin.analytics.Events.START_BUFFERING, from: States.STARTUP, to: States.STARTUP},
-      { name: bitmovin.analytics.Events.END_BUFFERING, from: States.STARTUP, to: States.STARTUP},
-      { name: bitmovin.analytics.Events.TIMECHANGED, from: States.STARTUP, to: States.PLAYING},
+    this.States = {
+      SETUP: 'SETUP',
+      STARTUP : 'STARTUP',
+      READY: 'READY',
+      PLAYING: 'PLAYING',
+      REBUFFERING: 'REBUFFERING',
+      PAUSE: 'PAUSE',
+      QUALITYCHANGE: 'QUALITYCHANGE',
+      PAUSED_SEEKING: 'PAUSED_SEEKING',
+      PLAY_SEEKING: 'PLAY_SEEKING',
+      END_PLAY_SEEKING: 'END_PLAY_SEEKING',
+      QUALITYCHANGE_PAUSE: 'QUALITYCHANGE_PAUSE',
+      END: 'END',
+      ERROR: 'ERROR',
+      AD: 'AD'
+    };
 
-      { name: bitmovin.analytics.Events.TIMECHANGED, from: States.PLAYING, to: States.PLAYING },
-      { name: bitmovin.analytics.Events.END_BUFFERING, from: States.PLAYING, to: States.PLAYING },
-      { name: bitmovin.analytics.Events.START_BUFFERING, from: States.PLAYING, to: States.REBUFFERING },
-      { name: bitmovin.analytics.Events.END_BUFFERING, from: States.REBUFFERING, to: States.PLAYING },
-      { name: bitmovin.analytics.Events.TIMECHANGED, from: States.REBUFFERING, to: States.REBUFFERING },
+    this.createStateMachine();
+  }
 
-      { name: bitmovin.analytics.Events.PAUSE, from: States.PLAYING, to: States.PAUSE },
-      { name: bitmovin.analytics.Events.PAUSE, from: States.REBUFFERING, to: States.PAUSE },
-      { name: bitmovin.analytics.Events.PLAY, from: States.PAUSE, to: States.PLAYING },
+  createStateMachine() {
+    this.stateMachine = StateMachine.create({
+      initial  : this.States.SETUP,
+      events   : [
+        {name: bitmovin.analytics.Events.READY, from: this.States.SETUP, to: this.States.READY},
+        {name: bitmovin.analytics.Events.PLAY, from: this.States.READY, to: this.States.STARTUP},
 
-      { name: bitmovin.analytics.Events.VIDEO_CHANGE, from: States.PLAYING, to: States.QUALITYCHANGE },
-      { name: bitmovin.analytics.Events.AUDIO_CHANGE, from: States.PLAYING, to: States.QUALITYCHANGE },
-      { name: bitmovin.analytics.Events.VIDEO_CHANGE, from: States.QUALITYCHANGE, to: States.QUALITYCHANGE },
-      { name: bitmovin.analytics.Events.AUDIO_CHANGE, from: States.QUALITYCHANGE, to: States.QUALITYCHANGE },
-      { name: 'FINISH_QUALITYCHANGE', from: States.QUALITYCHANGE, to: States.PLAYING },
+        {name: bitmovin.analytics.Events.START_BUFFERING, from: this.States.STARTUP, to: this.States.STARTUP},
+        {name: bitmovin.analytics.Events.END_BUFFERING, from: this.States.STARTUP, to: this.States.STARTUP},
+        {name: bitmovin.analytics.Events.TIMECHANGED, from: this.States.STARTUP, to: this.States.PLAYING},
 
-      { name: bitmovin.analytics.Events.VIDEO_CHANGE, from: States.PAUSE, to: States.QUALITYCHANGE_PAUSE },
-      { name: bitmovin.analytics.Events.AUDIO_CHANGE, from: States.PAUSE, to: States.QUALITYCHANGE_PAUSE },
-      { name: bitmovin.analytics.Events.VIDEO_CHANGE, from: States.QUALITYCHANGE_PAUSE, to: States.QUALITYCHANGE_PAUSE },
-      { name: bitmovin.analytics.Events.AUDIO_CHANGE, from: States.QUALITYCHANGE_PAUSE, to: States.QUALITYCHANGE_PAUSE },
-      { name: 'FINISH_QUALITYCHANGE_PAUSE', from: States.QUALITYCHANGE_PAUSE, to: States.PAUSE },
+        {name: bitmovin.analytics.Events.TIMECHANGED, from: this.States.PLAYING, to: this.States.PLAYING},
+        {name: bitmovin.analytics.Events.END_BUFFERING, from: this.States.PLAYING, to: this.States.PLAYING},
+        {name: bitmovin.analytics.Events.START_BUFFERING, from: this.States.PLAYING, to: this.States.REBUFFERING},
+        {name: bitmovin.analytics.Events.END_BUFFERING, from: this.States.REBUFFERING, to: this.States.PLAYING},
+        {name: bitmovin.analytics.Events.TIMECHANGED, from: this.States.REBUFFERING, to: this.States.REBUFFERING},
 
-      { name: bitmovin.analytics.Events.SEEK, from: States.PAUSE, to: States.PAUSED_SEEKING },
-      { name: bitmovin.analytics.Events.SEEK, from: States.PAUSED_SEEKING, to: States.PAUSED_SEEKING },
-      { name: bitmovin.analytics.Events.AUDIO_CHANGE, from: States.PAUSED_SEEKING, to: States.PAUSED_SEEKING },
-      { name: bitmovin.analytics.Events.VIDEO_CHANGE, from: States.PAUSED_SEEKING, to: States.PAUSED_SEEKING },
-      { name: bitmovin.analytics.Events.START_BUFFERING, from: States.PAUSED_SEEKING, to: States.PAUSED_SEEKING },
-      { name: bitmovin.analytics.Events.END_BUFFERING, from: States.PAUSED_SEEKING, to: States.PAUSED_SEEKING },
-      { name: bitmovin.analytics.Events.SEEKED, from: States.PAUSED_SEEKING, to: States.PAUSE },
-      { name: bitmovin.analytics.Events.PLAY, from: States.PAUSED_SEEKING, to: States.PLAYING },
-      { name: bitmovin.analytics.Events.PAUSE, from: States.PAUSED_SEEKING, to: States.PAUSE },
+        {name: bitmovin.analytics.Events.PAUSE, from: this.States.PLAYING, to: this.States.PAUSE},
+        {name: bitmovin.analytics.Events.PAUSE, from: this.States.REBUFFERING, to: this.States.PAUSE},
+        {name: bitmovin.analytics.Events.PLAY, from: this.States.PAUSE, to: this.States.PLAYING},
 
-      { name: 'PLAY_SEEK', from: States.PAUSE, to: States.PLAY_SEEKING },
-      { name: 'PLAY_SEEK', from: States.PAUSED_SEEKING, to: States.PLAY_SEEKING },
-      { name: 'PLAY_SEEK', from: States.PLAY_SEEKING, to: States.PLAY_SEEKING },
-      { name: bitmovin.analytics.Events.SEEK, from: States.PLAY_SEEKING, to: States.PLAY_SEEKING },
-      { name: bitmovin.analytics.Events.AUDIO_CHANGE, from: States.PLAY_SEEKING, to: States.PLAY_SEEKING },
-      { name: bitmovin.analytics.Events.VIDEO_CHANGE, from: States.PLAY_SEEKING, to: States.PLAY_SEEKING },
-      { name: bitmovin.analytics.Events.START_BUFFERING, from: States.PLAY_SEEKING, to: States.PLAY_SEEKING },
-      { name: bitmovin.analytics.Events.END_BUFFERING, from: States.PLAY_SEEKING, to: States.PLAY_SEEKING },
-      { name: bitmovin.analytics.Events.SEEKED, from: States.PLAY_SEEKING, to: States.PLAY_SEEKING },
+        {name: bitmovin.analytics.Events.VIDEO_CHANGE, from: this.States.PLAYING, to: this.States.QUALITYCHANGE},
+        {name: bitmovin.analytics.Events.AUDIO_CHANGE, from: this.States.PLAYING, to: this.States.QUALITYCHANGE},
+        {name: bitmovin.analytics.Events.VIDEO_CHANGE, from: this.States.QUALITYCHANGE, to: this.States.QUALITYCHANGE},
+        {name: bitmovin.analytics.Events.AUDIO_CHANGE, from: this.States.QUALITYCHANGE, to: this.States.QUALITYCHANGE},
+        {name: 'FINISH_QUALITYCHANGE', from: this.States.QUALITYCHANGE, to: this.States.PLAYING},
 
-      // We are ending the seek
-      { name: bitmovin.analytics.Events.PLAY, from: States.PLAY_SEEKING, to: States.END_PLAY_SEEKING },
+        {name: bitmovin.analytics.Events.VIDEO_CHANGE, from: this.States.PAUSE, to: this.States.QUALITYCHANGE_PAUSE},
+        {name: bitmovin.analytics.Events.AUDIO_CHANGE, from: this.States.PAUSE, to: this.States.QUALITYCHANGE_PAUSE},
+        {
+          name: bitmovin.analytics.Events.VIDEO_CHANGE,
+          from: this.States.QUALITYCHANGE_PAUSE,
+          to  : this.States.QUALITYCHANGE_PAUSE
+        },
+        {
+          name: bitmovin.analytics.Events.AUDIO_CHANGE,
+          from: this.States.QUALITYCHANGE_PAUSE,
+          to  : this.States.QUALITYCHANGE_PAUSE
+        },
+        {name: 'FINISH_QUALITYCHANGE_PAUSE', from: this.States.QUALITYCHANGE_PAUSE, to: this.States.PAUSE},
 
-      { name: bitmovin.analytics.Events.START_BUFFERING, from: States.END_PLAY_SEEKING, to: States.END_PLAY_SEEKING },
-      { name: bitmovin.analytics.Events.END_BUFFERING, from: States.END_PLAY_SEEKING, to: States.END_PLAY_SEEKING },
-      { name: bitmovin.analytics.Events.SEEKED, from: States.END_PLAY_SEEKING, to: States.END_PLAY_SEEKING },
-      { name: bitmovin.analytics.Events.TIMECHANGED, from: States.END_PLAY_SEEKING, to: States.PLAYING },
+        {name: bitmovin.analytics.Events.SEEK, from: this.States.PAUSE, to: this.States.PAUSED_SEEKING},
+        {name: bitmovin.analytics.Events.SEEK, from: this.States.PAUSED_SEEKING, to: this.States.PAUSED_SEEKING},
+        {name: bitmovin.analytics.Events.AUDIO_CHANGE, from: this.States.PAUSED_SEEKING, to: this.States.PAUSED_SEEKING},
+        {name: bitmovin.analytics.Events.VIDEO_CHANGE, from: this.States.PAUSED_SEEKING, to: this.States.PAUSED_SEEKING},
+        {name: bitmovin.analytics.Events.START_BUFFERING, from: this.States.PAUSED_SEEKING, to: this.States.PAUSED_SEEKING},
+        {name: bitmovin.analytics.Events.END_BUFFERING, from: this.States.PAUSED_SEEKING, to: this.States.PAUSED_SEEKING},
+        {name: bitmovin.analytics.Events.SEEKED, from: this.States.PAUSED_SEEKING, to: this.States.PAUSE},
+        {name: bitmovin.analytics.Events.PLAY, from: this.States.PAUSED_SEEKING, to: this.States.PLAYING},
+        {name: bitmovin.analytics.Events.PAUSE, from: this.States.PAUSED_SEEKING, to: this.States.PAUSE},
 
-      { name: bitmovin.analytics.Events.END, from: States.PLAY_SEEKING, to: States.END },
-      { name: bitmovin.analytics.Events.END, from: States.PAUSED_SEEKING, to: States.END },
-      { name: bitmovin.analytics.Events.END, from: States.PLAYING, to: States.END },
-      { name: bitmovin.analytics.Events.END, from: States.PAUSE, to: States.END },
-      { name: bitmovin.analytics.Events.SEEK, from: States.END, to: States.END },
-      { name: bitmovin.analytics.Events.SEEKED, from: States.END, to: States.END },
-      { name: bitmovin.analytics.Events.TIMECHANGED, from: States.END, to: States.END },
-      { name: bitmovin.analytics.Events.END_BUFFERING, from: States.END, to: States.END },
-      { name: bitmovin.analytics.Events.START_BUFFERING, from: States.END, to: States.END },
-      { name: bitmovin.analytics.Events.END, from: States.END, to: States.END },
+        {name: 'PLAY_SEEK', from: this.States.PAUSE, to: this.States.PLAY_SEEKING},
+        {name: 'PLAY_SEEK', from: this.States.PAUSED_SEEKING, to: this.States.PLAY_SEEKING},
+        {name: 'PLAY_SEEK', from: this.States.PLAY_SEEKING, to: this.States.PLAY_SEEKING},
+        {name: bitmovin.analytics.Events.SEEK, from: this.States.PLAY_SEEKING, to: this.States.PLAY_SEEKING},
+        {name: bitmovin.analytics.Events.AUDIO_CHANGE, from: this.States.PLAY_SEEKING, to: this.States.PLAY_SEEKING},
+        {name: bitmovin.analytics.Events.VIDEO_CHANGE, from: this.States.PLAY_SEEKING, to: this.States.PLAY_SEEKING},
+        {name: bitmovin.analytics.Events.START_BUFFERING, from: this.States.PLAY_SEEKING, to: this.States.PLAY_SEEKING},
+        {name: bitmovin.analytics.Events.END_BUFFERING, from: this.States.PLAY_SEEKING, to: this.States.PLAY_SEEKING},
+        {name: bitmovin.analytics.Events.SEEKED, from: this.States.PLAY_SEEKING, to: this.States.PLAY_SEEKING},
 
-      { name: bitmovin.analytics.Events.PLAY, from: States.END, to: States.PLAYING },
+        // We are ending the seek
+        {name: bitmovin.analytics.Events.PLAY, from: this.States.PLAY_SEEKING, to: this.States.END_PLAY_SEEKING},
 
-      { name: bitmovin.analytics.Events.ERROR, from: [
-        States.SETUP,
-        States.STARTUP,
-        States.READY,
-        States.PLAYING,
-        States.REBUFFERING,
-        States.PAUSE,
-        States.QUALITYCHANGE,
-        States.PAUSED_SEEKING,
-        States.PLAY_SEEKING,
-        States.END_PLAY_SEEKING,
-        States.QUALITYCHANGE_PAUSE,
-        'FINISH_PLAY_SEEKING',
-        'PLAY_SEEK',
-        'FINISH_QUALITYCHANGE_PAUSE',
-        'FINISH_QUALITYCHANGE',
-        States.END], to          : States.ERROR
-      },
+        {name: bitmovin.analytics.Events.START_BUFFERING, from: this.States.END_PLAY_SEEKING, to: this.States.END_PLAY_SEEKING},
+        {name: bitmovin.analytics.Events.END_BUFFERING, from: this.States.END_PLAY_SEEKING, to: this.States.END_PLAY_SEEKING},
+        {name: bitmovin.analytics.Events.SEEKED, from: this.States.END_PLAY_SEEKING, to: this.States.END_PLAY_SEEKING},
+        {name: bitmovin.analytics.Events.TIMECHANGED, from: this.States.END_PLAY_SEEKING, to: this.States.PLAYING},
 
-      { name: bitmovin.analytics.Events.SEEK, from: States.END_PLAY_SEEKING, to: States.PLAY_SEEKING },
-      { name: 'FINISH_PLAY_SEEKING', from: States.END_PLAY_SEEKING, to: States.PLAYING },
+        {name: bitmovin.analytics.Events.END, from: this.States.PLAY_SEEKING, to: this.States.END},
+        {name: bitmovin.analytics.Events.END, from: this.States.PAUSED_SEEKING, to: this.States.END},
+        {name: bitmovin.analytics.Events.END, from: this.States.PLAYING, to: this.States.END},
+        {name: bitmovin.analytics.Events.END, from: this.States.PAUSE, to: this.States.END},
+        {name: bitmovin.analytics.Events.SEEK, from: this.States.END, to: this.States.END},
+        {name: bitmovin.analytics.Events.SEEKED, from: this.States.END, to: this.States.END},
+        {name: bitmovin.analytics.Events.TIMECHANGED, from: this.States.END, to: this.States.END},
+        {name: bitmovin.analytics.Events.END_BUFFERING, from: this.States.END, to: this.States.END},
+        {name: bitmovin.analytics.Events.START_BUFFERING, from: this.States.END, to: this.States.END},
+        {name: bitmovin.analytics.Events.END, from: this.States.END, to: this.States.END},
 
-      { name: bitmovin.analytics.Events.UNLOAD, from: States.PLAYING, to: States.END },
+        {name: bitmovin.analytics.Events.PLAY, from: this.States.END, to: this.States.PLAYING},
 
-      {name: bitmovin.analytics.Events.START_AD, from: States.PLAYING, to: States.AD},
-      {name: bitmovin.analytics.Events.END_AD, from: States.AD, to: States.PLAYING}
-    ],
-    callbacks: {
-      onpause      : function(event, from, to, timestamp) {
-        if (from === States.PLAYING) {
-          pausedTimestamp = timestamp;
-        }
-      },
-      onbeforeevent: function(event, from, to, timestamp, eventObject) {
-        if (event === bitmovin.analytics.Events.SEEK && from === States.PAUSE) {
-          if (timestamp - pausedTimestamp < PAUSE_SEEK_DELAY) {
-            stateMachine.PLAY_SEEK(timestamp);
+        {
+          name           : bitmovin.analytics.Events.ERROR, from: [
+          this.States.SETUP,
+          this.States.STARTUP,
+          this.States.READY,
+          this.States.PLAYING,
+          this.States.REBUFFERING,
+          this.States.PAUSE,
+          this.States.QUALITYCHANGE,
+          this.States.PAUSED_SEEKING,
+          this.States.PLAY_SEEKING,
+          this.States.END_PLAY_SEEKING,
+          this.States.QUALITYCHANGE_PAUSE,
+          'FINISH_PLAY_SEEKING',
+          'PLAY_SEEK',
+          'FINISH_QUALITYCHANGE_PAUSE',
+          'FINISH_QUALITYCHANGE',
+          this.States.END], to: this.States.ERROR
+        },
+
+        {name: bitmovin.analytics.Events.SEEK, from: this.States.END_PLAY_SEEKING, to: this.States.PLAY_SEEKING},
+        {name: 'FINISH_PLAY_SEEKING', from: this.States.END_PLAY_SEEKING, to: this.States.PLAYING},
+
+        {name: bitmovin.analytics.Events.UNLOAD, from: this.States.PLAYING, to: this.States.END},
+
+        {name: bitmovin.analytics.Events.START_AD, from: this.States.PLAYING, to: this.States.AD},
+        {name: bitmovin.analytics.Events.END_AD, from: this.States.AD, to: this.States.PLAYING}
+      ],
+      callbacks: {
+        onpause      : function(event, from, to, timestamp) {
+          if (from === this.States.PLAYING) {
+            this.pausedTimestamp = timestamp;
+          }
+        },
+        onbeforeevent: function(event, from, to, timestamp, eventObject) {
+          if (event === bitmovin.analytics.Events.SEEK && from === this.States.PAUSE) {
+            if (timestamp - this.pausedTimestamp < PAUSE_SEEK_DELAY) {
+              this.stateMachine.PLAY_SEEK(timestamp);
+              return false;
+            }
+          }
+          if (event === bitmovin.analytics.Events.SEEK) {
+            window.clearTimeout(seekedTimeout);
+          }
+
+          if (event === bitmovin.analytics.Events.SEEKED && from === this.States.PAUSED_SEEKING) {
+            this.seekedTimestamp = timestamp;
+            this.seekedTimeout   = window.setTimeout(function() {
+              this.stateMachine.pause(timestamp, eventObject);
+            }, SEEKED_PAUSE_DELAY);
             return false;
           }
-        }
-        if (event === bitmovin.analytics.Events.SEEK) {
-          window.clearTimeout(seekedTimeout);
-        }
-
-        if (event === bitmovin.analytics.Events.SEEKED && from === States.PAUSED_SEEKING) {
-          seekedTimestamp = timestamp;
-          seekedTimeout = window.setTimeout(function() {
-            stateMachine.pause(timestamp, eventObject);
-          }, SEEKED_PAUSE_DELAY);
-          return false;
-        }
-      },
-      onafterevent : function(event, from, to, timestamp) {
-        logger.log(pad(timestamp, 20) + 'EVENT: ' + pad(event, 20) + ' from ' + pad(from, 14) + '-> ' + pad(to, 14));
-        if (to === States.QUALITYCHANGE_PAUSE) {
-          stateMachine.FINISH_QUALITYCHANGE_PAUSE(timestamp);
-        }
-        if (to === States.QUALITYCHANGE) {
-          stateMachine.FINISH_QUALITYCHANGE(timestamp);
-        }
-      },
-      onenterstate : function(event, from, to, timestamp, eventObject) {
-        onEnterStateTimestamp = timestamp || new Date().getTime();
-
-        logger.log('Entering State ' + to + ' with ' + event);
-        if (eventObject && to !== States.PAUSED_SEEKING) {
-          bitanalytics.setVideoTimeStartFromEvent(eventObject);
-        }
-      },
-      onleavestate : function(event, from, to, timestamp, eventObject) {
-        if (!timestamp) {
-          return;
-        }
-
-        var stateDuration = timestamp - onEnterStateTimestamp;
-        logger.log('State ' + from + ' was ' + stateDuration + ' ms event:' + event);
-
-        if (eventObject && to !== States.PAUSED_SEEKING) {
-          bitanalytics.setVideoTimeEndFromEvent(eventObject);
-        }
-
-        var fnName = from.toLowerCase();
-        if (from === States.END_PLAY_SEEKING || from === States.PAUSED_SEEKING) {
-          var seekDuration = seekedTimestamp - seekTimestamp;
-          bitanalytics[fnName](seekDuration, fnName, eventObject);
-          logger.log('Seek was ' + seekDuration + 'ms');
-        } else if (event === bitmovin.analytics.Events.UNLOAD) {
-          bitanalytics.playingAndBye(stateDuration, fnName, eventObject);
-        } else if (from === States.PAUSE && to !== States.PAUSED_SEEKING) {
-          bitanalytics.setVideoTimeStartFromEvent(event);
-          bitanalytics.pause(stateDuration, fnName, eventObject);
-        } else {
-          var callbackFunction = bitanalytics[fnName];
-          if (typeof callbackFunction === 'function') {
-            callbackFunction(stateDuration, fnName, eventObject);
-          } else {
-            logger.error('Could not find callback function for ' + fnName);
+        },
+        onafterevent : function(event, from, to, timestamp) {
+          this.logger.log(BitmovinAnalyticsStateMachine.pad(timestamp, 20) + 'EVENT: ' + BitmovinAnalyticsStateMachine.pad(event, 20) + ' from ' + BitmovinAnalyticsStateMachine.pad(from, 14) + '-> ' + BitmovinAnalyticsStateMachine.pad(to, 14));
+          if (to === this.States.QUALITYCHANGE_PAUSE) {
+            this.stateMachine.FINISH_QUALITYCHANGE_PAUSE(timestamp);
           }
+          if (to === this.States.QUALITYCHANGE) {
+            this.stateMachine.FINISH_QUALITYCHANGE(timestamp);
+          }
+        },
+        onenterstate : function(event, from, to, timestamp, eventObject) {
+          this.onEnterStateTimestamp = timestamp || new Date().getTime();
+
+          this.logger.log('Entering State ' + to + ' with ' + event);
+          if (eventObject && to !== this.States.PAUSED_SEEKING) {
+            this.stateMachineCallbacks.setVideoTimeStartFromEvent(eventObject);
+          }
+        },
+        onleavestate : function(event, from, to, timestamp, eventObject) {
+          if (!timestamp) {
+            return;
+          }
+
+          const stateDuration = timestamp - onEnterStateTimestamp;
+          this.logger.log('State ' + from + ' was ' + stateDuration + ' ms event:' + event);
+
+          if (eventObject && to !== this.States.PAUSED_SEEKING) {
+            this.stateMachineCallbacks.setVideoTimeEndFromEvent(eventObject);
+          }
+
+          const fnName = from.toLowerCase();
+          if (from === this.States.END_PLAY_SEEKING || from === this.States.PAUSED_SEEKING) {
+            const seekDuration = this.seekedTimestamp - this.seekTimestamp;
+            this.stateMachineCallbacks[fnName](seekDuration, fnName, eventObject);
+            this.logger.log('Seek was ' + seekDuration + 'ms');
+          } else if (event === bitmovin.analytics.Events.UNLOAD) {
+            this.stateMachineCallbacks.playingAndBye(stateDuration, fnName, eventObject);
+          } else if (from === this.States.PAUSE && to !== this.States.PAUSED_SEEKING) {
+            this.stateMachineCallbacks.setVideoTimeStartFromEvent(event);
+            this.stateMachineCallbacks.pause(stateDuration, fnName, eventObject);
+          } else {
+            const callbackFunction = bitanalytics[fnName];
+            if (typeof callbackFunction === 'function') {
+              callbackFunction(stateDuration, fnName, eventObject);
+            } else {
+              this.logger.error('Could not find callback function for ' + fnName);
+            }
+          }
+
+          if (eventObject && to !== this.States.PAUSED_SEEKING) {
+            this.stateMachineCallbacks.setVideoTimeStartFromEvent(eventObject);
+          }
+
+          if (event === bitmovin.analytics.Events.VIDEO_CHANGE) {
+            this.stateMachineCallbacks.videoChange(eventObject);
+          } else if (event === bitmovin.analytics.Events.AUDIO_CHANGE) {
+            this.stateMachineCallbacks.audioChange(eventObject);
+          }
+        },
+        onseek       : function(event, from, to, timestamp) {
+          this.seekTimestamp = timestamp;
+        },
+        onseeked     : function(event, from, to, timestamp) {
+          this.seekedTimestamp = timestamp;
+        },
+        ontimechanged: function(event, from, to, timestamp, eventObject) {
+          const stateDuration = timestamp - this.onEnterStateTimestamp;
+
+          if (stateDuration > 59700) {
+            this.stateMachineCallbacks.setVideoTimeEndFromEvent(eventObject);
+
+            this.logger.log('Sending heartbeat');
+            this.stateMachineCallbacks.heartbeat(stateDuration, from.toLowerCase(), eventObject);
+            this.onEnterStateTimestamp = timestamp;
+
+            this.stateMachineCallbacks.setVideoTimeStartFromEvent(eventObject);
+          }
+        },
+        onplayerError: function(event, from, to, timestamp, eventObject) {
+          this.stateMachineCallbacks.error(eventObject);
         }
-
-        if (eventObject && to !== States.PAUSED_SEEKING) {
-          bitanalytics.setVideoTimeStartFromEvent(eventObject);
-        }
-
-        if (event === bitmovin.analytics.Events.VIDEO_CHANGE) {
-          bitanalytics.videoChange(eventObject);
-        } else if (event === bitmovin.analytics.Events.AUDIO_CHANGE) {
-          bitanalytics.audioChange(eventObject);
-        }
-      },
-      onseek: function(event, from, to, timestamp) {
-        seekTimestamp = timestamp;
-      },
-      onseeked: function(event, from, to, timestamp) {
-        seekedTimestamp = timestamp;
-      },
-      ontimechanged: function(event, from, to, timestamp, eventObject) {
-        var stateDuration = timestamp - onEnterStateTimestamp;
-
-        if (stateDuration > 59700) {
-          bitanalytics.setVideoTimeEndFromEvent(eventObject);
-
-          logger.log('Sending heartbeat');
-          bitanalytics.heartbeat(stateDuration, from.toLowerCase(), eventObject);
-          onEnterStateTimestamp = timestamp;
-
-          bitanalytics.setVideoTimeStartFromEvent(eventObject);
-        }
-      },
-      onplayerError: function(event, from, to, timestamp, eventObject) {
-        bitanalytics.error(eventObject);
       }
-    }
-  });
+    });
+  }
 
-  this.callEvent = function(eventType, eventObject, timestamp) {
-    var exec = stateMachine[eventType];
+  callEvent(eventType, eventObject, timestamp) {
+    const exec = this.stateMachine[eventType];
 
     if (exec) {
-      exec.call(stateMachine, timestamp, eventObject);
+      exec.call(this.stateMachine, timestamp, eventObject);
     } else {
-      logger.log('Ignored Event: ' + eventType);
+      this.logger.log('Ignored Event: ' + eventType);
     }
   };
-};
+
+
+  static pad(str, length) {
+    const padStr = new Array(length).join(' ');
+    return (str + padStr).slice(0, length);
+  };
+}
+
+export default BitmovinAnalyticsStateMachine
