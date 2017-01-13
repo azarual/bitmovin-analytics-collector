@@ -8,9 +8,6 @@ import Utils from '../utils/Utils';
 import Logger from '../utils/Logger';
 import AdapterFactory from './AdapterFactory'
 import AnalyticsStateMachineFactory from './AnalyticsStateMachineFactory'
-import CdnProviders from '../enums/CDNProviders'
-import Events from '../enums/Events'
-import Players from '../enums/Players'
 
 class Analytics {
   static PageLoadType = {
@@ -19,9 +16,6 @@ class Analytics {
   };
   static LICENSE_CALL_PENDING_TIMEOUT = 200;
   static PAGE_LOAD_TYPE_TIMEOUT       = 200;
-  static CdnProviders = CdnProviders;
-  static Events = Events;
-  static Players = Players;
 
   constructor(config) {
     this.config = config;

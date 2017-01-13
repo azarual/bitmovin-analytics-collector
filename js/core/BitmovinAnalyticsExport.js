@@ -3,6 +3,8 @@
  */
 
 import Analytics from './Analytics'
+import Players from '../enums/Players'
+import CdnProviders from '../enums/CDNProviders'
 
 let analytics;
 
@@ -21,5 +23,5 @@ let bitmovin = window.bitmovin;
 bitmovin = bitmovin || {};
 
 bitmovin.analytics = analyticsWrapper;
-bitmovin.analytics.Players = Analytics.Players;
-bitmovin.analytics.CdnProviders = Analytics.CdnProviders;
+bitmovin.analytics.Players = Players;
+bitmovin.analytics.CdnProviders = CdnProviders;
