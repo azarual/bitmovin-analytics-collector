@@ -13,10 +13,7 @@ const register = (player) => {
 const analyticsWrapper = (config) => {
   analytics = new Analytics(config);
   return {
-    register: register,
-    CdnProviders: Analytics.CdnProviders,
-    Events: Analytics.Events,
-    Players: Analytics.Players
+    register: register
   }
 };
 
@@ -24,3 +21,5 @@ let bitmovin = window.bitmovin;
 bitmovin = bitmovin || {};
 
 bitmovin.analytics = analyticsWrapper;
+bitmovin.analytics.Players = Analytics.Players;
+bitmovin.analytics.CdnProviders = Analytics.CdnProviders;
