@@ -250,16 +250,13 @@ global.bitmovin.analytics = function(config) {
   };
 
   const register = function(player) {
-    adapter = adapterFactory.getAdapter(player);
-    if (adapter) {
-      adapter.setEventCallback(record);
-    } else {
+    adapter = adapterFactory.getAdapter(player, record);
+    if (!adapter) {
       logger.error('Could not detect player.');
       return;
     }
 
-    analyticsStateMachine = analyticsStateMachineFactory.getAnalyticsStateMachine(player, logger,
-      stateMachineCallbacks);
+    analyticsStateMachine = analyticsStateMachineFactory.getAnalyticsStateMachine(player, stateMachineCallbacks, logger.isLogging());
   };
 
   function record(eventType, eventObject) {
