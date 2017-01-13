@@ -11,29 +11,29 @@ class BitmovinAnalyticsStateMachine {
 
   constructor(stateMachineCallbacks, isLogging = false) {
     this.stateMachineCallbacks = stateMachineCallbacks;
-    this.logger = new Logger(isLogging);
+    this.logger                = new Logger(isLogging);
 
-    this.pausedTimestamp = null;
-    this.seekTimestamp = 0;
-    this.seekedTimestamp = 0;
-    this.seekedTimeout = 0;
+    this.pausedTimestamp       = null;
+    this.seekTimestamp         = 0;
+    this.seekedTimestamp       = 0;
+    this.seekedTimeout         = 0;
     this.onEnterStateTimestamp = 0;
 
     this.States = {
-      SETUP: 'SETUP',
-      STARTUP : 'STARTUP',
-      READY: 'READY',
-      PLAYING: 'PLAYING',
-      REBUFFERING: 'REBUFFERING',
-      PAUSE: 'PAUSE',
-      QUALITYCHANGE: 'QUALITYCHANGE',
-      PAUSED_SEEKING: 'PAUSED_SEEKING',
-      PLAY_SEEKING: 'PLAY_SEEKING',
-      END_PLAY_SEEKING: 'END_PLAY_SEEKING',
+      SETUP              : 'SETUP',
+      STARTUP            : 'STARTUP',
+      READY              : 'READY',
+      PLAYING            : 'PLAYING',
+      REBUFFERING        : 'REBUFFERING',
+      PAUSE              : 'PAUSE',
+      QUALITYCHANGE      : 'QUALITYCHANGE',
+      PAUSED_SEEKING     : 'PAUSED_SEEKING',
+      PLAY_SEEKING       : 'PLAY_SEEKING',
+      END_PLAY_SEEKING   : 'END_PLAY_SEEKING',
       QUALITYCHANGE_PAUSE: 'QUALITYCHANGE_PAUSE',
-      END: 'END',
-      ERROR: 'ERROR',
-      AD: 'AD'
+      END                : 'END',
+      ERROR              : 'ERROR',
+      AD                 : 'AD'
     };
 
     this.createStateMachine();
