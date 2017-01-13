@@ -3,6 +3,7 @@
  */
 
 import PlayerDetector from '../utils/PlayerDetector'
+import BitmovinAdapter from '../adapters/BitmovinAdapter'
 
 class AdapterFactory {
   static playerDetector = new PlayerDetector;
