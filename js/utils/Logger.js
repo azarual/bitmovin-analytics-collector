@@ -3,11 +3,17 @@
  */
 
 class Logger {
-  static showLogs = false;
+  constructor(showLogs = false) {
+    this.showLogs = showLogs;
+  }
 
-  setLogging = function(logging) {
+  setLogging(logging) {
     this.showLogs = logging;
   };
+
+  isLogging() {
+    return this.showLogs;
+  }
 
   log = function(msg) {
     if (!this.showLogs) {
