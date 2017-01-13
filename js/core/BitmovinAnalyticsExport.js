@@ -6,18 +6,17 @@ import Analytics from './Analytics'
 
 let analytics;
 
-const init = (config) => {
-  analytics = new Analytics(config);
-};
-
 const register = (player) => {
   analytics.register(player);
 };
 
 const analyticsWrapper = (config) => {
-  init(config);
+  analytics = new Analytics(config);
   return {
-    register: register
+    register: register,
+    CdnProviders: Analytics.CdnProviders,
+    Events: Analytics.Events,
+    Players: Analytics.Players
   }
 };
 
