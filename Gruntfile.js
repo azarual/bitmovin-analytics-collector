@@ -24,7 +24,7 @@ module.exports = function(grunt) {
       },
       build: {
         files: {
-          'build/release/<%= pkg.name %>.js': ['build/debug/*.js']
+          'build/release/<%= pkg.name %>.min.js': ['build/debug/*.js']
         }
       }
     },
