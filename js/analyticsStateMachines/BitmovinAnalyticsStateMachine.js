@@ -157,7 +157,7 @@ class BitmovinAnalyticsStateMachine {
         },
         onbeforeevent: function(event, from, to, timestamp, eventObject) {
           if (event === bitmovin.analytics.Events.SEEK && from === this.States.PAUSE) {
-            if (timestamp - this.pausedTimestamp < PAUSE_SEEK_DELAY) {
+            if (timestamp - this.pausedTimestamp < BitmovinAnalyticsStateMachine.PAUSE_SEEK_DELAY) {
               this.stateMachine.PLAY_SEEK(timestamp);
               return false;
             }
@@ -170,7 +170,7 @@ class BitmovinAnalyticsStateMachine {
             this.seekedTimestamp = timestamp;
             this.seekedTimeout   = window.setTimeout(function() {
               this.stateMachine.pause(timestamp, eventObject);
-            }, SEEKED_PAUSE_DELAY);
+            }, BitmovinAnalyticsStateMachine.SEEKED_PAUSE_DELAY);
             return false;
           }
         },
