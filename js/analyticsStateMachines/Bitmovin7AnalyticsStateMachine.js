@@ -187,11 +187,12 @@ class Bitmovin7AnalyticsStateMachine {
           this.onEnterStateTimestamp = timestamp || new Date().getTime();
 
           this.logger.log('Entering State ' + to + ' with ' + event);
-          if (eventObject && to !== this.States.PAUSED_SEEKING) {
+          if (eventObject && to !== this.States.PAUSED_SEEKING && to !== this.States.PLAY_SEEKING && to !== this.States.END_PLAY_SEEKING) {
+            this.logger.log('Setting video time start to ' + eventObject.currentTime + ', going to ' + to);
             this.stateMachineCallbacks.setVideoTimeStartFromEvent(eventObject);
           }
 
-          if (event === 'PLAY_SEEK' && to === this.States.PLAY_SEEKING) {
+          if (event === 'PLAY_SEEK' && to === this.States.PLAY_SEEKING && to !== this.States.PLAY_SEEKING && to !== this.States.END_PLAY_SEEKING) {
             this.seekTimestamp = this.onEnterStateTimestamp;
           }
         },
@@ -203,7 +204,8 @@ class Bitmovin7AnalyticsStateMachine {
           const stateDuration = timestamp - this.onEnterStateTimestamp;
           this.logger.log('State ' + from + ' was ' + stateDuration + ' ms event:' + event);
 
-          if (eventObject && to !== this.States.PAUSED_SEEKING) {
+          if (eventObject && to !== this.States.PAUSED_SEEKING && to !== this.States.PLAY_SEEKING && to !== this.States.END_PLAY_SEEKING) {
+            this.logger.log('Setting video time end to ' + eventObject.currentTime + ', going to ' + to);
             this.stateMachineCallbacks.setVideoTimeEndFromEvent(eventObject);
           }
 
@@ -230,7 +232,8 @@ class Bitmovin7AnalyticsStateMachine {
             }
           }
 
-          if (eventObject && to !== this.States.PAUSED_SEEKING) {
+          if (eventObject && to !== this.States.PAUSED_SEEKING && to !== this.States.PLAY_SEEKING && to !== this.States.END_PLAY_SEEKING) {
+            this.logger.log('Setting video time start to ' + eventObject.currentTime + ', going to ' + to);
             this.stateMachineCallbacks.setVideoTimeStartFromEvent(eventObject);
           }
 
