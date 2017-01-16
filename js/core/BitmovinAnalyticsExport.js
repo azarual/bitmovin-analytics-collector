@@ -12,10 +12,15 @@ const register = (player) => {
   analytics.register(player);
 };
 
+const getCurrentImpressionId = () => {
+  return analytics.getCurrentImpressionId();
+};
+
 const analyticsWrapper = (config) => {
   analytics = new Analytics(config);
   return {
-    register: register
+    register: register,
+    getCurrentImpressionId: getCurrentImpressionId
   }
 };
 

@@ -272,6 +272,10 @@ class Analytics {
     this.analyticsStateMachine = this.analyticsStateMachineFactory.getAnalyticsStateMachine(player, this.stateMachineCallbacks, this.logger.isLogging());
   };
 
+  getCurrentImpressionId = () => {
+    return this.sample.impressionId;
+  };
+
   record = (eventType, eventObject) => {
     eventObject = eventObject || {};
 
