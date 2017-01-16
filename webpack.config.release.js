@@ -5,7 +5,7 @@ const packageProperties = require('./package.json');
 module.exports = {
   entry,
   output: {
-    path: './build/debug',
+    path: './build/release',
     filename: packageProperties.name + '.min.js',
     libraryTarget: 'umd'
   },
@@ -14,6 +14,14 @@ module.exports = {
     loaders
   },
   plugins: [
+    new webpack.optimize.UglifyJsPlugin({
+      compress: {
+        warnings: false
+      },
+      output: {
+        comments: false
+      }
+    }),
     new webpack.BannerPlugin(banner)
   ]
 }
