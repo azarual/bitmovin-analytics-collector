@@ -144,7 +144,7 @@ class Bitmovin7AnalyticsStateMachine {
         {name: Events.SEEK, from: this.States.END_PLAY_SEEKING, to: this.States.PLAY_SEEKING},
         {name: 'FINISH_PLAY_SEEKING', from: this.States.END_PLAY_SEEKING, to: this.States.PLAYING},
 
-        {name: Events.UNLOAD, from: [this.States.PLAYING, this.States.PAUSE], to: this.States.END},
+        {name: Events.UNLOAD, from: [this.States.PLAYING, this.States.PAUSE, this.States.READY], to: this.States.END},
 
         {name: Events.START_AD, from: this.States.PLAYING, to: this.States.AD},
         {name: Events.END_AD, from: this.States.AD, to: this.States.PLAYING}
