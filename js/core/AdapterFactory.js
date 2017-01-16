@@ -2,18 +2,22 @@
  * Created by lkroepfl on 12.01.17.
  */
 
-var AdapterFactory = function() {
-  var playerDetector = new PlayerDetector();
+import PlayerDetector from '../utils/PlayerDetector'
+import BitmovinAdapter from '../adapters/BitmovinAdapter'
+import Bitmovin7Adapter from '../adapters/Bitmovin7Adapter'
 
-  var getAdapter = function(player) {
-    if (playerDetector.isBitmovinVersionPre7(player)) {
-      return new BitmovinAdapter(player);
-    } else if (playerDetector.isBitmovinVersion7Plus(player)) {
-      return new Bitmovin7Adapter(player);
+class AdapterFactory {
+  constructor() {
+    this.playerDetector = new PlayerDetector;
+  }
+
+  getAdapter(player, eventCallback) {
+    if (this.playerDetector.isBitmovinVersionPre7(player)) {
+      return new BitmovinAdapter(player, eventCallback);
+    } else if (this.playerDetector.isBitmovinVersion7Plus(player)) {
+      return new Bitmovin7Adapter(player, eventCallback);
     }
   };
+}
 
-  return {
-    getAdapter: getAdapter
-  };
-};
+export default AdapterFactory

@@ -2,26 +2,34 @@
  * Created by lkroepfl on 01.12.16.
  */
 
-var Logger = function() {
-  var showLogs = false;
+class Logger {
+  constructor(showLogs = false) {
+    this.showLogs = showLogs;
+  }
 
-  this.setLogging = function(logging) {
-    showLogs = logging;
+  setLogging(logging) {
+    this.showLogs = logging;
   };
 
-  this.log = function(msg) {
-    if (!showLogs) {
+  isLogging() {
+    return this.showLogs;
+  }
+
+  log = function(msg) {
+    if (!this.showLogs) {
       return;
     }
 
     console.log(msg);
   };
 
-  this.error = function(msg) {
-    if (!showLogs) {
+  error = function(msg) {
+    if (!this.showLogs) {
       return;
     }
 
     console.error(msg);
   };
-};
+}
+
+export default Logger
