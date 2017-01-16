@@ -28,19 +28,23 @@ class Analytics {
     this.analyticsStateMachineFactory = new AnalyticsStateMachineFactory();
 
     this.droppedSampleFrames = 0;
-    this.licensing                      = 'waiting';
-    this.startupTime  = 0;
-    this.pageLoadType = Analytics.PageLoadType.FOREGROUND;
+    this.licensing           = 'waiting';
+    this.startupTime         = 0;
+    this.pageLoadType        = Analytics.PageLoadType.FOREGROUND;
 
+    this.setPageLoadType();
+
+    this.setupSample();
+    this.init();
+    this.setupStateMachineCallbacks();
+  }
+
+  setPageLoadType() {
     window.setTimeout(() => {
       if (document[this.utils.getHiddenProp()] === true) {
         this.pageLoadType = Analytics.PageLoadType.BACKGROUND;
       }
     }, Analytics.PAGE_LOAD_TYPE_TIMEOUT);
-
-    this.setupSample();
-    this.init();
-    this.setupStateMachineCallbacks();
   }
 
   init() {
@@ -53,6 +57,12 @@ class Analytics {
 
     this.checkLicensing(this.config.key);
 
+    this.setConfigParameters();
+
+    this.setUserId();
+  }
+
+  setConfigParameters() {
     this.sample.key          = this.config.key;
     this.sample.playerKey    = this.config.playerKey;
     this.sample.player       = this.config.player;
@@ -67,13 +77,14 @@ class Analytics {
     this.sample.customData5 = this.utils.getCustomDataString(this.config.customData5);
 
     this.sample.experimentName = this.config.experimentName;
+  }
 
+  setUserId() {
     const userId = this.utils.getCookie('bitmovin_analytics_uuid');
-    if (userId == '') {
+    if (!userId || userId === '') {
       document.cookie = 'bitmovin_analytics_uuid=' + this.utils.generateUUID();
       this.sample.userId   = this.utils.getCookie('bitmovin_analytics_uuid');
-    }
-    else {
+    } else {
       this.sample.userId = userId;
     }
   }
