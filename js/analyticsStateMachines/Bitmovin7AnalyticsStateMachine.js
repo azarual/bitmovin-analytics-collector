@@ -218,7 +218,7 @@ class Bitmovin7AnalyticsStateMachine {
             const seekDuration = this.seekedTimestamp - this.seekTimestamp;
             this.stateMachineCallbacks[fnName](seekDuration, fnName, eventObject);
             this.logger.log('Seek was ' + seekDuration + 'ms');
-          } else if (event === Events.UNLOAD) {
+          } else if (event === Events.UNLOAD && from === this.States.PLAYING) {
             this.stateMachineCallbacks.playingAndBye(stateDuration, fnName, eventObject);
           } else if (from === this.States.PAUSE && to !== this.States.PAUSED_SEEKING) {
             this.stateMachineCallbacks.setVideoTimeStartFromEvent(event);
