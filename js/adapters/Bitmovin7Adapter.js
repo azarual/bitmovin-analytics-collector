@@ -88,7 +88,7 @@ class Bitmovin7Adapter {
     });
 
     this.player.addEventHandler(bitmovin.player.EVENT.ON_AUDIO_PLAYBACK_QUALITY_CHANGED, () => {
-      const quality = player.getPlaybackAudioData();
+      const quality = this.player.getPlaybackAudioData();
 
       this.eventCallback(Events.AUDIO_CHANGE, {
         bitrate      : quality.bitrate,
@@ -98,7 +98,7 @@ class Bitmovin7Adapter {
     });
 
     this.player.addEventHandler(bitmovin.player.EVENT.ON_VIDEO_PLAYBACK_QUALITY_CHANGED, () => {
-      const quality = player.getPlaybackVideoData();
+      const quality = this.player.getPlaybackVideoData();
 
       this.eventCallback(Events.VIDEO_CHANGE, {
         width        : quality.width,
