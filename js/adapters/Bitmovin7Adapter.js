@@ -137,6 +137,20 @@ class Bitmovin7Adapter {
       });
     });
 
+    this.player.addEventHandler(bitmovin.player.EVENT.ON_MUTED, () => {
+      this.eventCallback(Events.MUTE, {
+        currentTime  : this.player.getCurrentTime(),
+        droppedFrames: this.player.getDroppedFrames()
+      });
+    });
+
+    this.player.addEventHandler(bitmovin.player.EVENT.ON_UNMUTED, () => {
+      this.eventCallback(Events.UN_MUTE, {
+        currentTime  : this.player.getCurrentTime(),
+        droppedFrames: this.player.getDroppedFrames()
+      });
+    });
+
     this.player.addEventHandler(bitmovin.player.EVENT.ON_ERROR, (event) => {
       this.eventCallback(Events.ERROR, {
         code   : event.code,

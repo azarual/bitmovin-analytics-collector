@@ -20,6 +20,8 @@ const Events = {
   END_FULLSCREEN   : 'endFullscreen',
   START_AD         : 'adStart',
   END_AD           : 'adEnd',
+  MUTE             : 'mute',
+  UN_MUTE          : 'unMute',
   ERROR            : 'playerError',
   PLAYBACK_FINISHED: 'end',
   SCREEN_RESIZE    : 'resize',
