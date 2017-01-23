@@ -222,8 +222,8 @@ class Analytics {
       },
 
       error: (event) => {
-        this.setVideoTimeEndFromEvent(event);
-        this.setVideoTimeStartFromEvent(event);
+        this.stateMachineCallbacks.setVideoTimeEndFromEvent(event);
+        this.stateMachineCallbacks.setVideoTimeStartFromEvent(event);
 
         this.sample.errorCode    = event.code;
         this.sample.errorMessage = event.message;
