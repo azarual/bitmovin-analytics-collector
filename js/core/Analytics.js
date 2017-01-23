@@ -225,6 +225,7 @@ class Analytics {
         this.stateMachineCallbacks.setVideoTimeEndFromEvent(event);
         this.stateMachineCallbacks.setVideoTimeStartFromEvent(event);
 
+        this.setState('error');
         this.sample.errorCode    = event.code;
         this.sample.errorMessage = event.message;
 
