@@ -32,6 +32,8 @@ class Analytics {
     this.startupTime         = 0;
     this.pageLoadType        = Analytics.PageLoadType.FOREGROUND;
 
+    this.autoplay = null;
+
     this.setPageLoadType();
 
     this.setupSample();
@@ -123,8 +125,10 @@ class Analytics {
 
         this.startupTime += time;
         this.sample.startupTime = this.startupTime;
+        this.sample.autoplay = this.autoplay;
 
         this.sendAnalyticsRequestAndClearValues();
+        this.sample.autoplay = null;
       },
 
       playing: (time, state, event) => {
@@ -354,6 +358,9 @@ class Analytics {
     }
     if (this.utils.validBoolean(loadedEvent.isMuted)) {
       this.sample.isMuted = loadedEvent.isMuted;
+    }
+    if (this.utils.validBoolean(loadedEvent.autoplay)) {
+      this.autoplay = loadedEvent.autoplay;
     }
   }
 
