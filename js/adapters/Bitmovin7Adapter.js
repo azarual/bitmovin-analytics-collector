@@ -29,7 +29,8 @@ class Bitmovin7Adapter {
         m3u8Url          : this.player.getConfig().source.hls,
         progUrl          : this.player.getConfig().source.progressive,
         videoWindowWidth : this.player.getFigure().offsetWidth,
-        videoWindowHeight: this.player.getFigure().offsetHeight
+        videoWindowHeight: this.player.getFigure().offsetHeight,
+        isMuted          : this.player.isMuted()
       });
     });
 
@@ -132,6 +133,20 @@ class Bitmovin7Adapter {
 
     this.player.addEventHandler(bitmovin.player.EVENT.ON_AD_FINISHED, () => {
       this.eventCallback(Events.END_AD, {
+        currentTime  : this.player.getCurrentTime(),
+        droppedFrames: this.player.getDroppedFrames()
+      });
+    });
+
+    this.player.addEventHandler(bitmovin.player.EVENT.ON_MUTED, () => {
+      this.eventCallback(Events.MUTE, {
+        currentTime  : this.player.getCurrentTime(),
+        droppedFrames: this.player.getDroppedFrames()
+      });
+    });
+
+    this.player.addEventHandler(bitmovin.player.EVENT.ON_UNMUTED, () => {
+      this.eventCallback(Events.UN_MUTE, {
         currentTime  : this.player.getCurrentTime(),
         droppedFrames: this.player.getDroppedFrames()
       });

@@ -249,6 +249,18 @@ class Analytics {
         this.sendAnalyticsRequestAndClearValues();
       },
 
+      mute: () => {
+        this.sample.isMuted = true;
+      },
+
+      unMute: () => {
+        this.sample.isMuted = false;
+      },
+
+      muting_ready: this.utils.noOp,
+      muting_play: this.utils.noOp,
+      muting_pause: this.utils.noOp,
+
       setVideoTimeEndFromEvent: (event) => {
         if (this.utils.validNumber(event.currentTime)) {
           this.sample.videoTimeEnd = this.utils.calculateTime(event.currentTime);
@@ -339,6 +351,9 @@ class Analytics {
     }
     if (this.utils.validNumber(loadedEvent.videoWindowHeight)) {
       this.sample.videoWindowHeight = loadedEvent.videoWindowHeight;
+    }
+    if (this.utils.validBoolean(loadedEvent.isMuted)) {
+      this.sample.isMuted = loadedEvent.isMuted;
     }
   }
 
