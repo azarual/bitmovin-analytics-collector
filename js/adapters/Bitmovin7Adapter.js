@@ -17,6 +17,11 @@ class Bitmovin7Adapter {
     });
 
     this.player.addEventHandler(bitmovin.player.EVENT.ON_READY, () => {
+      let autoplay = false;
+      if (this.player.getConfig().playback && this.player.getConfig().playback.autoplay) {
+        autoplay = this.player.getConfig().playback.autoplay;
+      }
+
       this.eventCallback(Events.READY, {
         isLive           : this.player.isLive(),
         version          : this.player.version,
@@ -30,7 +35,8 @@ class Bitmovin7Adapter {
         progUrl          : this.player.getConfig().source.progressive,
         videoWindowWidth : this.player.getFigure().offsetWidth,
         videoWindowHeight: this.player.getFigure().offsetHeight,
-        isMuted          : this.player.isMuted()
+        isMuted          : this.player.isMuted(),
+        autoplay
       });
     });
 
