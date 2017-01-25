@@ -29,7 +29,8 @@ class Bitmovin7Adapter {
         m3u8Url          : this.player.getConfig().source.hls,
         progUrl          : this.player.getConfig().source.progressive,
         videoWindowWidth : this.player.getFigure().offsetWidth,
-        videoWindowHeight: this.player.getFigure().offsetHeight
+        videoWindowHeight: this.player.getFigure().offsetHeight,
+        isMuted          : this.player.isMuted()
       });
     });
 
