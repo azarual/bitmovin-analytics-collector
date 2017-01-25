@@ -32,7 +32,7 @@ class Analytics {
     this.startupTime         = 0;
     this.pageLoadType        = Analytics.PageLoadType.FOREGROUND;
 
-    this.autoplay = null;
+    this.autoplay = undefined;
 
     this.setPageLoadType();
 
@@ -128,7 +128,7 @@ class Analytics {
         this.sample.autoplay = this.autoplay;
 
         this.sendAnalyticsRequestAndClearValues();
-        this.sample.autoplay = null;
+        this.sample.autoplay = undefined;
       },
 
       playing: (time, state, event) => {
