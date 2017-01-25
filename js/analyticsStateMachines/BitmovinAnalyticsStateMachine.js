@@ -44,7 +44,7 @@ class BitmovinAnalyticsStateMachine {
     this.stateMachine = StateMachine.create({
       initial  : this.States.SETUP,
       events   : [
-        {name: Events.READY, from: this.States.SETUP, to: this.States.READY},
+        {name: Events.READY, from: [this.States.SETUP, this.States.ERROR], to: this.States.READY},
         {name: Events.PLAY, from: this.States.READY, to: this.States.STARTUP},
 
         {name: Events.START_BUFFERING, from: this.States.STARTUP, to: this.States.STARTUP},
