@@ -33,7 +33,10 @@ class Bitmovin7AnalyticsStateMachine {
       QUALITYCHANGE_PAUSE: 'QUALITYCHANGE_PAUSE',
       END                : 'END',
       ERROR              : 'ERROR',
-      AD                 : 'AD'
+      AD                 : 'AD',
+      MUTING_READY       : 'MUTING_READY',
+      MUTING_PLAY        : 'MUTING_PLAY',
+      MUTING_PAUSE       : 'MUTING_PAUSE'
     };
 
     this.createStateMachine();
@@ -138,7 +141,8 @@ class Bitmovin7AnalyticsStateMachine {
           'PLAY_SEEK',
           'FINISH_QUALITYCHANGE_PAUSE',
           'FINISH_QUALITYCHANGE',
-          this.States.END], to: this.States.ERROR
+          this.States.END,
+          this.States.ERROR], to: this.States.ERROR
         },
 
         {name: Events.SEEK, from: this.States.END_PLAY_SEEKING, to: this.States.PLAY_SEEKING},
@@ -147,7 +151,19 @@ class Bitmovin7AnalyticsStateMachine {
         {name: Events.UNLOAD, from: [this.States.PLAYING, this.States.PAUSE, this.States.READY], to: this.States.END},
 
         {name: Events.START_AD, from: this.States.PLAYING, to: this.States.AD},
-        {name: Events.END_AD, from: this.States.AD, to: this.States.PLAYING}
+        {name: Events.END_AD, from: this.States.AD, to: this.States.PLAYING},
+
+        {name: Events.MUTE, from: this.States.READY, to: this.States.MUTING_READY},
+        {name: Events.UN_MUTE, from: this.States.READY, to: this.States.MUTING_READY},
+        {name: 'FINISH_MUTING', from: this.States.MUTING_READY, to: this.States.READY},
+
+        {name: Events.MUTE, from: this.States.PLAYING, to: this.States.MUTING_PLAY},
+        {name: Events.UN_MUTE, from: this.States.PLAYING, to: this.States.MUTING_PLAY},
+        {name: 'FINISH_MUTING', from: this.States.MUTING_PLAY, to: this.States.PLAYING},
+
+        {name: Events.MUTE, from: this.States.PAUSE, to: this.States.MUTING_PAUSE},
+        {name: Events.UN_MUTE, from: this.States.PAUSE, to: this.States.MUTING_PAUSE},
+        {name: 'FINISH_MUTING', from: this.States.MUTING_PAUSE, to: this.States.PAUSE},
       ],
       callbacks: {
         onpause      : (event, from, to, timestamp) => {
@@ -181,6 +197,9 @@ class Bitmovin7AnalyticsStateMachine {
           }
           if (to === this.States.QUALITYCHANGE) {
             this.stateMachine.FINISH_QUALITYCHANGE(timestamp);
+          }
+          if (to === this.States.MUTING_READY || to === this.States.MUTING_PLAY || to === this.States.MUTING_PAUSE) {
+            this.stateMachine.FINISH_MUTING(timestamp);
           }
         },
         onenterstate : (event, from, to, timestamp, eventObject) => {
@@ -241,6 +260,12 @@ class Bitmovin7AnalyticsStateMachine {
             this.stateMachineCallbacks.videoChange(eventObject);
           } else if (event === Events.AUDIO_CHANGE) {
             this.stateMachineCallbacks.audioChange(eventObject);
+          } else if (event === Events.MUTE) {
+            this.logger.log('Setting sample to muted');
+            this.stateMachineCallbacks.mute();
+          } else if (event === Events.UN_MUTE) {
+            this.logger.log('Setting sample to unmuted');
+            this.stateMachineCallbacks.unMute();
           }
         },
         onseek       : (event, from, to, timestamp) => {
