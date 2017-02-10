@@ -36,7 +36,8 @@ class Bitmovin7AnalyticsStateMachine {
       AD                 : 'AD',
       MUTING_READY       : 'MUTING_READY',
       MUTING_PLAY        : 'MUTING_PLAY',
-      MUTING_PAUSE       : 'MUTING_PAUSE'
+      MUTING_PAUSE       : 'MUTING_PAUSE',
+      CASTING            : 'CASTING'
     };
 
     this.createStateMachine();
@@ -126,23 +127,11 @@ class Bitmovin7AnalyticsStateMachine {
 
         {
           name           : Events.ERROR, from: [
-          this.States.SETUP,
-          this.States.STARTUP,
-          this.States.READY,
-          this.States.PLAYING,
-          this.States.REBUFFERING,
-          this.States.PAUSE,
-          this.States.QUALITYCHANGE,
-          this.States.PAUSED_SEEKING,
-          this.States.PLAY_SEEKING,
-          this.States.END_PLAY_SEEKING,
-          this.States.QUALITYCHANGE_PAUSE,
+            ...this.States,
           'FINISH_PLAY_SEEKING',
           'PLAY_SEEK',
           'FINISH_QUALITYCHANGE_PAUSE',
-          'FINISH_QUALITYCHANGE',
-          this.States.END,
-          this.States.ERROR], to: this.States.ERROR
+          'FINISH_QUALITYCHANGE',], to: this.States.ERROR
         },
 
         {name: Events.SEEK, from: this.States.END_PLAY_SEEKING, to: this.States.PLAY_SEEKING},
@@ -164,6 +153,15 @@ class Bitmovin7AnalyticsStateMachine {
         {name: Events.MUTE, from: this.States.PAUSE, to: this.States.MUTING_PAUSE},
         {name: Events.UN_MUTE, from: this.States.PAUSE, to: this.States.MUTING_PAUSE},
         {name: 'FINISH_MUTING', from: this.States.MUTING_PAUSE, to: this.States.PAUSE},
+
+        {name: Events.START_CAST, from: this.States.READY, to: this.States.CASTING},
+        {name: Events.PAUSE, from: this.States.CASTING, to: this.States.CASTING},
+        {name: Events.PLAY, from: this.States.CASTING, to: this.States.CASTING},
+        {name: Events.TIMECHANGED, from: this.States.CASTING, to: this.States.CASTING},
+        {name: Events.END_CAST, from: this.States.CASTING, to: this.States.READY},
+
+        {name: Events.SOURCE_LOADED, from: this.States.READY, to: this.States.SETUP},
+        {name: Events.SOURCE_LOADED, from: this.States.SETUP, to: this.States.SETUP}
       ],
       callbacks: {
         onpause      : (event, from, to, timestamp) => {
@@ -213,6 +211,10 @@ class Bitmovin7AnalyticsStateMachine {
 
           if (event === 'PLAY_SEEK' && to === this.States.PLAY_SEEKING && to !== this.States.PLAY_SEEKING && to !== this.States.END_PLAY_SEEKING) {
             this.seekTimestamp = this.onEnterStateTimestamp;
+          }
+
+          if (event === Events.START_CAST && to === this.States.CASTING) {
+            this.stateMachineCallbacks.startCasting(timestamp, eventObject);
           }
         },
         onleavestate : (event, from, to, timestamp, eventObject) => {
