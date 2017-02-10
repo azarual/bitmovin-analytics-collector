@@ -28,7 +28,8 @@
   },
   "scripts": {
     "release": "webpack --config=webpack.config.release.js",
-    "debug": "webpack --config=webpack.config.debug.js"
+    "debug": "webpack --config=webpack.config.debug.js",
+    "debug:watch": "webpack --config=webpack.config.debug.js --watch"
   },
   "babel": {
     "presets": [
