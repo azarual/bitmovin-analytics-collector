@@ -5,27 +5,34 @@ import {MESSAGE_NAMESPACE} from '../utils/Settings';
 import Logger from '../utils/Logger';
 
 class CastReceiver {
-
-  constructor() {
+  setUp() {
     const castReceiverManager = cast.receiver.CastReceiverManager.getInstance();
     this.messageBus = castReceiverManager.getCastMessageBus(
       MESSAGE_NAMESPACE,
       cast.receiver.CastMessageBus.MessageType.JSON
     );
 
-    this.messageBus.onMessage = (event) => {
-      Logger.log('customMessageBus', event);
+    console.log(this.messageBus);
+
+    this.messageBus.onMessage = (message) => {
+      console.log('customMessageBus', message);
 
       try {
-        this.handleClientMessage(event);
+        const castClientMessage = message.data;
+        this.handleClientMessage(castClientMessage);
       } catch (error) {
-        Logger.error('illegal message', event, error);
+        console.error('illegal message', message, error);
       }
     };
   }
 
+  setCallback(callback) {
+    this.callback = callback;
+  }
+
   handleClientMessage(event) {
-    Logger.log(event);
+    console.log(event);
+    this.callback(event);
   }
 
   sendMessage(message) {
