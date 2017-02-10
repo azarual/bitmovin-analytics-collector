@@ -4,7 +4,7 @@
 import HttpCall from './HttpCall'
 
 class AnalyticsCall extends HttpCall{
-  static analyticsServerUrl = '//bitmovin-bitanalytics.appspot.com/analytics';
+  static analyticsServerUrl = '//analytics-ingress.bitmovin.com/analytics';
 
   sendRequest = function(sample, callback) {
     this.post(AnalyticsCall.analyticsServerUrl, sample, callback);

@@ -4,7 +4,7 @@
 import HttpCall from './HttpCall'
 
 class LicenseCall extends HttpCall {
-  static licenseServerUrl = '//bitmovin-bitanalytics.appspot.com/licensing';
+  static licenseServerUrl = '//analytics-ingress.bitmovin.com/licensing';
 
   sendRequest = function(key, domain, version, callback) {
     const licensingRequest = {
