@@ -12,8 +12,40 @@ class Bitmovin7Adapter {
   }
 
   register() {
-    this.player.addEventHandler(bitmovin.player.EVENT.ON_SOURCE_LOADED, () => {
-      this.eventCallback(Events.SOURCE_LOADED);
+    this.player.addEventHandler(bitmovin.player.EVENT.ON_SOURCE_LOADED, (event) => {
+      let autoplay = false;
+      if (this.player.getConfig().playback && this.player.getConfig().playback.autoplay) {
+        autoplay = this.player.getConfig().playback.autoplay;
+      }
+
+      const config = this.player.getConfig();
+      let source = {};
+      if (config.source) {
+        source = {
+          videoId: config.source.videoId,
+          userId : config.source.userId,
+          mpdUrl : config.source.dash,
+          m3u8Url: config.source.hls,
+          progUrl: config.source.progressive,
+        };
+      }
+
+      this.eventCallback(Events.SOURCE_LOADED, {
+        isLive           : this.player.isLive(),
+        version          : this.player.version,
+        type             : this.player.getPlayerType(),
+        duration         : this.player.getDuration(),
+        streamType       : this.player.getStreamType(),
+        videoId          : source.videoId,
+        userId           : source.userId,
+        mpdUrl           : source.dash,
+        m3u8Url          : source.hls,
+        progUrl          : source.progressive,
+        videoWindowWidth : this.player.getFigure().offsetWidth,
+        videoWindowHeight: this.player.getFigure().offsetHeight,
+        isMuted          : this.player.isMuted(),
+        autoplay
+      });
     });
 
     this.player.addEventHandler(bitmovin.player.EVENT.ON_READY, () => {
@@ -22,17 +54,29 @@ class Bitmovin7Adapter {
         autoplay = this.player.getConfig().playback.autoplay;
       }
 
+      const config = this.player.getConfig();
+      let source = {};
+      if (config.source) {
+        source = {
+          videoId: config.source.videoId,
+          userId : config.source.userId,
+          mpdUrl : config.source.dash,
+          m3u8Url: config.source.hls,
+          progUrl: config.source.progressive,
+        };
+      }
+
       this.eventCallback(Events.READY, {
         isLive           : this.player.isLive(),
         version          : this.player.version,
         type             : this.player.getPlayerType(),
         duration         : this.player.getDuration(),
         streamType       : this.player.getStreamType(),
-        videoId          : this.player.getConfig().source.videoId,
-        userId           : this.player.getConfig().source.userId,
-        mpdUrl           : this.player.getConfig().source.dash,
-        m3u8Url          : this.player.getConfig().source.hls,
-        progUrl          : this.player.getConfig().source.progressive,
+        videoId          : source.videoId,
+        userId           : source.userId,
+        mpdUrl           : source.dash,
+        m3u8Url          : source.hls,
+        progUrl          : source.progressive,
         videoWindowWidth : this.player.getFigure().offsetWidth,
         videoWindowHeight: this.player.getFigure().offsetHeight,
         isMuted          : this.player.isMuted(),
@@ -40,8 +84,8 @@ class Bitmovin7Adapter {
       });
     });
 
-    this.player.addEventHandler(bitmovin.player.EVENT.ON_CAST_START, () => {
-      this.eventCallback(Events.START_CAST);
+    this.player.addEventHandler(bitmovin.player.EVENT.ON_CAST_STARTED, (event) => {
+      this.eventCallback(Events.START_CAST, event);
     });
 
     this.player.addEventHandler(bitmovin.player.EVENT.ON_CAST_STOPPED, () => {
