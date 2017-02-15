@@ -5,7 +5,7 @@
 import LicenseCall from '../utils/LicenseCall';
 import AnalyticsCall from '../utils/AnalyticsCall';
 import Utils from '../utils/Utils';
-import Logger from '../utils/Logger';
+import logger from '../utils/Logger';
 import AdapterFactory from './AdapterFactory';
 import AnalyticsStateMachineFactory from './AnalyticsStateMachineFactory';
 import CastClient from '../cast/CastClient';
@@ -26,7 +26,6 @@ class Analytics {
     this.licenseCall                  = new LicenseCall();
     this.analyticsCall                = new AnalyticsCall();
     this.utils                        = new Utils();
-    this.logger                       = new Logger();
     this.adapterFactory               = new AdapterFactory();
     this.analyticsStateMachineFactory = new AnalyticsStateMachineFactory();
     this.castClient                   = new CastClient();
@@ -103,7 +102,7 @@ class Analytics {
       return;
     }
 
-    this.logger.setLogging(this.config.debug || false);
+    logger.setLogging(this.config.debug || false);
 
     if (!this.isCastReceiver) {
       this.checkLicensing(this.config.key);
@@ -155,7 +154,7 @@ class Analytics {
         if (window.performance && window.performance.timing) {
           const loadTime           = this.utils.getCurrentTimestamp() - window.performance.timing.navigationStart;
           this.sample.pageLoadTime = loadTime;
-          this.logger.log('Page loaded in ' + loadTime);
+          logger.log('Page loaded in ' + loadTime);
         }
 
         this.startupTime = time;
@@ -330,6 +329,12 @@ class Analytics {
       },
 
       startCasting: (timestamp, event) => {
+        if (!this.canBeCastClient) {
+          this.isAllowedToSendSamples = false;
+          logger.debug('Player started casting but casting is disabled.');
+          return;
+        }
+
         this.isCastClient = true;
         this.isAllowedToSendSamples = false;
 
@@ -362,11 +367,11 @@ class Analytics {
   register = (player) => {
     this.adapter = this.adapterFactory.getAdapter(player, this.record);
     if (!this.adapter) {
-      this.logger.error('Could not detect player.');
+      logger.error('Could not detect player.');
       return;
     }
 
-    this.analyticsStateMachine = this.analyticsStateMachineFactory.getAnalyticsStateMachine(player, this.stateMachineCallbacks, this.logger.isLogging());
+    this.analyticsStateMachine = this.analyticsStateMachineFactory.getAnalyticsStateMachine(player, this.stateMachineCallbacks);
   };
 
   getCurrentImpressionId = () => {
@@ -487,7 +492,7 @@ class Analytics {
       this.licensing = 'granted';
     } else {
       this.licensing = 'denied';
-      this.logger.log('Analytics license denied, reason: ' + licensingResponse.message);
+      logger.log('Analytics license denied, reason: ' + licensingResponse.message);
     }
   }
 
@@ -517,7 +522,7 @@ class Analytics {
     } else if (this.licensing === 'waiting') {
       this.sample.time = this.utils.getCurrentTimestamp();
 
-      this.logger.log('Licensing callback still pending, waiting...');
+      logger.log('Licensing callback still pending, waiting...');
 
       const copySample = {...this.sample};
 
