@@ -3,7 +3,7 @@
  */
 
 import {MESSAGE_NAMESPACE} from '../utils/Settings';
-import Logger from '../utils/Logger';
+import logger from '../utils/Logger';
 
 class RemoteControl {
   setUp() {
@@ -13,7 +13,7 @@ class RemoteControl {
 
   addMessageListener() {
     this.castSession.addMessageListener(MESSAGE_NAMESPACE, (ns, message) => {
-      console.log('Received: ' + ns + ' ' + message);
+      logger.log('Received: ' + ns + ' ' + message);
 
       try {
         const receiverMessage = JSON.parse(message);
@@ -26,11 +26,11 @@ class RemoteControl {
   }
 
   handleReceiverMessage(message) {
-    console.log(message);
+    logger.log(message);
   }
 
   sendMessage(message) {
-    console.log('Sending message: ' + JSON.stringify(message));
+    logger.log('Sending message: ' + JSON.stringify(message));
     this.castSession.sendMessage(MESSAGE_NAMESPACE, message);
   }
 }
