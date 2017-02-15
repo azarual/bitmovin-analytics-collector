@@ -89,7 +89,10 @@ class Bitmovin7Adapter {
     });
 
     this.player.addEventHandler(bitmovin.player.EVENT.ON_CAST_STOPPED, () => {
-      this.eventCallback(Events.END_CAST);
+      this.eventCallback(Events.END_CAST, {
+        currentTime  : this.player.getCurrentTime(),
+        droppedFrames: this.player.getDroppedFrames()
+      });
     });
 
     this.player.addEventHandler(bitmovin.player.EVENT.ON_PLAY, () => {
@@ -128,7 +131,10 @@ class Bitmovin7Adapter {
     });
 
     this.player.addEventHandler(bitmovin.player.EVENT.ON_STALL_STARTED, () => {
-      this.eventCallback(Events.START_BUFFERING);
+      this.eventCallback(Events.START_BUFFERING, {
+        currentTime  : this.player.getCurrentTime(),
+        droppedFrames: this.player.getDroppedFrames()
+      });
     });
 
     this.player.addEventHandler(bitmovin.player.EVENT.ON_STALL_ENDED, () => {
@@ -205,7 +211,8 @@ class Bitmovin7Adapter {
     this.player.addEventHandler(bitmovin.player.EVENT.ON_ERROR, (event) => {
       this.eventCallback(Events.ERROR, {
         code   : event.code,
-        message: event.message
+        message: event.message,
+        currentTime  : this.player.getCurrentTime()
       });
     });
 
