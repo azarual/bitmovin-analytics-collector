@@ -43,6 +43,16 @@ class Bitmovin7AnalyticsStateMachine {
     this.createStateMachine();
   }
 
+  getAllStates() {
+    return [
+      ...Object.keys(this.States).map(key => this.States[key]),
+      'FINISH_PLAY_SEEKING',
+      'PLAY_SEEK',
+      'FINISH_QUALITYCHANGE_PAUSE',
+      'FINISH_QUALITYCHANGE',
+      'FINISH_QUALITYCHANGE_REBUFFERING'];
+  }
+
   createStateMachine() {
     this.stateMachine = StateMachine.create({
       initial  : this.States.SETUP,
@@ -129,25 +139,13 @@ class Bitmovin7AnalyticsStateMachine {
         {name: Events.PLAY, from: this.States.END, to: this.States.PLAYING},
 
         {
-          name: Events.ERROR, from: [
-          ...this.States,
-          'FINISH_PLAY_SEEKING',
-          'PLAY_SEEK',
-          'FINISH_QUALITYCHANGE_PAUSE',
-          'FINISH_QUALITYCHANGE',
-          'FINISH_QUALITYCHANGE_REBUFFERING'], to: this.States.ERROR
+          name: Events.ERROR, from: this.getAllStates(), to: this.States.ERROR
         },
 
         {name: Events.SEEK, from: this.States.END_PLAY_SEEKING, to: this.States.PLAY_SEEKING},
         {name: 'FINISH_PLAY_SEEKING', from: this.States.END_PLAY_SEEKING, to: this.States.PLAYING},
 
-        {name: Events.UNLOAD, from: [
-          ...this.States,
-          'FINISH_PLAY_SEEKING',
-          'PLAY_SEEK',
-          'FINISH_QUALITYCHANGE_PAUSE',
-          'FINISH_QUALITYCHANGE',
-          'FINISH_QUALITYCHANGE_REBUFFERING'], to: this.States.END},
+        {name: Events.UNLOAD, from: this.getAllStates(), to: this.States.END},
 
         {name: Events.START_AD, from: this.States.PLAYING, to: this.States.AD},
         {name: Events.END_AD, from: this.States.AD, to: this.States.PLAYING},
@@ -173,8 +171,7 @@ class Bitmovin7AnalyticsStateMachine {
         {name: Events.SEEKED, from: this.States.CASTING, to: this.States.CASTING},
         {name: Events.END_CAST, from: this.States.CASTING, to: this.States.READY},
 
-        {name: Events.SOURCE_LOADED, from: this.States.READY, to: this.States.SETUP},
-        {name: Events.SOURCE_LOADED, from: this.States.SETUP, to: this.States.SETUP},
+        {name: Events.SOURCE_LOADED, from: this.getAllStates(), to: this.States.SETUP},
 
         {name: Events.VIDEO_CHANGE, from: this.States.REBUFFERING, to: this.States.QUALITYCHANGE_REBUFFERING},
         {name: Events.AUDIO_CHANGE, from: this.States.REBUFFERING, to: this.States.QUALITYCHANGE_REBUFFERING},
