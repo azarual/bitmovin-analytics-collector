@@ -226,6 +226,13 @@ class Analytics {
         this.sendAnalyticsRequestAndClearValues();
       },
 
+      'qualitychange_rebuffering': (time, state) => {
+        this.setDuration(time);
+        this.setState(state);
+
+        this.sendAnalyticsRequestAndClearValues();
+      },
+
       videoChange: (event) => {
         this.stateMachineCallbacks.setVideoTimeEndFromEvent(event);
         this.stateMachineCallbacks.setVideoTimeStartFromEvent(event);
@@ -522,6 +529,7 @@ class Analytics {
         for (let i = 0; i < this.samplesQueue.length; i++) {
           this.analyticsCall.sendRequest(this.samplesQueue[i], this.utils.noOp);
         }
+        this.samplesQueue = [];
 
         this.analyticsCall.sendRequest(this.sample, this.utils.noOp);
       }
