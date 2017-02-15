@@ -5,7 +5,7 @@
 import {MESSAGE_NAMESPACE} from '../utils/Settings';
 import logger from '../utils/Logger';
 
-class RemoteControl {
+class CastClient {
   setUp() {
     this.castSession = cast.framework.CastContext.getInstance().getCurrentSession();
     this.addMessageListener();
@@ -35,4 +35,4 @@ class RemoteControl {
   }
 }
 
-export default RemoteControl;
+export default CastClient;
