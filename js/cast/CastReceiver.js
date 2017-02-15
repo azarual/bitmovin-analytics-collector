@@ -15,14 +15,10 @@ class CastReceiver {
     logger.log(this.messageBus);
 
     this.messageBus.onMessage = (message) => {
-      logger.log('customMessageBus', message);
+      logger.log('Received message from cast client: ' + JSON.stringify(message));
 
-      try {
-        const castClientMessage = message.data;
-        this.handleClientMessage(castClientMessage);
-      } catch (error) {
-        logger.error('illegal message', message, error);
-      }
+      const castClientMessage = message.data;
+      this.handleClientMessage(castClientMessage);
     };
   }
 
@@ -31,7 +27,6 @@ class CastReceiver {
   }
 
   handleClientMessage(event) {
-    logger.log(event);
     this.callback(event);
   }
 
