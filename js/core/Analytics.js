@@ -154,7 +154,7 @@ class Analytics {
         if (window.performance && window.performance.timing) {
           const loadTime           = this.utils.getCurrentTimestamp() - window.performance.timing.navigationStart;
           this.sample.pageLoadTime = loadTime;
-          logger.log('Page loaded in ' + loadTime);
+          logger.log('Page loaded in ' + loadTime + 'ms');
         }
 
         this.startupTime = time;
