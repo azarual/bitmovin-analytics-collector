@@ -335,6 +335,12 @@ class Analytics {
           return;
         }
 
+        if (event && event.resuming) {
+          this.isAllowedToSendSamples = false;
+          logger.warning('Player started casting but a session is already casting!');
+          return;
+        }
+
         this.isCastClient = true;
         this.isAllowedToSendSamples = false;
 
