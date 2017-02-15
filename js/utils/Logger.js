@@ -30,6 +30,14 @@ class Logger {
 
     console.error(msg);
   };
+
+  warning = function(msg) {
+    if (!this.showLogs) {
+      return;
+    }
+
+    console.warn(msg);
+  }
 }
 
 const logger = new Logger();
