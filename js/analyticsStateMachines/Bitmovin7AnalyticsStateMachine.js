@@ -45,7 +45,7 @@ class Bitmovin7AnalyticsStateMachine {
   createStateMachine() {
     this.stateMachine = StateMachine.create({
       initial  : this.States.SETUP,
-      error: (eventName, from, to, args, errorCode, errorMessage, originalException) => {
+      error: (eventName, from, to, args, errorCode, errorMessage) => {
         logger.error('Error in statemachine: ' + errorMessage);
       },
       events   : [
@@ -160,6 +160,7 @@ class Bitmovin7AnalyticsStateMachine {
         {name: Events.PAUSE, from: this.States.CASTING, to: this.States.CASTING},
         {name: Events.PLAY, from: this.States.CASTING, to: this.States.CASTING},
         {name: Events.TIMECHANGED, from: this.States.CASTING, to: this.States.CASTING},
+        {name: Events.MUTE, from: this.States.CASTING, to: this.States.CASTING},
         {name: Events.END_CAST, from: this.States.CASTING, to: this.States.READY},
 
         {name: Events.SOURCE_LOADED, from: this.States.READY, to: this.States.SETUP},
