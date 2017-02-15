@@ -46,7 +46,7 @@ class Bitmovin7AnalyticsStateMachine {
     this.stateMachine = StateMachine.create({
       initial  : this.States.SETUP,
       error: (eventName, from, to, args, errorCode, errorMessage, originalException) => {
-        logger.error(errorMessage);
+        logger.error('Error in statemachine: ' + errorMessage);
       },
       events   : [
         {name: Events.READY, from: [this.States.SETUP, this.States.ERROR], to: this.States.READY},
