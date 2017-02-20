@@ -39,28 +39,23 @@ class Analytics {
     this.autoplay = undefined;
 
     this.isCastClient = false;
-    this.canBeCastClient = false;
     this.isCastReceiver = false;
     this.isAllowedToSendSamples = false;
     this.samplesQueue = [];
 
-    if (this.config.cast) {
-      if (this.config.cast.enabled) {
-        this.canBeCastClient = true;
-      } else if (this.config.cast.receiver) {
-        this.isCastReceiver = true;
-        this.castReceiver.setUp();
-        this.castReceiver.setCallback((event) => {
-          switch (event.type) {
-            case Analytics.CAST_RECEIVER_CONFIG_MESSAGE:
-              this.castClientConfig = event.data;
-              this.updateSampleToCastClientConfig(this.sample, this.castClientConfig);
-              this.updateSamplesToCastClientConfig(this.samplesQueue, event.data);
-              this.isAllowedToSendSamples = true;
-              break;
-          }
-        });
-      }
+    if (this.config.cast && this.config.cast.receiver) {
+      this.isCastReceiver = true;
+      this.castReceiver.setUp();
+      this.castReceiver.setCallback((event) => {
+        switch (event.type) {
+          case Analytics.CAST_RECEIVER_CONFIG_MESSAGE:
+            this.castClientConfig = event.data;
+            this.updateSampleToCastClientConfig(this.sample, this.castClientConfig);
+            this.updateSamplesToCastClientConfig(this.samplesQueue, event.data);
+            this.isAllowedToSendSamples = true;
+            break;
+        }
+      });
     }
 
     this.setPageLoadType();
@@ -339,12 +334,6 @@ class Analytics {
       },
 
       startCasting: (timestamp, event) => {
-        if (!this.canBeCastClient) {
-          this.isAllowedToSendSamples = false;
-          logger.debug('Player started casting but casting is disabled.');
-          return;
-        }
-
         if (event && event.resuming) {
           this.isAllowedToSendSamples = false;
           logger.warning('Player started casting but a session is already casting!');
