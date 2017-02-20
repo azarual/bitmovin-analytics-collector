@@ -145,7 +145,10 @@ class Analytics {
   setupStateMachineCallbacks() {
     this.stateMachineCallbacks = {
       setup: (time, state, event) => {
-        this.sample.impressionId = this.utils.generateUUID();
+        if (!this.isCastReceiver) {
+          this.sample.impressionId = this.utils.generateUUID();
+        }
+
         this.setDuration(time);
         this.setState(state);
         this.sample.playerStartupTime = time;
