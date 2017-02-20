@@ -65,6 +65,8 @@ class Bitmovin7AnalyticsStateMachine {
 
         {name: Events.START_BUFFERING, from: this.States.STARTUP, to: this.States.STARTUP},
         {name: Events.END_BUFFERING, from: this.States.STARTUP, to: this.States.STARTUP},
+        {name: Events.VIDEO_CHANGE, from: this.States.STARTUP, to: this.States.STARTUP},
+        {name: Events.AUDIO_CHANGE, from: this.States.STARTUP, to: this.States.STARTUP},
         {name: Events.TIMECHANGED, from: this.States.STARTUP, to: this.States.PLAYING},
 
         {name: Events.TIMECHANGED, from: this.States.PLAYING, to: this.States.PLAYING},
@@ -160,7 +162,7 @@ class Bitmovin7AnalyticsStateMachine {
         {name: Events.UN_MUTE, from: this.States.PAUSE, to: this.States.MUTING_PAUSE},
         {name: 'FINISH_MUTING', from: this.States.MUTING_PAUSE, to: this.States.PAUSE},
 
-        {name: Events.START_CAST, from: this.States.READY, to: this.States.CASTING},
+        {name: Events.START_CAST, from: [this.States.READY, this.States.PAUSE], to: this.States.CASTING},
         {name: Events.PAUSE, from: this.States.CASTING, to: this.States.CASTING},
         {name: Events.PLAY, from: this.States.CASTING, to: this.States.CASTING},
         {name: Events.TIMECHANGED, from: this.States.CASTING, to: this.States.CASTING},
@@ -168,6 +170,10 @@ class Bitmovin7AnalyticsStateMachine {
         {name: Events.SEEK, from: this.States.CASTING, to: this.States.CASTING},
         {name: Events.SEEKED, from: this.States.CASTING, to: this.States.CASTING},
         {name: Events.END_CAST, from: this.States.CASTING, to: this.States.READY},
+
+        {name: Events.SEEK, from: this.States.READY, to: this.States.READY},
+        {name: Events.SEEKED, from: this.States.READY, to: this.States.READY},
+        {name: Events.SEEKED, from: this.States.STARTUP, to: this.States.STARTUP},
 
         {name: Events.SOURCE_LOADED, from: this.getAllStates(), to: this.States.SETUP},
 
