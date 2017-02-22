@@ -24,9 +24,8 @@ const analyticsWrapper = (config) => {
   }
 };
 
-let bitmovin = window.bitmovin;
-bitmovin = bitmovin || {};
+window.bitmovin = window.bitmovin || {};
 
-bitmovin.analytics = analyticsWrapper;
-bitmovin.analytics.Players = Players;
-bitmovin.analytics.CdnProviders = CdnProviders;
+window.bitmovin.analytics = analyticsWrapper;
+window.bitmovin.analytics.Players = Players;
+window.bitmovin.analytics.CdnProviders = CdnProviders;

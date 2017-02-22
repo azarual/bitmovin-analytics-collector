@@ -11,11 +11,11 @@ class AnalyticsStateMachineFactory {
     this.playerDetector = new PlayerDetector;
   }
 
-  getAnalyticsStateMachine(player, stateMachineCallbacks, isLogging) {
+  getAnalyticsStateMachine(player, stateMachineCallbacks) {
     if (this.playerDetector.isBitmovinVersionPre7(player)) {
-      return new BitmovinAnalyticsStateMachine(stateMachineCallbacks, isLogging);
+      return new BitmovinAnalyticsStateMachine(stateMachineCallbacks);
     } else if (this.playerDetector.isBitmovinVersion7Plus(player)) {
-      return new Bitmovin7AnalyticsStateMachine(stateMachineCallbacks, isLogging);
+      return new Bitmovin7AnalyticsStateMachine(stateMachineCallbacks);
     }
   };
 }

@@ -1,10 +1,11 @@
 /**
  * Created by lkroepfl on 11.11.16.
  */
-import HttpCall from './HttpCall'
+import HttpCall from './HttpCall';
+import {ANALYTICS_BACKEND_BASE_URL} from './Settings';
 
 class LicenseCall extends HttpCall {
-  static licenseServerUrl = '//bitmovin-bitanalytics.appspot.com/licensing';
+  static licenseServerUrl = ANALYTICS_BACKEND_BASE_URL + '/licensing';
 
   sendRequest = function(key, domain, version, callback) {
     const licensingRequest = {

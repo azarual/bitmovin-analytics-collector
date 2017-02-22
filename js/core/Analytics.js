@@ -5,9 +5,11 @@
 import LicenseCall from '../utils/LicenseCall';
 import AnalyticsCall from '../utils/AnalyticsCall';
 import Utils from '../utils/Utils';
-import Logger from '../utils/Logger';
-import AdapterFactory from './AdapterFactory'
-import AnalyticsStateMachineFactory from './AnalyticsStateMachineFactory'
+import logger from '../utils/Logger';
+import AdapterFactory from './AdapterFactory';
+import AnalyticsStateMachineFactory from './AnalyticsStateMachineFactory';
+import CastClient from '../cast/CastClient';
+import CastReceiver from '../cast/CastReceiver';
 
 class Analytics {
   static PageLoadType = {
@@ -16,6 +18,7 @@ class Analytics {
   };
   static LICENSE_CALL_PENDING_TIMEOUT = 200;
   static PAGE_LOAD_TYPE_TIMEOUT       = 200;
+  static CAST_RECEIVER_CONFIG_MESSAGE = 'CAST_RECEIVER_CONFIG_MESSAGE';
 
   constructor(config) {
     this.config = config;
@@ -23,9 +26,10 @@ class Analytics {
     this.licenseCall                  = new LicenseCall();
     this.analyticsCall                = new AnalyticsCall();
     this.utils                        = new Utils();
-    this.logger                       = new Logger();
     this.adapterFactory               = new AdapterFactory();
     this.analyticsStateMachineFactory = new AnalyticsStateMachineFactory();
+    this.castClient                   = new CastClient();
+    this.castReceiver                 = new CastReceiver();
 
     this.droppedSampleFrames = 0;
     this.licensing           = 'waiting';
@@ -34,11 +38,49 @@ class Analytics {
 
     this.autoplay = undefined;
 
+    this.isCastClient = false;
+    this.isCastReceiver = false;
+    this.isAllowedToSendSamples = false;
+    this.samplesQueue = [];
+
+    if (this.config.cast && this.config.cast.receiver) {
+      this.isCastReceiver = true;
+      this.castReceiver.setUp();
+      this.castReceiver.setCallback((event) => {
+        switch (event.type) {
+          case Analytics.CAST_RECEIVER_CONFIG_MESSAGE:
+            this.castClientConfig = event.data;
+            this.updateSampleToCastClientConfig(this.sample, this.castClientConfig);
+            this.updateSamplesToCastClientConfig(this.samplesQueue, event.data);
+            this.isAllowedToSendSamples = true;
+            break;
+        }
+      });
+    }
+
     this.setPageLoadType();
 
     this.setupSample();
     this.init();
     this.setupStateMachineCallbacks();
+  }
+
+  updateSamplesToCastClientConfig(samples, castClientConfig) {
+    for (let i = 0; i < samples.length; i++) {
+      this.updateSampleToCastClientConfig(samples[i], castClientConfig);
+    }
+  }
+
+  updateSampleToCastClientConfig(sample, castClientConfig) {
+    const {config, userId, impressionId, domain, path, language, userAgent} = castClientConfig;
+    sample.impressionId = impressionId;
+    sample.userId = userId;
+    sample.userAgent = userAgent;
+    sample.domain = domain;
+    sample.path = path;
+    sample.language = language;
+
+    this.setConfigParameters(sample, config);
   }
 
   setPageLoadType() {
@@ -50,35 +92,39 @@ class Analytics {
   }
 
   init() {
-    if (this.config.key == '' || !this.utils.validString(this.config.key)) {
+    if (!this.isCastReceiver && (this.config.key == '' || !this.utils.validString(this.config.key))) {
       console.error('Invalid analytics license key provided');
       return;
     }
 
-    this.logger.setLogging(this.config.debug || false);
+    logger.setLogging(this.config.debug || false);
 
-    this.checkLicensing(this.config.key);
+    if (!this.isCastReceiver) {
+      this.checkLicensing(this.config.key);
+    } else {
+      this.licensing = 'granted';
+    }
 
     this.setConfigParameters();
 
     this.setUserId();
   }
 
-  setConfigParameters() {
-    this.sample.key          = this.config.key;
-    this.sample.playerKey    = this.config.playerKey;
-    this.sample.player       = this.config.player;
-    this.sample.cdnProvider  = this.config.cdnProvider;
-    this.sample.videoId      = this.config.videoId;
-    this.sample.customUserId = this.config.userId;
+  setConfigParameters(sample = this.sample, config = this.config) {
+    sample.key          = config.key;
+    sample.playerKey    = config.playerKey;
+    sample.player       = config.player;
+    sample.cdnProvider  = config.cdnProvider;
+    sample.videoId      = config.videoId;
+    sample.customUserId = config.userId;
 
-    this.sample.customData1 = this.utils.getCustomDataString(this.config.customData1);
-    this.sample.customData2 = this.utils.getCustomDataString(this.config.customData2);
-    this.sample.customData3 = this.utils.getCustomDataString(this.config.customData3);
-    this.sample.customData4 = this.utils.getCustomDataString(this.config.customData4);
-    this.sample.customData5 = this.utils.getCustomDataString(this.config.customData5);
+    sample.customData1 = this.utils.getCustomDataString(config.customData1);
+    sample.customData2 = this.utils.getCustomDataString(config.customData2);
+    sample.customData3 = this.utils.getCustomDataString(config.customData3);
+    sample.customData4 = this.utils.getCustomDataString(config.customData4);
+    sample.customData5 = this.utils.getCustomDataString(config.customData5);
 
-    this.sample.experimentName = this.config.experimentName;
+    sample.experimentName = config.experimentName;
   }
 
   setUserId() {
@@ -94,7 +140,10 @@ class Analytics {
   setupStateMachineCallbacks() {
     this.stateMachineCallbacks = {
       setup: (time, state, event) => {
-        this.sample.impressionId = this.utils.generateUUID();
+        if (!this.isCastReceiver) {
+          this.sample.impressionId = this.utils.generateUUID();
+        }
+
         this.setDuration(time);
         this.setState(state);
         this.sample.playerStartupTime = time;
@@ -103,7 +152,7 @@ class Analytics {
         if (window.performance && window.performance.timing) {
           const loadTime           = this.utils.getCurrentTimestamp() - window.performance.timing.navigationStart;
           this.sample.pageLoadTime = loadTime;
-          this.logger.log('Page loaded in ' + loadTime);
+          logger.log('Page loaded in ' + loadTime + 'ms');
         }
 
         this.startupTime = time;
@@ -169,6 +218,13 @@ class Analytics {
       },
 
       'qualitychange_pause': (time, state) => {
+        this.setDuration(time);
+        this.setState(state);
+
+        this.sendAnalyticsRequestAndClearValues();
+      },
+
+      'qualitychange_rebuffering': (time, state) => {
         this.setDuration(time);
         this.setState(state);
 
@@ -275,6 +331,40 @@ class Analytics {
         if (this.utils.validNumber(event.currentTime)) {
           this.sample.videoTimeStart = this.utils.calculateTime(event.currentTime);
         }
+      },
+
+      startCasting: (timestamp, event) => {
+        if (event && event.resuming) {
+          this.isAllowedToSendSamples = false;
+          logger.warning('Player started casting but a session is already casting!');
+          return;
+        }
+
+        this.isCastClient = true;
+        this.isAllowedToSendSamples = false;
+
+        const {domain, path, language, userAgent, userId, impressionId} = this.sample;
+        const castStartMessage = {
+          type: Analytics.CAST_RECEIVER_CONFIG_MESSAGE,
+          data: {
+            config: this.config,
+            userId,
+            domain,
+            path,
+            language,
+            userAgent,
+            impressionId
+          }
+        };
+
+        this.castClient.setUp();
+        this.castClient.sendMessage(castStartMessage);
+      },
+
+      casting: () => {
+        this.isCastClient = false;
+        this.samplesQueue = [];
+        this.isAllowedToSendSamples = true;
       }
     };
   }
@@ -282,11 +372,11 @@ class Analytics {
   register = (player) => {
     this.adapter = this.adapterFactory.getAdapter(player, this.record);
     if (!this.adapter) {
-      this.logger.error('Could not detect player.');
+      logger.error('Could not detect player.');
       return;
     }
 
-    this.analyticsStateMachine = this.analyticsStateMachineFactory.getAnalyticsStateMachine(player, this.stateMachineCallbacks, this.logger.isLogging());
+    this.analyticsStateMachine = this.analyticsStateMachineFactory.getAnalyticsStateMachine(player, this.stateMachineCallbacks);
   };
 
   getCurrentImpressionId = () => {
@@ -373,7 +463,7 @@ class Analytics {
       screenWidth        : screen.width,
       screenHeight       : screen.height,
       isLive             : false,
-      isCasting          : false,
+      isCasting          : this.isCastReceiver,
       videoDuration      : 0,
       size               : 'WINDOW',
       time               : 0,
@@ -407,7 +497,7 @@ class Analytics {
       this.licensing = 'granted';
     } else {
       this.licensing = 'denied';
-      this.logger.log('Analytics license denied, reason: ' + licensingResponse.message);
+      logger.log('Analytics license denied, reason: ' + licensingResponse.message);
     }
   }
 
@@ -418,11 +508,27 @@ class Analytics {
 
     if (this.licensing === 'granted') {
       this.sample.time = this.utils.getCurrentTimestamp();
-      this.analyticsCall.sendRequest(this.sample, this.utils.noOp);
+
+      if (!this.isCastClient && !this.isCastReceiver) {
+        this.analyticsCall.sendRequest(this.sample, this.utils.noOp);
+        return;
+      }
+
+      if (!this.isAllowedToSendSamples) {
+        const copySample = {...this.sample};
+        this.samplesQueue.push(copySample);
+      } else {
+        for (let i = 0; i < this.samplesQueue.length; i++) {
+          this.analyticsCall.sendRequest(this.samplesQueue[i], this.utils.noOp);
+        }
+        this.samplesQueue = [];
+
+        this.analyticsCall.sendRequest(this.sample, this.utils.noOp);
+      }
     } else if (this.licensing === 'waiting') {
       this.sample.time = this.utils.getCurrentTimestamp();
 
-      this.logger.log('Licensing callback still pending, waiting...');
+      logger.log('Licensing callback still pending, waiting...');
 
       const copySample = {...this.sample};
 

@@ -2,7 +2,7 @@
  * Created by lkroepfl on 22.11.16.
  */
 
-import Logger from '../utils/Logger'
+import logger from '../utils/Logger'
 import StateMachine from 'javascript-state-machine'
 import Events from '../enums/Events'
 
@@ -10,9 +10,8 @@ class BitmovinAnalyticsStateMachine {
   static PAUSE_SEEK_DELAY = 60;
   static SEEKED_PAUSE_DELAY = 120;
 
-  constructor(stateMachineCallbacks, isLogging = false) {
+  constructor(stateMachineCallbacks) {
     this.stateMachineCallbacks = stateMachineCallbacks;
-    this.logger                = new Logger(isLogging);
 
     this.pausedTimestamp       = null;
     this.seekTimestamp         = 0;
@@ -47,7 +46,7 @@ class BitmovinAnalyticsStateMachine {
     this.stateMachine = StateMachine.create({
       initial  : this.States.SETUP,
       error: (eventName, from, to, args, errorCode, errorMessage, originalException) => {
-        this.logger.error(errorMessage);
+        logger.error(errorMessage);
       },
       events   : [
         {name: Events.READY, from: [this.States.SETUP, this.States.ERROR], to: this.States.READY},
@@ -195,7 +194,7 @@ class BitmovinAnalyticsStateMachine {
           }
         },
         onafterevent : (event, from, to, timestamp)  => {
-          this.logger.log(BitmovinAnalyticsStateMachine.pad(timestamp, 20) + 'EVENT: ' + BitmovinAnalyticsStateMachine.pad(event, 20) + ' from ' + BitmovinAnalyticsStateMachine.pad(from, 14) + '-> ' + BitmovinAnalyticsStateMachine.pad(to, 14));
+          logger.log(BitmovinAnalyticsStateMachine.pad(timestamp, 20) + 'EVENT: ' + BitmovinAnalyticsStateMachine.pad(event, 20) + ' from ' + BitmovinAnalyticsStateMachine.pad(from, 14) + '-> ' + BitmovinAnalyticsStateMachine.pad(to, 14));
           if (to === this.States.QUALITYCHANGE_PAUSE) {
             this.stateMachine.FINISH_QUALITYCHANGE_PAUSE(timestamp);
           }
@@ -209,7 +208,7 @@ class BitmovinAnalyticsStateMachine {
         onenterstate : (event, from, to, timestamp, eventObject) => {
           this.onEnterStateTimestamp = timestamp || new Date().getTime();
 
-          this.logger.log('Entering State ' + to + ' with ' + event);
+          logger.log('Entering State ' + to + ' with ' + event);
           if (eventObject && to !== this.States.PAUSED_SEEKING) {
             this.stateMachineCallbacks.setVideoTimeStartFromEvent(eventObject);
           }
@@ -220,7 +219,7 @@ class BitmovinAnalyticsStateMachine {
           }
 
           const stateDuration = timestamp - this.onEnterStateTimestamp;
-          this.logger.log('State ' + from + ' was ' + stateDuration + ' ms event:' + event);
+          logger.log('State ' + from + ' was ' + stateDuration + ' ms event:' + event);
 
           if (eventObject && to !== this.States.PAUSED_SEEKING) {
             this.stateMachineCallbacks.setVideoTimeEndFromEvent(eventObject);
@@ -230,7 +229,7 @@ class BitmovinAnalyticsStateMachine {
           if (from === this.States.END_PLAY_SEEKING || from === this.States.PAUSED_SEEKING) {
             const seekDuration = this.seekedTimestamp - this.seekTimestamp;
             this.stateMachineCallbacks[fnName](seekDuration, fnName, eventObject);
-            this.logger.log('Seek was ' + seekDuration + 'ms');
+            logger.log('Seek was ' + seekDuration + 'ms');
           } else if (event === Events.UNLOAD && from === this.States.PLAYING) {
             this.stateMachineCallbacks.playingAndBye(stateDuration, fnName, eventObject);
           } else if (from === this.States.PAUSE && to !== this.States.PAUSED_SEEKING) {
@@ -241,7 +240,7 @@ class BitmovinAnalyticsStateMachine {
             if (typeof callbackFunction === 'function') {
               callbackFunction(stateDuration, fnName, eventObject);
             } else {
-              this.logger.error('Could not find callback function for ' + fnName);
+              logger.error('Could not find callback function for ' + fnName);
             }
           }
 
@@ -254,10 +253,10 @@ class BitmovinAnalyticsStateMachine {
           } else if (event === Events.AUDIO_CHANGE) {
             this.stateMachineCallbacks.audioChange(eventObject);
           } else if (event === Events.MUTE) {
-            this.logger.log('Setting sample to muted');
+            logger.log('Setting sample to muted');
             this.stateMachineCallbacks.mute();
           } else if (event === Events.UN_MUTE) {
-            this.logger.log('Setting sample to unmuted');
+            logger.log('Setting sample to unmuted');
             this.stateMachineCallbacks.unMute();
           }
         },
@@ -273,7 +272,7 @@ class BitmovinAnalyticsStateMachine {
           if (stateDuration > 59700) {
             this.stateMachineCallbacks.setVideoTimeEndFromEvent(eventObject);
 
-            this.logger.log('Sending heartbeat');
+            logger.log('Sending heartbeat');
             this.stateMachineCallbacks.heartbeat(stateDuration, from.toLowerCase(), eventObject);
             this.onEnterStateTimestamp = timestamp;
 
@@ -293,7 +292,7 @@ class BitmovinAnalyticsStateMachine {
     if (exec) {
       exec.call(this.stateMachine, timestamp, eventObject);
     } else {
-      this.logger.log('Ignored Event: ' + eventType);
+      logger.log('Ignored Event: ' + eventType);
     }
   };
 

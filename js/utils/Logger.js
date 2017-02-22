@@ -30,6 +30,15 @@ class Logger {
 
     console.error(msg);
   };
+
+  warning = function(msg) {
+    if (!this.showLogs) {
+      return;
+    }
+
+    console.warn(msg);
+  }
 }
 
-export default Logger
+const logger = new Logger();
+export default logger;
