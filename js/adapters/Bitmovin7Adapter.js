@@ -12,6 +12,25 @@ class Bitmovin7Adapter {
   }
 
   register() {
+
+    const getProgUrlFromProgressiveConfig = (progressive) => {
+      if (!progressive) {
+        return;
+      }
+
+      if (typeof progressive === 'string') {
+        return progressive;
+      }
+
+      if (Array.isArray(progressive)) {
+        return progressive[0].url;
+      }
+
+      if (typeof progressive === 'object') {
+        return progressive.url;
+      }
+    };
+
     this.player.addEventHandler(bitmovin.player.EVENT.ON_SOURCE_LOADED, (event) => {
       let autoplay = false;
       if (this.player.getConfig().playback && this.player.getConfig().playback.autoplay) {
@@ -25,9 +44,10 @@ class Bitmovin7Adapter {
           videoId: config.source.videoId,
           userId : config.source.userId,
           mpdUrl : config.source.dash,
-          m3u8Url: config.source.hls,
-          progUrl: config.source.progressive,
+          m3u8Url: config.source.hls
         };
+        const progressive = config.source.progressive;
+        source.progUrl = getProgUrlFromProgressiveConfig(progressive);
       }
 
       this.eventCallback(Events.SOURCE_LOADED, {
@@ -40,7 +60,7 @@ class Bitmovin7Adapter {
         userId           : source.userId,
         mpdUrl           : source.dash,
         m3u8Url          : source.hls,
-        progUrl          : source.progressive,
+        progUrl          : source.progUrl,
         videoWindowWidth : this.player.getFigure().offsetWidth,
         videoWindowHeight: this.player.getFigure().offsetHeight,
         isMuted          : this.player.isMuted(),
@@ -61,9 +81,10 @@ class Bitmovin7Adapter {
           videoId: config.source.videoId,
           userId : config.source.userId,
           mpdUrl : config.source.dash,
-          m3u8Url: config.source.hls,
-          progUrl: config.source.progressive,
+          m3u8Url: config.source.hls
         };
+        const progressive = config.source.progressive;
+        source.progUrl = getProgUrlFromProgressiveConfig(progressive);
       }
 
       this.eventCallback(Events.READY, {
@@ -76,7 +97,7 @@ class Bitmovin7Adapter {
         userId           : source.userId,
         mpdUrl           : source.dash,
         m3u8Url          : source.hls,
-        progUrl          : source.progressive,
+        progUrl          : source.progUrl,
         videoWindowWidth : this.player.getFigure().offsetWidth,
         videoWindowHeight: this.player.getFigure().offsetHeight,
         isMuted          : this.player.isMuted(),
