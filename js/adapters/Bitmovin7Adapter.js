@@ -23,7 +23,9 @@ class Bitmovin7Adapter {
       }
 
       if (Array.isArray(progressive)) {
-        return progressive[0].url;
+        const playbackVideoData = this.player.getPlaybackVideoData();
+        const progressiveArrayIndex = parseInt(playbackVideoData.id) || 0;
+        return progressive[progressiveArrayIndex].url;
       }
 
       if (typeof progressive === 'object') {
@@ -44,10 +46,9 @@ class Bitmovin7Adapter {
           videoId: config.source.videoId,
           userId : config.source.userId,
           mpdUrl : config.source.dash,
-          m3u8Url: config.source.hls
+          m3u8Url: config.source.hls,
+          progUrl: getProgUrlFromProgressiveConfig(config.source.progressive)
         };
-        const progressive = config.source.progressive;
-        source.progUrl = getProgUrlFromProgressiveConfig(progressive);
       }
 
       this.eventCallback(Events.SOURCE_LOADED, {
@@ -81,10 +82,9 @@ class Bitmovin7Adapter {
           videoId: config.source.videoId,
           userId : config.source.userId,
           mpdUrl : config.source.dash,
-          m3u8Url: config.source.hls
+          m3u8Url: config.source.hls,
+          progUrl: getProgUrlFromProgressiveConfig(config.source.progressive)
         };
-        const progressive = config.source.progressive;
-        source.progUrl = getProgUrlFromProgressiveConfig(progressive);
       }
 
       this.eventCallback(Events.READY, {
