@@ -191,6 +191,7 @@ class Bitmovin7AnalyticsStateMachine {
         },
         onbeforeevent: (event, from, to, timestamp, eventObject) => {
           if (event === Events.SEEK && from === this.States.PAUSE) {
+            this.seekTimestamp = timestamp;
             if (timestamp - this.pausedTimestamp < Bitmovin7AnalyticsStateMachine.PAUSE_SEEK_DELAY) {
               this.stateMachine.PLAY_SEEK(timestamp);
               return false;
