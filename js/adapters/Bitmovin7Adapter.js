@@ -13,23 +13,32 @@ class Bitmovin7Adapter {
 
   register() {
 
-    const getProgUrlFromProgressiveConfig = (progressive) => {
+    const getProgConfigFromProgressiveConfig = (progressive) => {
       if (!progressive) {
         return;
       }
 
       if (typeof progressive === 'string') {
-        return progressive;
+        return {
+          progUrl: progressive,
+          progBitrate: 0
+        };
       }
 
       if (Array.isArray(progressive)) {
         const playbackVideoData = this.player.getPlaybackVideoData();
         const progressiveArrayIndex = parseInt(playbackVideoData.id) || 0;
-        return progressive[progressiveArrayIndex].url;
+        return {
+          progUrl: progressive[progressiveArrayIndex].url,
+          progBitrate: progressive[progressiveArrayIndex].bitrate || 0,
+        };
       }
 
       if (typeof progressive === 'object') {
-        return progressive.url;
+        return {
+          progUrl: progressive.url,
+          progBitrate: progressive.bitrate || 0
+        };
       }
     };
 
@@ -41,13 +50,15 @@ class Bitmovin7Adapter {
 
       const config = this.player.getConfig();
       let source = {};
+      const progConf = getProgConfigFromProgressiveConfig(config.source.progressive);
       if (config.source) {
         source = {
           videoId: config.source.videoId,
           userId : config.source.userId,
           mpdUrl : config.source.dash,
           m3u8Url: config.source.hls,
-          progUrl: getProgUrlFromProgressiveConfig(config.source.progressive)
+          progUrl: progConf.progUrl,
+          progBitrate: progConf.progBitrate
         };
       }
 
@@ -62,6 +73,7 @@ class Bitmovin7Adapter {
         mpdUrl           : source.dash,
         m3u8Url          : source.hls,
         progUrl          : source.progUrl,
+        progBitrate      : source.progBitrate,
         videoWindowWidth : this.player.getFigure().offsetWidth,
         videoWindowHeight: this.player.getFigure().offsetHeight,
         isMuted          : this.player.isMuted(),
@@ -77,13 +89,15 @@ class Bitmovin7Adapter {
 
       const config = this.player.getConfig();
       let source = {};
+      const progConf = getProgConfigFromProgressiveConfig(config.source.progressive);
       if (config.source) {
         source = {
           videoId: config.source.videoId,
           userId : config.source.userId,
           mpdUrl : config.source.dash,
           m3u8Url: config.source.hls,
-          progUrl: getProgUrlFromProgressiveConfig(config.source.progressive)
+          progUrl: progConf.progUrl,
+          progBitrate: progConf.progBitrate
         };
       }
 
@@ -98,6 +112,7 @@ class Bitmovin7Adapter {
         mpdUrl           : source.dash,
         m3u8Url          : source.hls,
         progUrl          : source.progUrl,
+        progBitrate      : source.progBitrate,
         videoWindowWidth : this.player.getFigure().offsetWidth,
         videoWindowHeight: this.player.getFigure().offsetHeight,
         isMuted          : this.player.isMuted(),

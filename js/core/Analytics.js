@@ -452,6 +452,10 @@ class Analytics {
     if (this.utils.validBoolean(loadedEvent.autoplay)) {
       this.autoplay = loadedEvent.autoplay;
     }
+
+    if (this.sample.streamFormat === 'progressive') {
+      this.sample.videoBitrate = loadedEvent.progBitrate;
+    }
   }
 
   setupSample() {
