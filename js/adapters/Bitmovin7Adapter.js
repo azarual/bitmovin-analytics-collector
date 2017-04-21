@@ -15,7 +15,10 @@ class Bitmovin7Adapter {
 
     const getProgConfigFromProgressiveConfig = (progressive) => {
       if (!progressive) {
-        return;
+        return {
+          progUrl: undefined,
+          progBitrate: undefined
+        };
       }
 
       if (typeof progressive === 'string') {
