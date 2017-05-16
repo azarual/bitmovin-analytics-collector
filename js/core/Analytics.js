@@ -556,7 +556,7 @@ class Analytics {
       this.sendAnalyticsRequestSynchronous();
     }
     else {
-      const success = navigator.sendBeacon(this.analyticsCall.getAnalyticsServerUrl() + '/analytics',
+      const success = navigator.sendBeacon(this.analyticsCall.getAnalyticsServerUrl(),
         JSON.stringify(this.sample));
       if (!success) {
         this.sendAnalyticsRequestSynchronous();
