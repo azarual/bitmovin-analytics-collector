@@ -37,7 +37,7 @@ class HttpCall {
 
     xhttp.open('POST', url, async);
     if (!legacyMode) {
-      xhttp.setRequestHeader('Content-Type', 'application/json');
+      xhttp.setRequestHeader('Content-Type', 'text/plain');
     }
     xhttp.send(JSON.stringify(body));
   }
