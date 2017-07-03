@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>VideoJS Analytics</title>
+  <link href="http://vjs.zencdn.net/5.15.1/video-js.css" rel="stylesheet">
+  <script type="text/javascript" src="build/debug/bitmovinanalytics.min.js"></script>
+</head>
+<body>
+<div id="player" style="width: 400px"></div>
+  <script src="http://vjs.zencdn.net/5.15.1/video.js"></script>
+  <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/videojs-contrib-hls/5.7.0/videojs-contrib-hls.min.js"></script>
+  <video id="my-video" class="video-js" controls preload="auto" width="640" height="264">
+    <source src="https://bitdash-a.akamaihd.net/content/sintel/hls/playlist.m3u8" type="application/x-mpegURL">
+    <p class="vjs-no-js">
+      To view this video please enable JavaScript, and consider upgrading to a web browser that
+      <a href="http://videojs.com/html5-video-support/" target="_blank">supports HTML5 video</a>
+    </p>
+  </video>
+  <script type="text/javascript">
+
+    var config = {
+      key: "e73a3577-d91c-4214-9e6d-938fb936818a", //Your bitmovin analytics key
+      playerKey: "a6e31908-550a-4f75-b4bc-a9d89880a733", //Your player key (bitmovin, jw, ..) (optional)
+      player: bitmovin.analytics.Players.BITMOVIN,
+      cdnProvider: bitmovin.analytics.CdnProviders.AKAMAI,
+      debug: true,
+      customData1: {
+        json: 'jsonTest',
+        json42: 42
+      },
+      customData2: 'customData2',
+      experimentName: 'bitmovinanalytics-local',
+      videoId: 'Sintel',
+      userId: 'customer#1'
+    };
+    var analytics = bitmovin.analytics(config);
+
+    var options = {
+      
+    };
+    var player = videojs('my-video', options);
+
+    //analytics.register(player);
+
+  </script>
+	<a href="videojs.html">Click</a>
+</body>
+</html>
