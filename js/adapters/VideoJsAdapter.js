@@ -87,13 +87,22 @@ class VideoJsAdapter {
       that.eventCallback(Events.TIMECHANGED, {
         droppedFrames: 0
       });
-      debugger;
     });
     this.player.on('play', function () {
       that.eventCallback(Events.PLAY)
     });
     that.player.on('pause', function () {
       that.eventCallback(Events.PAUSE)
+    });
+    that.player.on('error', function () {
+      const error = this.error();
+      that.eventCallback(Events.ERROR, {
+        code: error.code,
+        message: error.message
+      });
+    });
+    that.player.on('stalled', function () {
+      that.eventCallback(Events.START_BUFFERING, {});
     });
   }
 }

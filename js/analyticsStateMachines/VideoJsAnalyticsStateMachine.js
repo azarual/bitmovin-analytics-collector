@@ -134,6 +134,7 @@ class AnalyticsStateMachineFactory {
         {name: Events.PLAY, from: this.States.END, to: this.States.PLAYING},
 
         {name: Events.ERROR, from: this.getAllStates(), to: this.States.ERROR},
+        {name: Events.PAUSE, from: this.States.ERROR, to: this.States.ERROR},
 
         {name: Events.SEEK, from: this.States.END_PLAY_SEEKING, to: this.States.PLAY_SEEKING},
         {name: 'FINISH_PLAY_SEEKING', from: this.States.END_PLAY_SEEKING, to: this.States.PLAYING},
