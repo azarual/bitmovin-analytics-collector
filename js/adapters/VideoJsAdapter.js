@@ -88,25 +88,73 @@ class VideoJsAdapter {
     });
     this.player.on('playing', function() {
       that.eventCallback(Events.TIMECHANGED, {
+        currentTime: this.currentTime(),
         droppedFrames: 0
       });
     });
     this.player.on('play', function() {
-      that.eventCallback(Events.PLAY)
+      that.eventCallback(Events.PLAY, {
+        currentTime: this.currentTime()
+      })
     });
-    that.player.on('pause', function() {
-      that.eventCallback(Events.PAUSE)
+    this.player.on('pause', function() {
+      that.eventCallback(Events.PAUSE, {
+        currentTime: this.currentTime()
+      })
     });
-    that.player.on('error', function() {
+    this.player.on('error', function() {
       const error = this.error();
       that.eventCallback(Events.ERROR, {
+        currentTime: this.currentTime(),
         code   : error.code,
         message: error.message
       });
     });
-    that.player.on('stalled', function() {
-      that.eventCallback(Events.START_BUFFERING, {});
+    this.player.on('stalled', function() {
+      that.eventCallback(Events.START_BUFFERING, {
+        currentTime: this.currentTime()
+      });
     });
+    this.player.on('volumechange', function() {
+      const muted  = this.muted();
+      if (muted) {
+        that.eventCallback(Events.MUTE, {
+          currentTime: this.currentTime()
+        })
+      } else {
+        that.eventCallback(Events.UN_MUTE, {
+          currentTime: this.currentTime()
+        });
+      }
+    });
+
+    let analyticsBitrate = -1;
+
+    this.player.on('timeupdate', function() {
+      that.eventCallback(Events.TIMECHANGED, {
+        currentTime: this.currentTime()
+      });
+
+      const playerBitrate = this.tech_.hls.bandwidth;
+      if (analyticsBitrate !== playerBitrate) {
+
+        const eventObject = {
+          width        : this.videoWidth(),
+          height       : this.videoHeight(),
+          bitrate      : playerBitrate,
+          currentTime  : this.currentTime()
+        };
+
+        console.log(eventObject);
+
+        that.eventCallback(Events.VIDEO_CHANGE, eventObject);
+        analyticsBitrate = playerBitrate;
+      }
+    });
+
+    this.player.on('resize', function(size) {
+      debugger;
+    })
   }
 }
 

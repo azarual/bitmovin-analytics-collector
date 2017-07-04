@@ -195,6 +195,14 @@ class AnalyticsStateMachineFactory {
             this.stateMachineCallbacks.startCasting(timestamp, eventObject);
           }
         },
+        onafterevent : (event, from, to, timestamp) => {
+          if (to === this.States.QUALITYCHANGE) {
+            this.stateMachine.FINISH_QUALITYCHANGE(timestamp);
+          }
+          if (to === this.States.MUTING_READY || to === this.States.MUTING_PLAY || to === this.States.MUTING_PAUSE) {
+            this.stateMachine.FINISH_MUTING(timestamp);
+          }
+        },
         onleavestate : (event, from, to, timestamp, eventObject) => {
           if (!timestamp) {
             return;
