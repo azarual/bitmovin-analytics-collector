@@ -12,7 +12,7 @@ import CastClient from '../cast/CastClient';
 import CastReceiver from '../cast/CastReceiver';
 
 class Analytics {
-  static PageLoadType = {
+  static PAGE_LOAD_TYPE               = {
     FOREGROUND: 1,
     BACKGROUND: 2
   };
@@ -34,7 +34,7 @@ class Analytics {
     this.droppedSampleFrames = 0;
     this.licensing           = 'waiting';
     this.startupTime         = 0;
-    this.pageLoadType        = Analytics.PageLoadType.FOREGROUND;
+    this.pageLoadType        = Analytics.PAGE_LOAD_TYPE.FOREGROUND;
 
     this.autoplay = undefined;
 
@@ -86,7 +86,7 @@ class Analytics {
   setPageLoadType() {
     window.setTimeout(() => {
       if (document[this.utils.getHiddenProp()] === true) {
-        this.pageLoadType = Analytics.PageLoadType.BACKGROUND;
+        this.pageLoadType = Analytics.PAGE_LOAD_TYPE.BACKGROUND;
       }
     }, Analytics.PAGE_LOAD_TYPE_TIMEOUT);
   }
