@@ -411,7 +411,7 @@ class Analytics {
 
   setDroppedFrames = (event) => {
     if (this.utils.validNumber(event.droppedFrames)) {
-      this.sample.droppedFrames = this.getDroppedFrames(event.droppedFrames);
+      this.sample.droppedFrames = 0
     }
   };
 

@@ -18,6 +18,15 @@ class PlayerDetector {
 
     return false;
   };
+
+  isVideoJs = function(player) {
+    if (typeof videojs === 'function') {
+      if (videojs(player.id_) === player) {
+        return true;
+      }
+    }
+    return false;
+  }
 }
 
 export default PlayerDetector

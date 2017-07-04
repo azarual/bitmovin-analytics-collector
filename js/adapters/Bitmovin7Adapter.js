@@ -56,8 +56,6 @@ class Bitmovin7Adapter {
       const progConf = getProgConfigFromProgressiveConfig(config.source.progressive);
       if (config.source) {
         source = {
-          videoId: config.source.videoId,
-          userId : config.source.userId,
           mpdUrl : config.source.dash,
           m3u8Url: config.source.hls,
           progUrl: progConf.progUrl,
@@ -71,8 +69,6 @@ class Bitmovin7Adapter {
         type             : this.player.getPlayerType(),
         duration         : this.player.getDuration(),
         streamType       : this.player.getStreamType(),
-        videoId          : source.videoId,
-        userId           : source.userId,
         mpdUrl           : source.mpdUrl,
         m3u8Url          : source.m3u8Url,
         progUrl          : source.progUrl,
