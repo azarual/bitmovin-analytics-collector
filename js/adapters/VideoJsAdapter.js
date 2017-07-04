@@ -58,56 +58,54 @@ class VideoJsAdapter {
   }
 
   register() {
+    const that = this;
     this.defaultEventsToTrack.forEach((e) => {
       this.player.on(e, function() {
         console.log('Tracked Event', e);
       });
     });
-
     this.player.on('loadedmetadata', function() {
       const x = this;
     });
-
-    this.player.ready(() => {
-      const tech       = this.player.tech({IWillNotUseThisInPlugins: true});
-      const streamType = this.getStreamType(this.player.currentSrc());
-      const sources    = this.getStreamSources(this.player.currentSrc());
+    this.player.ready(function() {
+      const tech       = that.player.tech({IWillNotUseThisInPlugins: true});
+      const streamType = that.getStreamType(that.player.currentSrc());
+      const sources    = that.getStreamSources(that.player.currentSrc());
       const info       = {
         isLive     : false,
         version    : '1.5.11',
         type       : tech.sourceHandler_.options_.mode === 'html5' ? 'html5' : 'native',
         duration   : 0,
         streamType,
-        autoplay   : this.player.autoplay(),
+        autoplay   : that.player.autoplay(),
         ...sources,
-        ...this.getVideoWindowDimensions(this),
+        ...that.getVideoWindowDimensions(this),
         videoWidth : null,
         videoHeight: null,
-        muted      : this.player.muted()
+        muted      : that.player.muted()
       };
-      this.eventCallback(Events.READY, info);
+      that.eventCallback(Events.READY, info);
     });
-
     this.player.on('playing', function() {
-      this.eventCallback(Events.TIMECHANGED, {
+      that.eventCallback(Events.TIMECHANGED, {
         droppedFrames: 0
       });
     });
     this.player.on('play', function() {
-      this.eventCallback(Events.PLAY)
+      that.eventCallback(Events.PLAY)
     });
-    this.player.on('pause', function() {
-      this.eventCallback(Events.PAUSE)
+    that.player.on('pause', function() {
+      that.eventCallback(Events.PAUSE)
     });
-    this.player.on('error', function() {
+    that.player.on('error', function() {
       const error = this.error();
-      this.eventCallback(Events.ERROR, {
+      that.eventCallback(Events.ERROR, {
         code   : error.code,
         message: error.message
       });
     });
-    this.player.on('stalled', function() {
-      this.eventCallback(Events.START_BUFFERING, {});
+    that.player.on('stalled', function() {
+      that.eventCallback(Events.START_BUFFERING, {});
     });
   }
 }
