@@ -65,8 +65,8 @@ class AnalyticsStateMachineFactory {
         {name: Events.TIMECHANGED, from: this.States.PLAYING, to: this.States.PLAYING},
         {name: Events.END_BUFFERING, from: this.States.PLAYING, to: this.States.PLAYING},
         {name: Events.START_BUFFERING, from: this.States.PLAYING, to: this.States.REBUFFERING},
-        {name: Events.END_BUFFERING, from: this.States.REBUFFERING, to: this.States.PLAYING},
-        {name: Events.TIMECHANGED, from: this.States.REBUFFERING, to: this.States.REBUFFERING},
+        {name: Events.START_BUFFERING, from: this.States.REBUFFERING, to: this.States.REBUFFERING},
+        {name: Events.TIMECHANGED, from: this.States.REBUFFERING, to: this.States.PLAYING},
 
         {name: Events.PAUSE, from: this.States.PLAYING, to: this.States.PAUSE},
         {name: Events.PAUSE, from: this.States.REBUFFERING, to: this.States.PAUSE},

@@ -1,4 +1,7 @@
-import Events from '../enums/Events'
+import Events from '../enums/Events';
+
+const BUFFERING_TIMECHANGED_TIMEOUT = 1000;
+
 class VideoJsAdapter {
   constructor(player, eventCallback) {
     this.onBeforeUnLoadEvent = false;
@@ -6,10 +9,6 @@ class VideoJsAdapter {
     this.eventCallback       = eventCallback;
     this.register();
   }
-
-  defaultEventsToTrack = [
-    'loaded', 'start', 'end', 'seek', 'play', 'pause', 'error', 'playing'
-  ];
 
   getStreamType(url) {
     if (url.endsWith('.m3u8')) {
@@ -59,38 +58,27 @@ class VideoJsAdapter {
 
   register() {
     const that = this;
-    this.defaultEventsToTrack.forEach((e) => {
-      this.player.on(e, function() {
-        console.log('Tracked Event', e);
-      });
-    });
     this.player.on('loadedmetadata', function() {
-      const x = this;
-    });
-    this.player.ready(function() {
-      const tech       = that.player.tech({IWillNotUseThisInPlugins: true});
-      const streamType = that.getStreamType(that.player.currentSrc());
-      const sources    = that.getStreamSources(that.player.currentSrc());
+      const tech       = this.tech({IWillNotUseThisInPlugins: true});
+      const streamType = that.getStreamType(this.currentSrc());
+      const sources    = that.getStreamSources(this.currentSrc());
       const info       = {
         isLive     : false,
         version    : videojs.VERSION,
         type       : tech.sourceHandler_.options_.mode === 'html5' ? 'html5' : 'native',
-        duration   : 0,
+        duration   : this.duration(),
         streamType,
-        autoplay   : that.player.autoplay(),
+        autoplay   : this.autoplay(),
         ...sources,
         ...that.getVideoWindowDimensions(this),
-        videoWidth : null,
-        videoHeight: null,
-        muted      : that.player.muted()
+        videoWindowWidth : this.videoWidth(),
+        videoWindowHeight: this.videoHeight(),
+        muted      : this.muted()
       };
       that.eventCallback(Events.READY, info);
     });
-    this.player.on('playing', function() {
-      that.eventCallback(Events.TIMECHANGED, {
-        currentTime: this.currentTime(),
-        droppedFrames: 0
-      });
+    this.player.ready(function() {
+
     });
     this.player.on('play', function() {
       that.eventCallback(Events.PLAY, {
@@ -106,17 +94,12 @@ class VideoJsAdapter {
       const error = this.error();
       that.eventCallback(Events.ERROR, {
         currentTime: this.currentTime(),
-        code   : error.code,
-        message: error.message
-      });
-    });
-    this.player.on('stalled', function() {
-      that.eventCallback(Events.START_BUFFERING, {
-        currentTime: this.currentTime()
+        code       : error.code,
+        message    : error.message
       });
     });
     this.player.on('volumechange', function() {
-      const muted  = this.muted();
+      const muted = this.muted();
       if (muted) {
         that.eventCallback(Events.MUTE, {
           currentTime: this.currentTime()
@@ -129,32 +112,64 @@ class VideoJsAdapter {
     });
 
     let analyticsBitrate = -1;
+    let bufferingTimeout;
+    let lastTimeupdate   = Date.now();
+    let isStalling       = false;
 
     this.player.on('timeupdate', function() {
+      clearTimeout(bufferingTimeout);
+      isStalling     = false;
+      lastTimeupdate = Date.now();
+
       that.eventCallback(Events.TIMECHANGED, {
         currentTime: this.currentTime()
       });
 
-      const playerBitrate = this.tech_.hls.bandwidth;
-      if (analyticsBitrate !== playerBitrate) {
+      const selectedPlaylist = this.tech_.hls.playlists.media();
+      if (!selectedPlaylist) {
+        return;
+      }
 
+      const {attributes} = selectedPlaylist;
+      const bitrate      = attributes.BANDWIDTH;
+      const width        = attributes.RESOLUTION.width;
+      const height       = attributes.RESOLUTION.height;
+
+      if (analyticsBitrate !== bitrate) {
         const eventObject = {
-          width        : this.videoWidth(),
-          height       : this.videoHeight(),
-          bitrate      : playerBitrate,
-          currentTime  : this.currentTime()
+          width,
+          height,
+          bitrate,
+          currentTime: this.currentTime()
         };
 
-        console.log(eventObject);
-
         that.eventCallback(Events.VIDEO_CHANGE, eventObject);
-        analyticsBitrate = playerBitrate;
+        analyticsBitrate = bitrate;
       }
+
+      bufferingTimeout = window.setTimeout(() => {
+        if ((this.paused() || this.ended()) && !isStalling) {
+          return;
+        }
+
+        that.eventCallback(Events.START_BUFFERING, {
+          currentTime: this.currentTime()
+        });
+      }, BUFFERING_TIMECHANGED_TIMEOUT)
     });
 
-    this.player.on('resize', function(size) {
-      debugger;
-    })
+    this.player.on('stalled', function() {
+      isStalling = true;
+    });
+
+    window.onunload = window.onbeforeunload = () => {
+      if (!this.onBeforeUnLoadEvent) {
+        this.onBeforeUnLoadEvent = true;
+        this.eventCallback(Events.UNLOAD, {
+          currentTime: this.player.currentTime()
+        });
+      }
+    };
   }
 }
 
