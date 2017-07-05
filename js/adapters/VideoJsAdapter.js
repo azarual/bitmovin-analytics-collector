@@ -73,7 +73,7 @@ class VideoJsAdapter {
       const sources    = that.getStreamSources(that.player.currentSrc());
       const info       = {
         isLive     : false,
-        version    : '1.5.11',
+        version    : videojs.VERSION,
         type       : tech.sourceHandler_.options_.mode === 'html5' ? 'html5' : 'native',
         duration   : 0,
         streamType,
