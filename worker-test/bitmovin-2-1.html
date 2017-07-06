@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Bitmovin Player Test</title>
+  <script type="text/javascript" src="https://bitmovin-a.akamaihd.net/bitmovin-player/stable/7.2.1/bitmovinplayer.js"></script>
+  <script type="text/javascript" src="./bitmovinanalytics.min.js"></script>
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+</head>
+<body>
+  <div style="margin: 0 auto; width: 600px">
+    <h1 style="text-align: center;">Bitmovin Player Test</h1>
+    <div id="player" style="width: 600px"></div>
+    <h3>Task</h3>
+    <p style="text-align: left">
+        <ol>
+          <li>Start Playback of the Video (Click on the above Player)</li>
+          <li>Watch the Video for about 20 Seconds</li>
+          <li>Jump to another location in the Video</li>
+          <li>Watch another 20 Seconds</li>
+          <li>Press Pause</li>
+          <li>Rate your satisfaction with the Playback of the Video below</li>
+        </ol>
+        <div class="survey">
+          <h3>Please Rate your Experience</h3>
+          <div class="radio">
+            <label>
+              <input type="radio" name="experience" value="1" /> Very Dissatisfied
+            </label>
+          </div>
+          <div class="radio">
+            <label>
+              <input type="radio" name="experience" value="2" /> Somewhat Dissatisfied
+            </label>
+          </div>
+          <div class="radio">
+            <label>
+              <input type="radio" name="experience" value="3" /> Neither
+            </label>
+          </div>
+          <div class="radio">
+            <label>
+              <input type="radio" name="experience" value="4" /> Somewhat Satisfied
+            </label>
+          </div>
+          <div class="radio">
+            <label>
+              <input type="radio" name="experience" value="5" /> Very Satisfied
+            </label>
+          </div>
+          <button disabled="disabled" class="btn btn-primary" id="take-survey">Submit</button>
+        </div>
+    </p>
+    <h2 style="display: none" id="thanks">Thank you - your code is 3A837FD7!</h3>
+
+  </div>
+  <script type="text/javascript">
+
+    var config = {
+      key: "e73a3577-d91c-4214-9e6d-938fb936818a", //Your bitmovin analytics key
+      playerKey: "a6e31908-550a-4f75-b4bc-a9d89880a733", //Your player key (bitmovin, jw, ..) (optional)
+      player: bitmovin.analytics.Players.BITMOVIN,
+      cdnProvider: bitmovin.analytics.CdnProviders.AKAMAI,
+      experimentName: 'Crowdworker Test',
+      videoId: 'Sintel',
+      customData1: -1
+
+    };
+    var analytics = bitmovin.analytics(config);
+
+    var conf = {
+      key: "a6e31908-550a-4f75-b4bc-a9d89880a733",
+      source:    {
+        hls:  "https://bitmovin-a.akamaihd.net/content/dataset/abr/bbb_4sec_dash_hls_1499269613/stream-1080.m3u8"
+      }
+    };
+    var player = bitmovin.player('player');
+    player.setup(conf);
+
+    analytics.register(player);
+    document.getElementById('take-survey').onclick = function () {
+      var result = document.querySelector('input[name="experience"]:checked').value;
+      analytics.setCustomDataOnce({ customData1: result });
+      document.getElementById('take-survey').disabled = true;
+      document.getElementById('thanks').style.display = 'block';
+    };
+    var started = false;
+    player.addEventHandler(bitmovin.player.EVENT.ON_PLAY, function () {
+      if (started === false) {
+        started = new Date();
+      }
+      window.setInterval(function () {
+        var now = new Date();
+        if (now - started > 40000) {
+          document.getElementById('take-survey').disabled = false;
+        }
+      }, 500);
+    });
+  </script>
+</body>
+</html>
