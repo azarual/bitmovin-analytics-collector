@@ -1,7 +1,6 @@
 /**
  * Created by lkroepfl on 13.09.2016.
  */
-
 import LicenseCall from '../utils/LicenseCall';
 import AnalyticsCall from '../utils/AnalyticsCall';
 import Utils from '../utils/Utils';
@@ -369,7 +368,13 @@ class Analytics {
     };
   }
 
-  set = (values) => {
+  setCustomDataOnce = (values) => {
+    const oldConfig = this.config;
+    this.setCustomData(values);
+    this.setCustomData(oldConfig);
+  }
+
+  setCustomData = (values) => {
     const filterValues = ({
       customData1,
       customData2,
@@ -386,6 +391,7 @@ class Analytics {
       experimentName
     });
 
+    this.sendAnalyticsRequestAndClearValues();
     this.config = {
       ...this.config,
       ...filterValues(values)

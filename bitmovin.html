@@ -46,7 +46,7 @@
     analytics.register(player);
 
     document.getElementById('click').onclick = function () {
-      analytics.set({ customData1: 'after-click' });
+      analytics.setCustomDataOnce({ customData1: 'after-click' });
     };
 
   </script>

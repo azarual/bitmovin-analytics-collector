@@ -21,7 +21,8 @@ const analyticsWrapper = (config) => {
   return {
     register: register,
     getCurrentImpressionId: getCurrentImpressionId,
-    set: analytics.set
+    setCustomData: analytics.setCustomData,
+    setCustomDataOnce: analytics.setCustomDataOnce
   }
 };
 
