@@ -12,8 +12,7 @@ import CastReceiver from '../cast/CastReceiver';
 
 class Analytics {
   static PAGE_LOAD_TYPE               = {
-    FOREGROUND: 1,
-    BACKGROUND: 2
+    FOREGROUND: 1, BACKGROUND: 2
   };
   static LICENSE_CALL_PENDING_TIMEOUT = 200;
   static PAGE_LOAD_TYPE_TIMEOUT       = 200;
@@ -382,14 +381,28 @@ class Analytics {
       customData4,
       customData5,
       experimentName
-    }) => ({ 
-      customData1,
-      customData2,
-      customData3,
-      customData4,
-      customData5,
-      experimentName
-    });
+    }) => {
+      const retVal = {};
+      if (customData1) {
+        retVal.customData1 = customData1;
+      }
+      if (customData2) {
+        retVal.customData2 = customData2;
+      }
+      if (customData3) {
+        retVal.customData3 = customData3;
+      }
+      if (customData4) {
+        retVal.customData4 = customData4;
+      }
+      if (customData5) {
+        retVal.customData5 = customData5;
+      }
+      if (experimentName) {
+        retVal.experimentName = experimentName;
+      }
+      return retVal;
+    };
 
     this.sendAnalyticsRequestAndClearValues();
     this.config = {
