@@ -53,6 +53,7 @@ class AnalyticsStateMachineFactory {
         logger.error('Error in statemachine: ' + errorMessage);
       },
       events   : [
+        {name: Events.TIMECHANGED, from: this.States.SETUP, to: this.States.SETUP},
         {name: Events.READY, from: [this.States.SETUP, this.States.ERROR], to: this.States.READY},
         {name: Events.PLAY, from: this.States.READY, to: this.States.STARTUP},
 
@@ -68,8 +69,13 @@ class AnalyticsStateMachineFactory {
         {name: Events.START_BUFFERING, from: this.States.REBUFFERING, to: this.States.REBUFFERING},
         {name: Events.TIMECHANGED, from: this.States.REBUFFERING, to: this.States.PLAYING},
 
+        {name: Events.SEEK, from: this.States.PLAYING, to: this.States.PLAY_SEEKING },
+        {name: Events.TIMECHANGED, from: this.States.PLAY_SEEKING, to: this.States.PLAY_SEEKING },
+        {name: Events.TIMECHANGED, from: this.States.PAUSED_SEEKING, to: this.States.PAUSED_SEEKING },
+
         {name: Events.PAUSE, from: this.States.PLAYING, to: this.States.PAUSE},
         {name: Events.PAUSE, from: this.States.REBUFFERING, to: this.States.PAUSE},
+        {name: Events.TIMECHANGED, from: this.States.PAUSE, to: this.States.PAUSE},
         {name: Events.PLAY, from: this.States.PAUSE, to: this.States.PLAYING},
 
         {name: Events.VIDEO_CHANGE, from: this.States.PLAYING, to: this.States.QUALITYCHANGE},
@@ -113,7 +119,7 @@ class AnalyticsStateMachineFactory {
         {name: Events.SEEKED, from: this.States.PLAY_SEEKING, to: this.States.PLAY_SEEKING},
 
         // We are ending the seek
-        {name: Events.PLAY, from: this.States.PLAY_SEEKING, to: this.States.END_PLAY_SEEKING},
+        {name: Events.SEEKED, from: this.States.PLAY_SEEKING, to: this.States.END_PLAY_SEEKING},
 
         {name: Events.START_BUFFERING, from: this.States.END_PLAY_SEEKING, to: this.States.END_PLAY_SEEKING},
         {name: Events.END_BUFFERING, from: this.States.END_PLAY_SEEKING, to: this.States.END_PLAY_SEEKING},
@@ -181,9 +187,10 @@ class AnalyticsStateMachineFactory {
         onenterstate : (event, from, to, timestamp, eventObject) => {
           this.onEnterStateTimestamp = timestamp || new Date().getTime();
 
-          logger.log('Entering State ' + to + ' with ' + event);
+          logger.log('[' + from + '] => ' + event + ' => [' + to + ']');
+          //logger.log('Entering State ' + to + ' with ' + event + ' from ' + from);
           if (eventObject && to !== this.States.PAUSED_SEEKING && to !== this.States.PLAY_SEEKING && to !== this.States.END_PLAY_SEEKING) {
-            logger.log('Setting video time start to ' + eventObject.currentTime + ', going to ' + to);
+            //logger.log('Setting video time start to ' + eventObject.currentTime + ', going to ' + to);
             this.stateMachineCallbacks.setVideoTimeStartFromEvent(eventObject);
           }
 
@@ -209,10 +216,10 @@ class AnalyticsStateMachineFactory {
           }
 
           const stateDuration = timestamp - this.onEnterStateTimestamp;
-          logger.log('State ' + from + ' was ' + stateDuration + ' ms event:' + event);
+          //logger.log('State ' + from + ' was ' + stateDuration + ' ms event:' + event);
 
           if (eventObject && to !== this.States.PAUSED_SEEKING && to !== this.States.PLAY_SEEKING && to !== this.States.END_PLAY_SEEKING) {
-            logger.log('Setting video time end to ' + eventObject.currentTime + ', going to ' + to);
+            //logger.log('Setting video time end to ' + eventObject.currentTime + ', going to ' + to);
             this.stateMachineCallbacks.setVideoTimeEndFromEvent(eventObject);
           }
 
@@ -224,7 +231,7 @@ class AnalyticsStateMachineFactory {
           if (from === this.States.END_PLAY_SEEKING || from === this.States.PAUSED_SEEKING) {
             const seekDuration = this.seekedTimestamp - this.seekTimestamp;
             this.stateMachineCallbacks[fnName](seekDuration, fnName, eventObject);
-            logger.log('Seek was ' + seekDuration + 'ms');
+            //logger.log('Seek was ' + seekDuration + 'ms');
           } else if (event === Events.UNLOAD && from === this.States.PLAYING) {
             this.stateMachineCallbacks.playingAndBye(stateDuration, fnName, eventObject);
           } else if (from === this.States.PAUSE && to !== this.States.PAUSED_SEEKING) {
@@ -240,7 +247,7 @@ class AnalyticsStateMachineFactory {
           }
 
           if (eventObject && to !== this.States.PAUSED_SEEKING && to !== this.States.PLAY_SEEKING && to !== this.States.END_PLAY_SEEKING) {
-            logger.log('Setting video time start to ' + eventObject.currentTime + ', going to ' + to);
+            //logger.log('Setting video time start to ' + eventObject.currentTime + ', going to ' + to);
             this.stateMachineCallbacks.setVideoTimeStartFromEvent(eventObject);
           }
 
@@ -249,10 +256,10 @@ class AnalyticsStateMachineFactory {
           } else if (event === Events.AUDIO_CHANGE) {
             this.stateMachineCallbacks.audioChange(eventObject);
           } else if (event === Events.MUTE) {
-            logger.log('Setting sample to muted');
+            //logger.log('Setting sample to muted');
             this.stateMachineCallbacks.mute();
           } else if (event === Events.UN_MUTE) {
-            logger.log('Setting sample to unmuted');
+            //logger.log('Setting sample to unmuted');
             this.stateMachineCallbacks.unMute();
           }
         },
@@ -268,7 +275,7 @@ class AnalyticsStateMachineFactory {
           if (stateDuration > 59700) {
             this.stateMachineCallbacks.setVideoTimeEndFromEvent(eventObject);
 
-            logger.log('Sending heartbeat');
+            //logger.log('Sending heartbeat');
             this.stateMachineCallbacks.heartbeat(stateDuration, from.toLowerCase(), eventObject);
             this.onEnterStateTimestamp = timestamp;
 

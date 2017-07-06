@@ -12,13 +12,13 @@ class AdapterFactory {
     this.playerDetector = new PlayerDetector;
   }
 
-  getAdapter(player, eventCallback) {
+  getAdapter(player, eventCallback, eventMachine) {
     if (this.playerDetector.isBitmovinVersionPre7(player)) {
       return new BitmovinAdapter(player, eventCallback);
     } else if (this.playerDetector.isBitmovinVersion7Plus(player)) {
       return new Bitmovin7Adapter(player, eventCallback);
     } else if (this.playerDetector.isVideoJs(player)) {
-      return new VideoJsAdapter(player, eventCallback);
+      return new VideoJsAdapter(player, eventCallback, eventMachine);
     }
   };
 }

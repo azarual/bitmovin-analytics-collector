@@ -370,13 +370,13 @@ class Analytics {
   }
 
   register = (player) => {
-    this.adapter = this.adapterFactory.getAdapter(player, this.record);
+    this.analyticsStateMachine = this.analyticsStateMachineFactory.getAnalyticsStateMachine(player, this.stateMachineCallbacks);
+
+    this.adapter = this.adapterFactory.getAdapter(player, this.record, this.analyticsStateMachine);
     if (!this.adapter) {
       logger.error('Could not detect player.');
       return;
     }
-
-    this.analyticsStateMachine = this.analyticsStateMachineFactory.getAnalyticsStateMachine(player, this.stateMachineCallbacks);
   };
 
   getCurrentImpressionId = () => {

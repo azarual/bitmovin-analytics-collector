@@ -3,10 +3,11 @@ import Events from '../enums/Events';
 const BUFFERING_TIMECHANGED_TIMEOUT = 1000;
 
 class VideoJsAdapter {
-  constructor(player, eventCallback) {
+  constructor(player, eventCallback, stateMachine) {
     this.onBeforeUnLoadEvent = false;
-    this.player              = player;
-    this.eventCallback       = eventCallback;
+    this.player = player;
+    this.eventCallback = eventCallback;
+    this.stateMachine = stateMachine;
     this.register();
   }
 
@@ -86,6 +87,7 @@ class VideoJsAdapter {
       })
     });
     this.player.on('pause', function() {
+      console.log('pause');
       that.eventCallback(Events.PAUSE, {
         currentTime: this.currentTime()
       })
@@ -109,6 +111,18 @@ class VideoJsAdapter {
           currentTime: this.currentTime()
         });
       }
+    });
+    this.player.on('seeking', function () {
+      that.eventCallback(Events.SEEK, {
+        currentTime: this.currentTime(),
+        droppedFrames: 0
+      });
+    });
+    this.player.on('seeked', function () {
+      that.eventCallback(Events.SEEKED, {
+        currentTime: this.currentTime(),
+        droppedFrames: 0
+      });
     });
 
     let analyticsBitrate = -1;
