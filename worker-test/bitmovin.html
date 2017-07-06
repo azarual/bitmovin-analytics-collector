@@ -48,10 +48,10 @@
               <input type="radio" name="experience" value="5" /> Very Satisfied
             </label>
           </div>
-          <button class="btn btn-primary" id="take-survey">Submit</button>
+          <button disabled="disabled" class="btn btn-primary" id="take-survey">Submit</button>
         </div>
     </p>
-    <h2 style="display: none" id="thanks">Thank you!</h2>
+    <h2 style="display: none" id="thanks">Thank you - your code is 3A837FD7!</h3>
 
   </div>
   <script type="text/javascript">
@@ -84,6 +84,18 @@
       document.getElementById('take-survey').disabled = true;
       document.getElementById('thanks').style.display = 'block';
     };
+    var started = false;
+    player.addEventHandler(bitmovin.player.EVENT.ON_PLAY, function () {
+      if (started === false) {
+        started = new Date();
+      }
+      window.setInterval(function () {
+        var now = new Date();
+        if (now - started > 40000) {
+          document.getElementById('take-survey').disabled = false;
+        }
+      }, 500);
+    });
   </script>
 </body>
 </html>
