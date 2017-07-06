@@ -369,6 +369,30 @@ class Analytics {
     };
   }
 
+  set = (values) => {
+    const filterValues = ({
+      customData1,
+      customData2,
+      customData3,
+      customData4,
+      customData5,
+      experimentName
+    }) => ({ 
+      customData1,
+      customData2,
+      customData3,
+      customData4,
+      customData5,
+      experimentName
+    });
+
+    this.config = {
+      ...this.config,
+      ...filterValues(values)
+    }
+    this.setConfigParameters();
+  };
+
   register = (player) => {
     this.analyticsStateMachine = this.analyticsStateMachineFactory.getAnalyticsStateMachine(player, this.stateMachineCallbacks);
 

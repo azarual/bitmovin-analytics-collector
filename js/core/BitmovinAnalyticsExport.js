@@ -20,7 +20,8 @@ const analyticsWrapper = (config) => {
   analytics = new Analytics(config);
   return {
     register: register,
-    getCurrentImpressionId: getCurrentImpressionId
+    getCurrentImpressionId: getCurrentImpressionId,
+    set: analytics.set
   }
 };
 

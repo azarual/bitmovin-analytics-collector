@@ -8,6 +8,8 @@
 </head>
 <body>
 <div id="player" style="width: 400px"></div>
+	<a href="bitmovin.html">Click</a>
+	<a href="#" id="click">Click</a>
   <script type="text/javascript">
 
     var config = {
@@ -43,7 +45,10 @@
 
     analytics.register(player);
 
+    document.getElementById('click').onclick = function () {
+      analytics.set({ customData1: 'after-click' });
+    };
+
   </script>
-	<a href="bitmovin.html">Click</a>
 </body>
 </html>
