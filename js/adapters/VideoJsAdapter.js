@@ -60,6 +60,13 @@ class VideoJsAdapter {
   register() {
     const that = this;
     this.player.on('loadedmetadata', function() {
+      // Problem with LIVE
+      // Fired after the first segment is downloaded for a playlist. This will not happen until playback if video.js's metadata setting is none
+      console.log('This is a problem');
+
+      // We probably need another event here that just updates the metadata settings.
+      // duration === Infinity is the indicator for live playback
+
       const tech       = this.tech({IWillNotUseThisInPlugins: true});
       const streamType = that.getStreamType(this.currentSrc());
       const sources    = that.getStreamSources(this.currentSrc());
@@ -79,7 +86,6 @@ class VideoJsAdapter {
       that.eventCallback(Events.READY, info);
     });
     this.player.ready(function() {
-
     });
     this.player.on('play', function() {
       that.eventCallback(Events.PLAY, {
