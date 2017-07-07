@@ -61,7 +61,7 @@
       playerKey: "a6e31908-550a-4f75-b4bc-a9d89880a733", //Your player key (bitmovin, jw, ..) (optional)
       player: bitmovin.analytics.Players.BITMOVIN,
       cdnProvider: bitmovin.analytics.CdnProviders.AKAMAI,
-      experimentName: 'Crowdworker Test',
+      experimentName: 'Crowd Preload',
       videoId: 'Sintel',
       customData1: -1
 
@@ -75,7 +75,9 @@
       }
     };
     var player = bitmovin.player('player');
-    player.setup(conf);
+    player.setup(conf).then(function () {
+      player.preload();
+    });;
 
     analytics.register(player);
     document.getElementById('take-survey').onclick = function () {
