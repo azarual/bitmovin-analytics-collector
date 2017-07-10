@@ -26,7 +26,8 @@ const Events = {
   PLAYBACK_FINISHED: 'end',
   SCREEN_RESIZE    : 'resize',
   UNLOAD           : 'unload',
-  END              : 'end'
+  END              : 'end',
+  METADATA_LOADED  : 'metadataLoaded'
 };
 
 export default Events

@@ -137,6 +137,8 @@ class Analytics {
 
   setupStateMachineCallbacks() {
     this.stateMachineCallbacks = {
+      // All of these are called in the onLeaveState Method.
+      // So it's the last sample
       setup: (time, state, event) => {
         if (!this.isCastReceiver) {
           this.sample.impressionId = this.utils.generateUUID();
@@ -176,6 +178,10 @@ class Analytics {
 
         this.sendAnalyticsRequestAndClearValues();
         this.sample.autoplay = undefined;
+      },
+
+      updateSample: (playbackSettings) => {
+        this.setPlaybackSettingsFromLoadedEvent(playbackSettings);
       },
 
       playing: (time, state, event) => {
@@ -557,6 +563,7 @@ class Analytics {
       this.sample.time = this.utils.getCurrentTimestamp();
 
       if (!this.isCastClient && !this.isCastReceiver) {
+        console.log('Sent Sample: ' + this.sample.state + ' - isLive: ' + this.sample.isLive);
         this.analyticsCall.sendRequest(this.sample, this.utils.noOp);
         return;
       }

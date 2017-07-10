@@ -69,6 +69,7 @@ class AnalyticsStateMachineFactory {
         {name: Events.START_BUFFERING, from: this.States.REBUFFERING, to: this.States.REBUFFERING},
         {name: Events.TIMECHANGED, from: this.States.REBUFFERING, to: this.States.PLAYING},
 
+        {name: Events.SEEK, from: this.States.STARTUP, to: this.States.STARTUP}, // Ignoring since it's pushed in a live stream
         {name: Events.SEEK, from: this.States.PLAYING, to: this.States.PLAY_SEEKING },
         {name: Events.TIMECHANGED, from: this.States.PLAY_SEEKING, to: this.States.PLAY_SEEKING },
         {name: Events.TIMECHANGED, from: this.States.PAUSED_SEEKING, to: this.States.PAUSED_SEEKING },
@@ -136,6 +137,8 @@ class AnalyticsStateMachineFactory {
         {name: Events.END_BUFFERING, from: this.States.END, to: this.States.END},
         {name: Events.START_BUFFERING, from: this.States.END, to: this.States.END},
         {name: Events.END, from: this.States.END, to: this.States.END},
+
+        {name: Events.SEEKED, from: this.States.PLAYING, to: this.States.PLAYING}, //Ignored - Livestreams do a Seek during startup and SEEKED once playback started
 
         {name: Events.PLAY, from: this.States.END, to: this.States.PLAYING},
 
@@ -298,6 +301,10 @@ class AnalyticsStateMachineFactory {
       logger.log('Ignored Event: ' + eventType);
     }
   };
+
+  updateMetadata(metadata) {
+    this.stateMachineCallbacks.updateSample(metadata);
+  }
 
   static pad(str, length) {
     const padStr = new Array(length).join(' ');
