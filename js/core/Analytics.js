@@ -548,6 +548,9 @@ class Analytics {
   handleLicensingResponse(licensingResponse) {
     if (licensingResponse.status === 'granted') {
       this.licensing = 'granted';
+    } else if (licensingResponse.status = 'skip') {
+      this.licensing = 'denied';
+      logger.log('Impression should not be sampled');
     } else {
       this.licensing = 'denied';
       logger.log('Analytics license denied, reason: ' + licensingResponse.message);
