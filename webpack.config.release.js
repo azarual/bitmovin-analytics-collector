@@ -7,7 +7,7 @@ const releasePackageJson = {
   name: packageProperties.name,
   version: getGitVersion(),
   description: "Bitmovin Analytics allows you to collect data about HTML5 Video playback",
-  main: packageProperties.name + ".min.js",
+  main: 'bitmovinanalytics.min.js',
   readme: "ERROR: No README data found!",
   maintainers: [{
     name: "bitadmin",
@@ -19,7 +19,7 @@ module.exports = {
   entry,
   output: {
     path: './build/release',
-    filename: packageProperties.name + '.min.js',
+    filename: 'bitmovinanalytics.min.js',
     libraryTarget: 'umd'
   },
   module: {

@@ -6,7 +6,7 @@ module.exports = {
   entry,
   output: {
     path: './build/debug',
-    filename: packageProperties.name + '.min.js',
+    filename: 'bitmovinanalytics.min.js',
     libraryTarget: 'umd'
   },
   module: {
