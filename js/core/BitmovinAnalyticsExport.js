@@ -22,12 +22,14 @@ const analyticsWrapper = (config) => {
     register: register,
     getCurrentImpressionId: getCurrentImpressionId,
     setCustomData: analytics.setCustomData,
-    setCustomDataOnce: analytics.setCustomDataOnce
+    setCustomDataOnce: analytics.setCustomDataOnce,
   }
 };
 
-window.bitmovin = window.bitmovin || {};
+analyticsWrapper.Players = Players;
+analyticsWrapper.CdnProviders = CdnProviders;
 
+window.bitmovin = window.bitmovin || {};
 window.bitmovin.analytics = analyticsWrapper;
-window.bitmovin.analytics.Players = Players;
-window.bitmovin.analytics.CdnProviders = CdnProviders;
+
+module.exports = analyticsWrapper;
