@@ -1,6 +1,6 @@
 {
   "name": "bitmovinanalytics",
-  "version": "1.4.4",
+  "version": "1.5.0-b1",
   "description": "",
   "main": "js/core/Bitanalytics.js",
   "repository": {
