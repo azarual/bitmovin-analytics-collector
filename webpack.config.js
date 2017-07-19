@@ -44,5 +44,6 @@ module.exports = {
   banner,
   entry,
   preLoaders,
-  loaders
+  loaders,
+  getGitVersion
 }

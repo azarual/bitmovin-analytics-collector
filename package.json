@@ -1,5 +1,5 @@
 {
-  "name": "bitmovinanalytics",
+  "name": "bitmovin-analytics",
   "version": "1.5.0-b1",
   "description": "",
   "main": "js/core/Bitanalytics.js",
@@ -24,6 +24,7 @@
     "babel-preset-stage-0": "^6.16.0",
     "javascript-state-machine": "^2.4.0",
     "string-replace-loader": "^1.0.5",
+    "write-json-webpack-plugin": "^1.0.0",
     "webpack": "^1.14.0"
   },
   "scripts": {

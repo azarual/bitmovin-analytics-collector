@@ -1,6 +1,19 @@
-let {banner, entry, preLoaders, loaders} = require('./webpack.config.js');
+let {getGitVersion, banner, entry, preLoaders, loaders} = require('./webpack.config.js');
+const WriteJsonPlugin = require('write-json-webpack-plugin');
 const webpack = require('webpack');
 const packageProperties = require('./package.json');
+
+const releasePackageJson = {
+  name: packageProperties.name,
+  version: getGitVersion(),
+  description: "Bitmovin Analytics allows you to collect data about HTML5 Video playback",
+  main: packageProperties.name + ".min.js",
+  readme: "ERROR: No README data found!",
+  maintainers: [{
+    name: "bitadmin",
+    email: "admin@bitmovin.com"
+  }]
+};
 
 module.exports = {
   entry,
@@ -22,6 +35,11 @@ module.exports = {
         comments: false
       }
     }),
-    new webpack.BannerPlugin(banner)
+    new webpack.BannerPlugin(banner),
+    new WriteJsonPlugin({
+      object: releasePackageJson,
+      path: '.',
+      filename: 'package.json'
+    })
   ]
 }
