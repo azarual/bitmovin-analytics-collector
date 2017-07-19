@@ -2,7 +2,7 @@ const execSync = require('child_process').execSync
 const packageProperties = require('./package.json');
 
 const getGitVersion = () => {
-  return execSync('git describe')
+  return execSync('git describe --abbrev=0').toString().trim()
 }
 const banner =
         '\n' +
@@ -20,7 +20,7 @@ let preLoaders = [{
   query : {
     search : '{{VERSION}}',
     flags  : 'g',
-    replace: packageProperties.version
+    replace: getGitVersion()
   }
 }];
 
@@ -33,7 +33,7 @@ let loaders = [{
   query : {
     search : '{{VERSION}}',
     flags  : 'g',
-    replace: packageProperties.version
+    replace: getGitVersion()
   }
 }];
 
