@@ -291,9 +291,4 @@ export class BitmovinAnalyticsStateMachine {
       logger.log('Ignored Event: ' + eventType);
     }
   }
-
-  static pad(str, length) {
-    const padStr = new Array(length).join(' ');
-    return (str + padStr).slice(0, length);
-  }
 }

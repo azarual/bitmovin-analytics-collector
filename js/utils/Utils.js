@@ -1,3 +1,8 @@
+const pad = function(str, length) {
+  const padStr = new Array(length).join(' ');
+  return (str + padStr).slice(0, length);
+}
+
 const validString = function(string) {
   return (string != undefined && typeof string == 'string');
 };
@@ -98,6 +103,7 @@ const getCustomDataString = function(customData) {
 };
 
 export default {
+  pad,
   validString,
   validBoolean,
   validNumber,
