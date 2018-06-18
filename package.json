@@ -14,7 +14,8 @@
   },
   "homepage": "https://github.com/bitmovin/bitanalytics-js#readme",
   "dependencies": {
-    "javascript-state-machine": "^2.4.0"
+    "javascript-state-machine": "^2.4.0",
+    "string.prototype.endswith": "^0.2.0"
   },
   "devDependencies": {
     "eslint": "^4.19.1",

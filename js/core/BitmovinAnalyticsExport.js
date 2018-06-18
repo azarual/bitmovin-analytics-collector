@@ -1,3 +1,5 @@
+require('string.prototype.endswith');
+
 import Analytics from './Analytics';
 import {Players} from '../enums/Players';
 import CdnProviders from '../enums/CDNProviders';
