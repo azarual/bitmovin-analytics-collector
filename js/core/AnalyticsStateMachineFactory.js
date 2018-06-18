@@ -1,8 +1,9 @@
 import PlayerDetector from '../utils/PlayerDetector';
-import {BitmovinAnalyticsStateMachine} from '../analyticsStateMachines/BitmovinAnalyticsStateMachine';
-import {Bitmovin7AnalyticsStateMachine} from '../analyticsStateMachines/Bitmovin7AnalyticsStateMachine';
-import {VideojsAnalyticsStateMachine} from '../analyticsStateMachines/VideoJsAnalyticsStateMachine';
-import {HTML5AnalyticsStateMachine} from '../analyticsStateMachines/HTML5AnalyticsStateMachine';
+
+import {BitmovinAnalyticsStateMachine} from '../analytics-state-machine/BitmovinAnalyticsStateMachine';
+import {Bitmovin7AnalyticsStateMachine} from '../analytics-state-machine/Bitmovin7AnalyticsStateMachine';
+import {VideojsAnalyticsStateMachine} from '../analytics-state-machine/VideoJsAnalyticsStateMachine';
+import {HTML5AnalyticsStateMachine} from '../analytics-state-machine/HTML5AnalyticsStateMachine';
 
 /**
  * Stateless. Auto-maps given player instance to new state-machine instances.
