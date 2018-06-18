@@ -4,7 +4,12 @@
     "allowJs": true,
     "module": "commonjs",
     "target": "ES5",
-    "strict": true
+    "strict": true,
+    "lib": [
+      "dom",
+      "es2015",
+      "es6"
+    ]
   },
   "include": [
     "js/**/*"
