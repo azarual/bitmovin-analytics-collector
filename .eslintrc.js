@@ -5,8 +5,9 @@ module.exports = {
     "commonjs": true,
     "es6": true
   },
-  "parser": "babel-eslint",
+  "parser": "typescript-eslint-parser",
   "plugins": [
+    "typescript",
     "html"
   ],
   "extends": "eslint:recommended",
