@@ -5,6 +5,8 @@ import {Bitmovin7AnalyticsStateMachine} from '../analytics-state-machine/Bitmovi
 import {VideojsAnalyticsStateMachine} from '../analytics-state-machine/VideoJsAnalyticsStateMachine';
 import {HTML5AnalyticsStateMachine} from '../analytics-state-machine/HTML5AnalyticsStateMachine';
 
+import { AnalyticsStateMachine, AnalyticsStateMachineCallbacks, AnalyticsStateMachineOptions } from './AnalyticsStateMachine';
+
 /**
  * Stateless. Auto-maps given player instance to new state-machine instances.
  * @class
@@ -15,21 +17,40 @@ class AnalyticsStateMachineFactory {
    * @param {AnalyticsStateMachineCallbacks} stateMachineCallbacks
    * @param {AnalyticsStateMachineOptions} opts
    */
-  static getAnalyticsStateMachine(player, stateMachineCallbacks, opts = {}) {
+  static createAnalyticsStateMachine(
+    player: any,
+    stateMachineCallbacks: AnalyticsStateMachineCallbacks,
+    opts: AnalyticsStateMachineOptions): AnalyticsStateMachine {
+
+    let stateMachine;
+
     if (PlayerDetector.isBitmovinVersionPre7(player)) {
-      return new BitmovinAnalyticsStateMachine(stateMachineCallbacks, opts);
+
+      stateMachine = new BitmovinAnalyticsStateMachine(stateMachineCallbacks, opts);
+
     } else if (PlayerDetector.isBitmovinVersion7Plus(player)) {
-      return new Bitmovin7AnalyticsStateMachine(stateMachineCallbacks, opts);
+
+      stateMachine = new Bitmovin7AnalyticsStateMachine(stateMachineCallbacks, opts);
+
     } else if (PlayerDetector.isVideoJs(player)) {
-      return new VideojsAnalyticsStateMachine(stateMachineCallbacks, opts);
+
+      stateMachine = new VideojsAnalyticsStateMachine(stateMachineCallbacks, opts);
+
     } else if (
+
       PlayerDetector.isHlsjs(player) ||
       PlayerDetector.isDashjs(player) ||
       PlayerDetector.isShaka(player)) {
-      return new HTML5AnalyticsStateMachine(stateMachineCallbacks, opts);
+
+      stateMachine = new HTML5AnalyticsStateMachine(stateMachineCallbacks, opts);
+
     } else {
+
       throw new Error('Could not detect player type');
+
     }
+
+    return <AnalyticsStateMachine> stateMachine;
   }
 }
 

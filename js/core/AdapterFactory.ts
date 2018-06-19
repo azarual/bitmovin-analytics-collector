@@ -1,4 +1,4 @@
-import PlayerDetector from '../utils/PlayerDetector';
+import PlayerDetector from '../PlayerDetector';
 
 import BitmovinAdapter from '../adapters/BitmovinAdapter';
 import Bitmovin7Adapter from '../adapters/Bitmovin7Adapter';
@@ -21,20 +21,23 @@ export class AdapterFactory {
    * @param {AnalyticsEventCallback} eventCallback
    * @param {AnalyticsStateMachine} stateMachine
    */
-  static getAdapter(player: any, eventCallback: AdapterEventCallback, stateMachine: AnalyticsStateMachine): Adapter {
+  static createAdapter(player: any, eventCallback: AdapterEventCallback, stateMachine: AnalyticsStateMachine): Adapter {
+    let adapter;
 
     if (PlayerDetector.isBitmovinVersionPre7(player)) {
-      return new BitmovinAdapter(player, eventCallback);
+      adapter = new BitmovinAdapter(player, eventCallback);
     } else if (PlayerDetector.isBitmovinVersion7Plus(player)) {
-      return new Bitmovin7Adapter(player, eventCallback);
+      adapter = new Bitmovin7Adapter(player, eventCallback);
     } else if (PlayerDetector.isVideoJs(player)) {
-      return new VideoJsAdapter(player, eventCallback, stateMachine);
+      adapter = new VideoJsAdapter(player, eventCallback, stateMachine);
     } else if(PlayerDetector.isHlsjs(player)) {
-      return new HlsjsAdapter(player, eventCallback, stateMachine);
+      adapter = new HlsjsAdapter(player, eventCallback, stateMachine);
     } else if(PlayerDetector.isShaka(player)) {
-      return new ShakaAdapter(player, eventCallback, stateMachine);
+      adapter = new ShakaAdapter(player, eventCallback, stateMachine);
     } else if (PlayerDetector.isDashjs(player)) {
-      return new DashjsAdapter(player, eventCallback, stateMachine);
+      adapter = new DashjsAdapter(player, eventCallback, stateMachine);
     }
+
+    return <Adapter> adapter;
   }
 }

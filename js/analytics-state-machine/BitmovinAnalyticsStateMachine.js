@@ -6,7 +6,7 @@ export class BitmovinAnalyticsStateMachine {
   static PAUSE_SEEK_DELAY = 60;
   static SEEKED_PAUSE_DELAY = 120;
 
-  constructor(stateMachineCallbacks) {
+  constructor(stateMachineCallbacks, opts) {
     this.stateMachineCallbacks = stateMachineCallbacks;
 
     this.pausedTimestamp       = null;

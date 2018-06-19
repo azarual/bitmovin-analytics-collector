@@ -8,9 +8,13 @@
  * @class
  */
 
+declare var videojs: any;
+declare var Hls: any;
+declare var shaka: any;
+
 class PlayerDetector {
 
-  static isBitmovinVersionPre7 = function(player) {
+  static isBitmovinVersionPre7 = function(player: any) {
     if (PlayerDetector.isDashjs(player)) {
       return false;
     }
@@ -22,7 +26,7 @@ class PlayerDetector {
     return false;
   };
 
-  static isBitmovinVersion7Plus = function(player) {
+  static isBitmovinVersion7Plus = function(player: any) {
     if (typeof player.version === 'string') {
       return player.version >= '7';
     }
@@ -30,7 +34,7 @@ class PlayerDetector {
     return false;
   };
 
-  static isVideoJs = function(player) {
+  static isVideoJs = function(player: any) {
     if (typeof videojs === 'function') {
       if (videojs(player.id_) === player) {
         return true;
@@ -39,7 +43,7 @@ class PlayerDetector {
     return false;
   }
 
-  static isHlsjs(player) {
+  static isHlsjs(player: any) {
 
     if (!Hls) {
       // Hls.js is not defined installed (must be loaded before analytics module)
@@ -51,9 +55,9 @@ class PlayerDetector {
     );
   }
 
-  static isShaka(player) {
+  static isShaka(player: any) {
 
-    if (!window.shaka) {
+    if (!shaka) {
       // Shaka is not defined installed (must be loaded before analytics module)
       return false;
     }
@@ -64,7 +68,7 @@ class PlayerDetector {
 
   }
 
-  static isDashjs(player) {
+  static isDashjs(player: any) {
     return typeof player.addABRCustomRule === 'function';
   }
 }

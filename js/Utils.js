@@ -56,9 +56,7 @@ const getCookie = function(cname) {
   return'';
 };
 
-const noOp = function() {
-
-};
+const noOp = function() {};
 
 const times = function (fn, times) {
   let count = 0;

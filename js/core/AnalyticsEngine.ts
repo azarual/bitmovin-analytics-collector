@@ -1,47 +1,182 @@
 /* global __VERSION__ */
-import LicenseCall from '../utils/LicenseCall';
-import AnalyticsCall from '../utils/AnalyticsCall';
-import Utils from '../utils/Utils';
-import logger from '../utils/Logger';
-import AdapterFactory from './AdapterFactory';
+
+declare var __VERSION__: string;
+
+import {LicenseCall} from '../transport/LicenseCall';
+import {AnalyticsCall} from '../transport/AnalyticsCall';
+
+import Utils from '../Utils';
+
+import {logger} from '../Logger';
+
+import {AdapterFactory} from './AdapterFactory';
+
 import AnalyticsStateMachineFactory from './AnalyticsStateMachineFactory';
+
 import CastClient from '../cast/CastClient';
 import CastReceiver from '../cast/CastReceiver';
+import { AnalyticsStateMachineCallbacks, AnalyticsStateMachine } from './AnalyticsStateMachine';
+import { Adapter } from './Adapter';
 
-class Analytics {
-  static PAGE_LOAD_TYPE               = {
-    FOREGROUND: 1, BACKGROUND: 2
-  };
+export type AnalyticsEngineConfiguration = {
+  cast: {
+    receiver: CastReceiver
+  },
+  debug: boolean,
+  key: any,
+  playerKey: any,
+  player: any,
+  cdnProvider: any,
+  videoId: any,
+  customUserId: any
+  customData1: any,
+  customData2: any,
+  customData3: any,
+  customData4: any,
+  customData5: any,
+  experimentName: string,
+  userId: any
+};
+
+enum AnalyticsPageLoadType {
+  FOREGROUND = 1,
+  BACKGROUND = 2
+}
+
+export type AnalyticsSample = {
+  impressionId: any,
+  userId: any,
+  userAgent: string,
+  domain: string,
+  path: string,
+  language: any,
+
+  ad: any,
+  paused: any,
+
+  seeked: any,
+  buffered: any,
+
+  playerStartupTime: any,
+  videoStartupTime: any,
+
+  startupTime: any,
+
+  isMuted: any,
+
+  duration: any,
+  droppedFrames: any,
+  pageLoadType: any,
+
+  pageLoadTime: any,
+
+  key: any,
+  playerKey: any,
+  player: any,
+  cdnProvider: any,
+  videoId: any,
+  customUserId: any,
+  customData1: any,
+  customData2: any,
+  customData3: any,
+  customData4: any,
+  customData5: any,
+  experimentName: string,
+  played: any,
+
+  time: any,
+
+  analyticsVersion: any,
+
+  errorCode: any,
+  errorMessage: any,
+
+  videoPlaybackHeight: number,
+  videoPlaybackWidth: number,
+
+  isCasting: boolean,
+  isLive: boolean,
+  version: any,
+  playerTech: any,
+  videoDuration: any,
+  streamFormat: any,
+  mpdUrl: string,
+  m3u8Url: string,
+  progUrl: string,
+  videoWindowWidth: number,
+  videoWindowHeight: number,
+
+  videoBitrate: number,
+
+  screenWidth: number,
+  screenHeight: number,
+
+  state: any,
+  size: number,
+  audioBitrate: number,
+  videoTimeStart: number
+  videoTimeEnd: number,
+
+  autoplay: any
+}
+
+type SampleArray = Array<AnalyticsSample>
+
+export class AnalyticsEngine {
+
   static LICENSE_CALL_PENDING_TIMEOUT = 200;
   static PAGE_LOAD_TYPE_TIMEOUT       = 200;
   static CAST_RECEIVER_CONFIG_MESSAGE = 'CAST_RECEIVER_CONFIG_MESSAGE';
 
-  constructor(config) {
-    this.config = config;
+  private castClient: CastClient;
+  private castReceiver: CastReceiver;
 
-    this.licenseCall                  = new LicenseCall();
-    this.analyticsCall                = new AnalyticsCall();
+  private droppedSampleFrames: number;
+  private licensing: string;
+  private startupTime: number;
+  private pageLoadType: AnalyticsPageLoadType;
+  private autoplay: boolean;
+
+  private isCastClient: boolean;
+  private isCastReceiver: boolean;
+  private isAllowedToSendSamples: boolean;
+  private samplesQueue: Array<AnalyticsSample>;
+
+  private sample: AnalyticsSample = <AnalyticsSample> {};
+
+  private castClientConfig: any;
+
+  private stateMachineCallbacks: AnalyticsStateMachineCallbacks | null = null;
+
+  private adapter: Adapter | null = null;
+
+  private analyticsStateMachine: AnalyticsStateMachine | null = null;
+
+  constructor(public config: AnalyticsEngineConfiguration) {
+
     this.castClient                   = new CastClient();
     this.castReceiver                 = new CastReceiver();
 
     this.droppedSampleFrames = 0;
     this.licensing           = 'waiting';
     this.startupTime         = 0;
-    this.pageLoadType        = Analytics.PAGE_LOAD_TYPE.FOREGROUND;
+    this.pageLoadType        = AnalyticsPageLoadType.FOREGROUND;
 
-    this.autoplay = undefined;
+    this.autoplay = false;
 
     this.isCastClient = false;
     this.isCastReceiver = false;
     this.isAllowedToSendSamples = false;
     this.samplesQueue = [];
 
+
+
     if (this.config.cast && this.config.cast.receiver) {
       this.isCastReceiver = true;
       this.castReceiver.setUp();
-      this.castReceiver.setCallback((event) => {
+      this.castReceiver.setCallback((event: any) => {
         switch (event.type) {
-          case Analytics.CAST_RECEIVER_CONFIG_MESSAGE:
+          case AnalyticsEngine.CAST_RECEIVER_CONFIG_MESSAGE:
             this.castClientConfig = event.data;
             this.updateSampleToCastClientConfig(this.sample, this.castClientConfig);
             this.updateSamplesToCastClientConfig(this.samplesQueue, event.data);
@@ -58,14 +193,15 @@ class Analytics {
     this.setupStateMachineCallbacks();
   }
 
-  updateSamplesToCastClientConfig(samples, castClientConfig) {
+  updateSamplesToCastClientConfig(samples: SampleArray, castClientConfig: any) {
     for (let i = 0; i < samples.length; i++) {
       this.updateSampleToCastClientConfig(samples[i], castClientConfig);
     }
   }
 
-  updateSampleToCastClientConfig(sample, castClientConfig) {
+  updateSampleToCastClientConfig(sample: AnalyticsSample, castClientConfig: any) {
     const {config, userId, impressionId, domain, path, language, userAgent} = castClientConfig;
+
     sample.impressionId = impressionId;
     sample.userId = userId;
     sample.userAgent = userAgent;
@@ -78,10 +214,18 @@ class Analytics {
 
   setPageLoadType() {
     window.setTimeout(() => {
-      if (document[Utils.getHiddenProp()] === true) {
-        this.pageLoadType = Analytics.PAGE_LOAD_TYPE.BACKGROUND;
+
+      const hiddenProp: any = Utils.getHiddenProp();
+      if (!hiddenProp) {
+        console.error('Assertion failed: getHiddenProp returned null');
+        return;
       }
-    }, Analytics.PAGE_LOAD_TYPE_TIMEOUT);
+
+      if ((<any> document)[hiddenProp] === true) {
+        this.pageLoadType = AnalyticsPageLoadType.BACKGROUND;
+      }
+
+    }, AnalyticsEngine.PAGE_LOAD_TYPE_TIMEOUT);
   }
 
   init() {
@@ -103,7 +247,7 @@ class Analytics {
     this.setUserId();
   }
 
-  setConfigParameters(sample = this.sample, config = this.config) {
+  setConfigParameters(sample: AnalyticsSample = this.sample, config = this.config) {
     sample.key          = config.key;
     sample.playerKey    = config.playerKey;
     sample.player       = config.player;
@@ -176,11 +320,11 @@ class Analytics {
         this.sample.autoplay = undefined;
       },
 
-      updateSample: (playbackSettings) => {
+      updateSample: (playbackSettings: any) => {
         this.setPlaybackSettingsFromLoadedEvent(playbackSettings);
       },
 
-      playing: (time, state, event) => {
+      playing: (time: number, state: any, event: any) => {
         this.setDuration(time);
         this.setState(state);
         this.sample.played = time;
@@ -190,7 +334,7 @@ class Analytics {
         this.sendAnalyticsRequestAndClearValues();
       },
 
-      playingAndBye: (time, state, event) => {
+      playingAndBye: (time: number, state: any, event: any) => {
         this.setDuration(time);
         this.setState(state);
         this.sample.played = time;
@@ -200,7 +344,7 @@ class Analytics {
         this.sendUnloadRequest();
       },
 
-      heartbeat: (time, state, event) => {
+      heartbeat: (time: number, state: any, event: any) => {
         this.setDroppedFrames(event);
         this.setState(state);
         this.setDuration(time);
@@ -210,40 +354,52 @@ class Analytics {
         this.sendAnalyticsRequestAndClearValues();
       },
 
-      qualitychange: (time, state) => {
+      qualitychange: (time: number, state: any) => {
         this.setDuration(time);
         this.setState(state);
 
         this.sendAnalyticsRequestAndClearValues();
       },
 
-      'qualitychange_pause': (time, state) => {
+      'qualitychange_pause': (time: number, state: any) => {
         this.setDuration(time);
         this.setState(state);
 
         this.sendAnalyticsRequestAndClearValues();
       },
 
-      'qualitychange_rebuffering': (time, state) => {
+      'qualitychange_rebuffering': (time: number, state: any) => {
         this.setDuration(time);
         this.setState(state);
 
         this.sendAnalyticsRequestAndClearValues();
       },
 
-      videoChange: (event) => {
+      videoChange: (event: any) => {
+
+        if (!this.stateMachineCallbacks) {
+          console.error('State-machine-callbacks not set');
+          return;
+        }
+
         this.stateMachineCallbacks.setVideoTimeEndFromEvent(event);
         this.stateMachineCallbacks.setVideoTimeStartFromEvent(event);
         this.setPlaybackVideoPropertiesFromEvent(event);
       },
 
-      audioChange: (event) => {
+      audioChange: (event: any) => {
+
+        if (!this.stateMachineCallbacks) {
+          console.error('State-machine-callbacks not set');
+          return;
+        }
+
         this.stateMachineCallbacks.setVideoTimeEndFromEvent(event);
         this.stateMachineCallbacks.setVideoTimeStartFromEvent(event);
         this.sample.audioBitrate = event.bitrate;
       },
 
-      pause: (time, state, event) => {
+      pause: (time: number, state: any, event: any) => {
         this.setDuration(time);
         this.setState(state);
 
@@ -252,7 +408,7 @@ class Analytics {
         this.sendAnalyticsRequestAndClearValues();
       },
 
-      'paused_seeking': (time, state, event) => {
+      'paused_seeking': (time: number, state: any, event: any) => {
         this.setDuration(time);
         this.setState(state);
 
@@ -263,7 +419,7 @@ class Analytics {
 
       'play_seeking': Utils.noOp,
 
-      'end_play_seeking': (time, state, event) => {
+      'end_play_seeking': (time: number, state: any, event: any) => {
         this.setState(state);
         this.setDuration(time);
 
@@ -272,7 +428,7 @@ class Analytics {
         this.sendAnalyticsRequestAndClearValues();
       },
 
-      rebuffering: (time, state, event) => {
+      rebuffering: (time: number, state: any, event: any) => {
         this.setDuration(time);
         this.setState(state);
 
@@ -281,7 +437,13 @@ class Analytics {
         this.sendAnalyticsRequestAndClearValues();
       },
 
-      error: (event) => {
+      error: (event: any) => {
+
+        if (!this.stateMachineCallbacks) {
+          console.error('State-machine-callbacks not set');
+          return;
+        }
+
         this.stateMachineCallbacks.setVideoTimeEndFromEvent(event);
         this.stateMachineCallbacks.setVideoTimeStartFromEvent(event);
 
@@ -295,11 +457,11 @@ class Analytics {
         delete this.sample.errorMessage;
       },
 
-      end: (time, state, event) => {
+      end: (time: number, state: any, event: any) => {
         this.sample.impressionId = Utils.generateUUID();
       },
 
-      ad: (time, state, event) => {
+      ad: (time: number, state: any, event: any) => {
         this.setDuration(time);
         this.setState(state);
         this.sample.ad = time;
@@ -333,7 +495,7 @@ class Analytics {
         }
       },
 
-      startCasting: (timestamp, event) => {
+      startCasting: (timestamp: number, event: any) => {
         if (event && event.resuming) {
           this.isAllowedToSendSamples = false;
           logger.warning('Player started casting but a session is already casting!');
@@ -345,7 +507,7 @@ class Analytics {
 
         const {domain, path, language, userAgent, userId, impressionId} = this.sample;
         const castStartMessage = {
-          type: Analytics.CAST_RECEIVER_CONFIG_MESSAGE,
+          type: AnalyticsEngine.CAST_RECEIVER_CONFIG_MESSAGE,
           data: {
             config: this.config,
             userId,
@@ -373,13 +535,13 @@ class Analytics {
     };
   }
 
-  setCustomDataOnce = (values) => {
+  setCustomDataOnce = (values: any) => {
     const oldConfig = this.config;
     this.setCustomData(values);
     this.setCustomData(oldConfig);
   }
 
-  setCustomData = (values) => {
+  setCustomData = (values: any) => {
     const filterValues = ({
       customData1,
       customData2,
@@ -388,7 +550,7 @@ class Analytics {
       customData5,
       experimentName
     }) => {
-      const retVal = {};
+      const retVal: any = {};
       if (customData1) {
         retVal.customData1 = customData1;
       }
@@ -418,13 +580,19 @@ class Analytics {
     this.setConfigParameters();
   };
 
-  register = (player, opts = {}) => {
+  register = (player: any, opts: any = {}) => {
     if (!opts.starttime) {
       opts.starttime = Utils.getCurrentTimestamp();
     }
-    this.analyticsStateMachine = AnalyticsStateMachineFactory.getAnalyticsStateMachine(player, this.stateMachineCallbacks, opts);
 
-    this.adapter = AdapterFactory.getAdapter(player, this.record, this.analyticsStateMachine);
+    if (!this.stateMachineCallbacks) {
+      console.error('State-machine-callbacks not set');
+      return;
+    }
+
+    this.analyticsStateMachine = AnalyticsStateMachineFactory.createAnalyticsStateMachine(player, this.stateMachineCallbacks, opts);
+
+    this.adapter = AdapterFactory.createAdapter(player, this.record, this.analyticsStateMachine);
     if (!this.adapter) {
       logger.error('Could not detect player.');
       return;
@@ -435,21 +603,26 @@ class Analytics {
     return this.sample.impressionId;
   };
 
-  record = (eventType, eventObject) => {
+  record = (eventType: any, eventObject: any) => {
     eventObject = eventObject || {};
+
+    if (!this.analyticsStateMachine) {
+      console.error('Can not record: State machine is not initialized');
+      return;
+    }
 
     this.analyticsStateMachine.callEvent(eventType, eventObject, Utils.getCurrentTimestamp());
   };
 
-  setDuration(duration) {
+  setDuration(duration: number) {
     this.sample.duration = duration;
   }
 
-  setState(state) {
+  setState(state: any) {
     this.sample.state = state;
   }
 
-  setPlaybackVideoPropertiesFromEvent(event) {
+  setPlaybackVideoPropertiesFromEvent(event: any) {
     if (Utils.validNumber(event.width)) {
       this.sample.videoPlaybackWidth = event.width;
     }
@@ -461,13 +634,13 @@ class Analytics {
     }
   }
 
-  setDroppedFrames = (event) => {
+  setDroppedFrames = (event: any) => {
     if (Utils.validNumber(event.droppedFrames)) {
       this.sample.droppedFrames = 0;
     }
   };
 
-  setPlaybackSettingsFromLoadedEvent(loadedEvent) {
+  setPlaybackSettingsFromLoadedEvent(loadedEvent: any) {
     if (Utils.validBoolean(loadedEvent.isLive)) {
       this.sample.isLive = loadedEvent.isLive;
     }
@@ -511,6 +684,9 @@ class Analytics {
   }
 
   setupSample() {
+
+    const navigator: any = window.navigator;
+
     this.sample = {
       domain             : Utils.sanitizePath(window.location.hostname),
       path               : Utils.sanitizePath(window.location.pathname),
@@ -544,14 +720,14 @@ class Analytics {
     };
   }
 
-  checkLicensing(key) {
-    this.licenseCall.sendRequest(key,
+  checkLicensing(key: any) {
+    LicenseCall.sendRequest(key,
       this.sample.domain,
       this.sample.analyticsVersion,
       this.handleLicensingResponse.bind(this));
   }
 
-  handleLicensingResponse(licensingResponse) {
+  handleLicensingResponse(licensingResponse: any) {
     if (licensingResponse.status === 'granted') {
       this.licensing = 'granted';
     } else if (licensingResponse.status === 'skip') {
@@ -572,22 +748,23 @@ class Analytics {
       this.sample.time = Utils.getCurrentTimestamp();
 
       if (!this.isCastClient && !this.isCastReceiver) {
-        this.analyticsCall.sendRequest(this.sample, Utils.noOp);
+        AnalyticsCall.sendRequest(this.sample, Utils.noOp);
         return;
       }
 
       if (!this.isAllowedToSendSamples) {
-        const copySample = {...this.sample};
+        const copySample: any = {...this.sample};
         this.samplesQueue.push(copySample);
       } else {
         for (let i = 0; i < this.samplesQueue.length; i++) {
-          this.analyticsCall.sendRequest(this.samplesQueue[i], Utils.noOp);
+          AnalyticsCall.sendRequest(this.samplesQueue[i], Utils.noOp);
         }
         this.samplesQueue = [];
 
-        this.analyticsCall.sendRequest(this.sample, Utils.noOp);
+        AnalyticsCall.sendRequest(this.sample, Utils.noOp);
       }
     } else if (this.licensing === 'waiting') {
+
       this.sample.time = Utils.getCurrentTimestamp();
 
       logger.log('Licensing callback still pending, waiting...');
@@ -595,8 +772,8 @@ class Analytics {
       const copySample = {...this.sample};
 
       window.setTimeout(() => {
-        this.analyticsCall.sendRequest(copySample, Utils.noOp);
-      }, Analytics.LICENSE_CALL_PENDING_TIMEOUT);
+        AnalyticsCall.sendRequest(copySample, Utils.noOp);
+      }, AnalyticsEngine.LICENSE_CALL_PENDING_TIMEOUT);
     }
   }
 
@@ -614,7 +791,7 @@ class Analytics {
       this.sendAnalyticsRequestSynchronous();
     }
     else {
-      const success = navigator.sendBeacon(this.analyticsCall.getAnalyticsServerUrl(),
+      const success = navigator.sendBeacon(AnalyticsCall.AnalyticsServerUrl,
         JSON.stringify(this.sample));
       if (!success) {
         this.sendAnalyticsRequestSynchronous();
@@ -627,7 +804,7 @@ class Analytics {
       return;
     }
 
-    this.analyticsCall.sendRequestSynchronous(this.sample, Utils.noOp);
+    AnalyticsCall.sendRequest(this.sample, Utils.noOp, true);
   }
 
   clearValues() {
@@ -646,7 +823,7 @@ class Analytics {
     this.sample.pageLoadType  = 0;
   }
 
-  getDroppedFrames(frames) {
+  getDroppedFrames(frames: number) {
     if (frames != undefined && frames != 0) {
       const droppedFrames = frames - this.droppedSampleFrames;
       this.droppedSampleFrames = frames;
@@ -657,5 +834,3 @@ class Analytics {
     }
   }
 }
-
-export default Analytics;

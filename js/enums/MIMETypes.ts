@@ -22,3 +22,6 @@ export function getMIMETypeFromFileExtension(path: string): MIMEType | null {
   }
   return null;
 }
+
+
+

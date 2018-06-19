@@ -1,4 +1,4 @@
-export enum CdnProviders {
+export enum CDNProvider {
   CLOUDFLARE = 'cloudflare',
   AKAMAI = 'akamai',
   FASTLY = 'fastly',
