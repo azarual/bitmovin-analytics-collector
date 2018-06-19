@@ -8,17 +8,21 @@ import {HlsjsAdapter} from '../adapters/HlsjsAdapter';
 import {ShakaAdapter} from '../adapters/ShakaAdapter';
 import {DashjsAdapter} from '../adapters/DashjsAdapter';
 
+import { Adapter, AdapterEventCallback } from './Adapter';
+import { AnalyticsStateMachine } from './AnalyticsStateMachine';
+
 /**
  * Stateless. Auto-maps given player instance to new adapter instances.
  * @class
  */
-class AdapterFactory {
+export class AdapterFactory {
   /**
-   * @param {object} player
+   * @param {any} player
    * @param {AnalyticsEventCallback} eventCallback
    * @param {AnalyticsStateMachine} stateMachine
    */
-  static getAdapter(player, eventCallback, stateMachine) {
+  static getAdapter(player: any, eventCallback: AdapterEventCallback, stateMachine: AnalyticsStateMachine): Adapter {
+
     if (PlayerDetector.isBitmovinVersionPre7(player)) {
       return new BitmovinAdapter(player, eventCallback);
     } else if (PlayerDetector.isBitmovinVersion7Plus(player)) {
@@ -34,5 +38,3 @@ class AdapterFactory {
     }
   }
 }
-
-export default AdapterFactory;

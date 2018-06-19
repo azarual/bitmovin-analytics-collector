@@ -1,4 +1,4 @@
-export enum Events {
+export enum Event {
   READY            = 'ready',
   SOURCE_LOADED    = 'sourceLoaded',
   PLAY             = 'play',
