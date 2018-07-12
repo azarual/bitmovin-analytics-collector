@@ -35,8 +35,8 @@
   },
   "scripts": {
     "build": "npm-run-all build:*",
-    "build:debug": "NODE_ENV=development webpack --progress",
-    "build:release": "NODE_ENV=production webpack --progress",
+    "build:debug": "NODE_ENV=development webpack-cli --progress",
+    "build:release": "NODE_ENV=production webpack-cli --progress",
     "dev-server": "NODE_ENV=development webpack-dev-server --progress",
     "lint": "npm-run-all lint:*",
     "lint:es": "eslint . html/**/*.html",
