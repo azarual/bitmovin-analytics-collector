@@ -41,7 +41,7 @@ const BANNER =
 const BASE_BUILD_FOLDER = 'build'
 const BASE_LIB_NAME = 'bitmovinanalytics';
 
-const API_EXPORT_MODULE = './js/core/BitmovinAnalyticsExport';
+const API_EXPORT_MODULE = './js/BitmovinAnalyticsCollector';
 
 const mode = process.env.NODE_ENV;
 
