@@ -308,7 +308,7 @@ export class Bitmovin7AnalyticsStateMachine implements AnalyticsStateMachine {
           if (!timestamp) {
             return;
           }
-          this.setEnabledDebugging(true);
+          
           this.addStatesToLog(event, from, to, timestamp, eventObject);
           const stateDuration = timestamp - this.onEnterStateTimestamp;
 
@@ -406,7 +406,6 @@ export class Bitmovin7AnalyticsStateMachine implements AnalyticsStateMachine {
   ) {
     if (this.enabledDebugging) {
       this.debuggingStates.push(new EventDebugging(event, from, to, timestamp, eventObject));
-      console.log(JSON.stringify(this.debuggingStates));
     }
   }
 
