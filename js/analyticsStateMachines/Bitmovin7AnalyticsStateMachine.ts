@@ -308,7 +308,7 @@ export class Bitmovin7AnalyticsStateMachine implements AnalyticsStateMachine {
           if (!timestamp) {
             return;
           }
-          
+
           this.addStatesToLog(event, from, to, timestamp, eventObject);
           const stateDuration = timestamp - this.onEnterStateTimestamp;
 
@@ -389,7 +389,6 @@ export class Bitmovin7AnalyticsStateMachine implements AnalyticsStateMachine {
 
   callEvent(eventType: string, eventObject: any, timestamp: number) {
     const exec = this.stateMachine[eventType];
-    console.log(eventType);
     if (exec) {
       exec.call(this.stateMachine, timestamp, eventObject);
     } else {
