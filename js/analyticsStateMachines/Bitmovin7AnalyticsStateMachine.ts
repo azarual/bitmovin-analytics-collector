@@ -148,6 +148,8 @@ export class Bitmovin7AnalyticsStateMachine implements AnalyticsStateMachine {
         {name: Event.SEEKED, from: this.States.END_PLAY_SEEKING, to: this.States.END_PLAY_SEEKING},
         {name: Event.TIMECHANGED, from: this.States.END_PLAY_SEEKING, to: this.States.PLAYING},
 
+        {name: Event.SEEKED, from: this.States.PLAY_SEEKING, to: this.States.PLAYING},
+
         {name: Event.END, from: this.States.PLAY_SEEKING, to: this.States.END},
         {name: Event.END, from: this.States.PAUSED_SEEKING, to: this.States.END},
         {name: Event.END, from: this.States.PLAYING, to: this.States.END},
@@ -198,7 +200,6 @@ export class Bitmovin7AnalyticsStateMachine implements AnalyticsStateMachine {
 
         {name: Event.MANUAL_SOURCE_CHANGE, from: this.getAllStates(), to: this.States.SOURCE_CHANGING},
         {name: Event.SOURCE_UNLOADED, from: this.getAllStates(), to: this.States.SOURCE_CHANGING},
-
         {name: Event.READY, from: this.States.SOURCE_CHANGING, to: this.States.READY},
 
         //{name: Events.SOURCE_LOADED, from: this.States.SETUP, to: this.States.SETUP},
@@ -307,6 +308,7 @@ export class Bitmovin7AnalyticsStateMachine implements AnalyticsStateMachine {
           if (!timestamp) {
             return;
           }
+          this.setEnabledDebugging(true);
           this.addStatesToLog(event, from, to, timestamp, eventObject);
           const stateDuration = timestamp - this.onEnterStateTimestamp;
 
@@ -387,7 +389,7 @@ export class Bitmovin7AnalyticsStateMachine implements AnalyticsStateMachine {
 
   callEvent(eventType: string, eventObject: any, timestamp: number) {
     const exec = this.stateMachine[eventType];
-
+    console.log(eventType);
     if (exec) {
       exec.call(this.stateMachine, timestamp, eventObject);
     } else {
@@ -404,6 +406,7 @@ export class Bitmovin7AnalyticsStateMachine implements AnalyticsStateMachine {
   ) {
     if (this.enabledDebugging) {
       this.debuggingStates.push(new EventDebugging(event, from, to, timestamp, eventObject));
+      console.log(JSON.stringify(this.debuggingStates));
     }
   }
 

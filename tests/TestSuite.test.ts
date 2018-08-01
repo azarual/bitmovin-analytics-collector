@@ -1,6 +1,6 @@
 import {Bitmovin7AnalyticsStateMachine} from '../js/analyticsStateMachines/Bitmovin7AnalyticsStateMachine';
 import each from 'jest-each';
-import * as statesFromFile from './normal.json';
+import * as statesFromFile from './doubleClickonTimeline.json';
 
 const stateMachine = new Bitmovin7AnalyticsStateMachine(null, null);
 stateMachine.setEnabledDebugging(true);
