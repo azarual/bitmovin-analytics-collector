@@ -18,6 +18,7 @@ export interface StateMachineCallbacks {
   error: (event: any) => void;
   end: (time: number, state: string, event: string) => void;
   ad: (time: number, state: string, event: string) => void;
+  ad_ending: (time: number, state: string, event: string) => void;
   mute: () => void;
   unMute: () => void;
   setVideoTimeEndFromEvent: (event: any) => void;

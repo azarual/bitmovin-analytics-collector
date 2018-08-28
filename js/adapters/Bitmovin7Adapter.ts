@@ -238,14 +238,15 @@ export class Bitmovin7Adapter implements Adapter {
       });
     });
 
-    this.player.addEventHandler(this.player.EVENT.ON_AD_STARTED, () => {
+    this.player.addEventHandler(this.player.EVENT.ON_AD_STARTED, (event: any) => {
       this.eventCallback(Event.START_AD, {
         currentTime: this.player.getCurrentTime(),
         droppedFrames: this.player.getDroppedFrames(),
       });
     });
 
-    this.player.addEventHandler(this.player.EVENT.ON_AD_FINISHED, () => {
+    this.player.addEventHandler(this.player.EVENT.ON_AD_FINISHED, (event: any) => {
+      debugger
       this.eventCallback(Event.END_AD, {
         currentTime: this.player.getCurrentTime(),
         droppedFrames: this.player.getDroppedFrames(),

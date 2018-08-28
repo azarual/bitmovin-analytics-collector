@@ -339,7 +339,15 @@ export class Analytics {
         this.setDuration(time);
         this.setState(state);
         this.sample.ad = time;
+        this.setDroppedFrames(event);
 
+        this.sendAnalyticsRequestAndClearValues();
+      },
+      ad_ending: (time: number, state: string, event: any) => {
+        this.setDuration(time);
+        this.setState(state);
+        this.sample.ad = time;
+        debugger
         this.setDroppedFrames(event);
 
         this.sendAnalyticsRequestAndClearValues();

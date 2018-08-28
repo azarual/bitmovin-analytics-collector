@@ -6,6 +6,7 @@ import {AnalyticsStateMachineOptions} from '../types/AnalyticsStateMachineOption
 import {EventDebugging} from '../utils/EventDebugging';
 import {StateMachineCallbacks} from '../types/StateMachineCallbacks';
 import {AnalyticsStateMachine} from '../types/AnalyticsStateMachine';
+import {Events} from 'hls.js';
 
 enum State {
   SETUP = 'SETUP',
@@ -28,6 +29,7 @@ enum State {
   MUTING_PAUSE = 'MUTING_PAUSE',
   CASTING = 'CASTING',
   SOURCE_CHANGING = 'SOURCE_CHANGING',
+  AD_ENDING = 'AD_ENDING'
 }
 
 export class Bitmovin7AnalyticsStateMachine implements AnalyticsStateMachine {
@@ -60,7 +62,7 @@ export class Bitmovin7AnalyticsStateMachine implements AnalyticsStateMachine {
   }
 
   getAllStates() {
-    return [
+    let allStates = [
       ...Object.keys(this.States).map(key => this.States[key]),
       'FINISH_PLAY_SEEKING',
       'PLAY_SEEK',
@@ -68,6 +70,10 @@ export class Bitmovin7AnalyticsStateMachine implements AnalyticsStateMachine {
       'FINISH_QUALITYCHANGE',
       'FINISH_QUALITYCHANGE_REBUFFERING',
     ];
+    allStates.splice(allStates.indexOf('AD'), 1);
+    allStates.splice(allStates.indexOf('AD_ENDING'), 1);
+
+    return allStates;
   }
 
   sourceChange = (config: any, timestamp: number) => {
@@ -168,9 +174,6 @@ export class Bitmovin7AnalyticsStateMachine implements AnalyticsStateMachine {
 
         {name: Event.UNLOAD, from: this.getAllStates(), to: this.States.END},
 
-        {name: Event.START_AD, from: this.States.PLAYING, to: this.States.AD},
-        {name: Event.END_AD, from: this.States.AD, to: this.States.PLAYING},
-
         {name: Event.MUTE, from: this.States.READY, to: this.States.MUTING_READY},
         {name: Event.UN_MUTE, from: this.States.READY, to: this.States.MUTING_READY},
         {name: 'FINISH_MUTING', from: this.States.MUTING_READY, to: this.States.READY},
@@ -202,6 +205,12 @@ export class Bitmovin7AnalyticsStateMachine implements AnalyticsStateMachine {
         {name: Event.READY, from: this.States.SOURCE_CHANGING, to: this.States.READY},
 
         //{name: Events.SOURCE_LOADED, from: this.States.SETUP, to: this.States.SETUP},
+        {name: Event.START_AD, from: this.States.PAUSE, to: this.States.AD},
+        {name: Event.START_AD, from: this.States.END, to: this.States.AD},
+        {name: Event.START_AD, from: this.States.PLAYING, to: this.States.AD},
+        {name: Event.END_AD, from: this.States.AD, to: this.States.AD_ENDING},
+        {name: Event.PLAY, from: this.States.AD_ENDING, to: this.States.PLAYING},
+        {name: Event.END_AD, from: this.States.AD_ENDING, to: this.States.END},
         //{name: Events.SOURCE_LOADED, from: this.States.READY, to: this.States.READY},
 
         {name: Event.VIDEO_CHANGE, from: this.States.REBUFFERING, to: this.States.QUALITYCHANGE_REBUFFERING},
@@ -240,6 +249,8 @@ export class Bitmovin7AnalyticsStateMachine implements AnalyticsStateMachine {
           if (event === Event.SEEK) {
             window.clearTimeout(this.seekedTimeout);
           }
+
+          if((window as any))
 
           if (event === Event.SEEKED && from === this.States.PAUSED_SEEKING) {
             this.seekedTimestamp = timestamp;

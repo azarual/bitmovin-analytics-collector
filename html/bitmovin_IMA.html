@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+   <head>
+      <meta charset="UTF-8" />
+      <link rel="icon" href="https://ox4zindgwb3p1qdp2lznn7zb-wpengine.netdna-ssl.com/wp-content/uploads/2016/02/cropped-icon-32x32.png" sizes="32x32" />
+      <link rel="icon" href="https://ox4zindgwb3p1qdp2lznn7zb-wpengine.netdna-ssl.com/wp-content/uploads/2016/02/cropped-icon-192x192.png" sizes="192x192" />
+      <link rel="apple-touch-icon-precomposed" href="https://ox4zindgwb3p1qdp2lznn7zb-wpengine.netdna-ssl.com/wp-content/uploads/2016/02/cropped-icon-180x180.png" />
+      <meta name="msapplication-TileImage" content="https://bitmovin.com/wp-content/uploads/2016/02/cropped-icon-270x270.png" />
+      <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/css/bootstrap.min.css" integrity="sha384-rwoIResjU2yc3z8GV/NPeZWAv56rSmLldC3R/AZzGRnGxQQKnKkoFVhFQhNUwEyJ" crossorigin="anonymous" />
+      <script src="https://code.jquery.com/jquery-3.1.1.slim.min.js" integrity="sha384-A7FZj7v+d/sdmMqp/nOQwliLvUsJfDHW+k9Omg/a/EheAdgtzNs3hpfag6Ed950n" crossorigin="anonymous"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/tether/1.4.0/js/tether.min.js" integrity="sha384-DztdAPBWPRXSA/3eYEEUWrWCy7G5KFbe8fFjk5JAIxUYHKkDx6Qin1DkWx51bBrb" crossorigin="anonymous"></script>
+      <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/js/bootstrap.min.js" integrity="sha384-vBWWzlZJ8ea9aCX4pEW3rVHjgjt7zpkNpZk+02D9phzyeVkE+jo0ieGizqPLForn" crossorigin="anonymous"></script>
+      <title>Bitdash Analytics</title>
+      <script type="text/javascript" src="//bitmovin-a.akamaihd.net/bitmovin-player/stable/7.8/bitmovinplayer.js"></script>
+      <script type="text/javascript" src="/build/debug/bitmovinanalytics.min.js"></script>
+   </head>
+   <body>
+      <div id="player" style="width: 400px"></div>
+      <a href="bitmovin.html">Click</a>
+      <a href="#" id="click">Click</a>
+      <a href="#" id="change">Change Source</a>
+      <script type="text/javascript">
+         bitmovin.player.addModule(bitmovin.analytics.PlayerModule);
+         
+         var player = bitmovin.player('player');
+         //bitmovin.analytics.augment(player);
+         
+         
+         player.setup({
+           key: 'a6e31908-550a-4f75-b4bc-a9d89880a733',
+           playback: {
+             autoplay: true,
+             muted: true
+           },
+           source:    {
+             dash: 'https://bitmovin-a.akamaihd.net/content/MI201109210084_1/mpds/f08e80da-bf1d-4e3d-8899-f0f6155f6efa.mpd',
+             hls: 'https://bitmovin-a.akamaihd.net/content/MI201109210084_1/m3u8s/f08e80da-bf1d-4e3d-8899-f0f6155f6efa.m3u8',
+             progressive: 'https://bitmovin-a.akamaihd.net/content/MI201109210084_1/MI201109210084_mpeg-4_hd_high_1080p25_10mbits.mp4',
+             poster: 'https://bitmovin-a.akamaihd.net/content/MI201109210084_1/poster.jpg'
+           },
+           analytics: {
+             key: 'e73a3577-d91c-4214-9e6d-938fb936818a',
+             experimentName: 'analytics-api',
+             debug: true
+           },
+         }).then(() => {
+             let addTag='https://s3-eu-west-1.amazonaws.com/bitmovin-player-eu-west1-ci-input/general/sample-vast-tags/vast-not-skippable-2s.xml';
+             let addType='ima'
+         player.scheduleAd(addTag, addType, {
+         'timeOffset': 5,
+         'pertistant': true,
+         'adMessage': 'scheduledAd'
+         });
+         player.scheduleAd(addTag, addType, {
+         'timeOffset': 'pre',
+         'pertistant': true,
+         'adMessage': 'scheduledAd'
+         });
+         player.scheduleAd(addTag, addType, {
+         'timeOffset': 'post',
+         'pertistant': true,
+         'adMessage': 'scheduledAd'
+         });
+         });
+         
+         
+         
+         
+         
+         
+         //document.getElementById('click').onclick = function () {
+         //  analytics.setCustomDataOnce({ customData1: 'after-click' });
+         //};
+         document.getElementById('change').onclick = function () {
+           player.load({
+             dash:  'https://bitmovin-a.akamaihd.net/content/MI201109210084_1/mpds/f08e80da-bf1d-4e3d-8899-f0f6155f6efa.mpd',
+             analytics: {
+               experimentName: 'analytics-switch'
+             }
+           });
+         };
+         
+         // window.setTimeout(function () {
+         //   player.load({
+         //       hls:  "https://bitdash-a.akamaihd.net/content/sintel/hls/playlist.m3u8",
+         //   });
+         // }, 5000)
+         
+      </script>
+   </body>
+</html>
