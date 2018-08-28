@@ -534,7 +534,6 @@ export class Analytics {
   };
 
   setPlaybackSettingsFromLoadedEvent(loadedEvent: any) {
-    debugger;
     if (Utils.validBoolean(loadedEvent.isLive)) {
       this.sample.isLive = loadedEvent.isLive;
     }
