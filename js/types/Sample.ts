@@ -55,6 +55,7 @@ export interface Sample {
   playerKey?: any;
   cdnProvider?: any;
   videoId?: string;
+  videoTitle?: string;
   customUserId?: string;
   drmType?: string;
   drmLoadTime?: number;

@@ -6,6 +6,7 @@ export interface AnalyicsConfig {
   player?: string;
   cdnProvider?: string;
   videoId?: string;
+  title?: string;
   userId?: string;
   customData1?: any;
   customData2?: any;

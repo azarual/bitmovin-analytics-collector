@@ -79,14 +79,17 @@ export class Bitmovin7Adapter implements Adapter {
 
       const config = this.player.getConfig();
       let source: PlayerSourceConfig = {};
-
+      
       const progConf = getProgConfigFromProgressiveConfig(config.source.progressive);
       if (config.source) {
         source.mpdUrl = config.source.dash;
         source.m3u8Url = config.source.hls;
         source.progUrl = progConf ? progConf.progUrl : undefined;
         source.progBitrate = progConf ? progConf.progBitrate : undefined;
+        source.videoTitle = config.source.title;
       }
+
+      debugger;
 
       this.eventCallback(Event.SOURCE_LOADED, {
         isLive: this.player.isLive(),
@@ -102,6 +105,7 @@ export class Bitmovin7Adapter implements Adapter {
         videoWindowHeight: this.player.getFigure().offsetHeight,
         isMuted: this.player.isMuted(),
         autoplay,
+        videoTitle: source.videoTitle
       });
     });
 
@@ -116,12 +120,15 @@ export class Bitmovin7Adapter implements Adapter {
       const progConf = getProgConfigFromProgressiveConfig(config.source.progressive);
       if (config.source) {
         source.videoId = config.source.videoId;
+        source.videoTitle = config.source.title;
         source.userId = config.source.userId;
         source.mpdUrl = config.source.dash;
         source.m3u8Url = config.source.hls;
         source.progUrl = progConf ? progConf.progUrl : undefined;
         source.progBitrate = progConf ? progConf.progBitrate : undefined;
       }
+
+      debugger;
 
       this.eventCallback(Event.READY, {
         isLive: this.player.isLive(),
@@ -139,6 +146,7 @@ export class Bitmovin7Adapter implements Adapter {
         videoWindowHeight: this.player.getFigure().offsetHeight,
         isMuted: this.player.isMuted(),
         autoplay,
+        videoTitle: source.videoTitle
       });
     });
 
