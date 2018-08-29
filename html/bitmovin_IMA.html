@@ -45,8 +45,9 @@
            },
          }).then(() => {
              let addTag='https://s3-eu-west-1.amazonaws.com/bitmovin-player-eu-west1-ci-input/general/sample-vast-tags/vast-not-skippable-2s.xml';
+             let addTagSkip='https://s3-eu-west-1.amazonaws.com/bitmovin-player-eu-west1-ci-input/general/sample-vast-tags/vast-skippable.xml';
              let addType='ima'
-         player.scheduleAd(addTag, addType, {
+         player.scheduleAd(addTagSkip, addType, {
          'timeOffset': 5,
          'pertistant': true,
          'adMessage': 'scheduledAd'
